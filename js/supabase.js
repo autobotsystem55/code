@@ -86,6 +86,16 @@
       if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
       return window.sb.from('products').delete().eq('id', id);
     },
+    // true only if the logged-in user's profile has is_admin = true
+    isAdmin: function () {
+      if (!window.sb) return Promise.resolve(false);
+      return window.sb.auth.getUser().then(function (res) {
+        var u = res && res.data && res.data.user;
+        if (!u) return false;
+        return window.sb.from('profiles').select('is_admin').eq('id', u.id).single()
+          .then(function (r) { return !!(r.data && r.data.is_admin); }, function () { return false; });
+      });
+    },
   };
 
   window.Auth = {

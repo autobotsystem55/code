@@ -75,8 +75,15 @@
             '<a class="btn" href="account.html">去登录 / 注册</a>';
           return;
         }
-        renderShell(user);
-        loadList();
+        DB.isAdmin().then(function (ok) {
+          if (ok) { renderShell(user); loadList(); return; }
+          root.innerHTML = '<div style="padding:24px 0;max-width:520px">' +
+            '<p class="muted" style="margin-bottom:8px">当前登录：' + esc(user.email) + '</p>' +
+            '<h2 style="font-size:30px;margin-bottom:12px">无管理权限</h2>' +
+            '<p class="muted" style="margin-bottom:26px">这个账号不是管理员，无法管理商品。请用管理员账号登录。</p>' +
+            '<a class="btn" href="account.html">切换账号</a> &nbsp; <a class="link-underline" href="index.html">回首页</a>' +
+          '</div>';
+        });
       });
 
       function esc(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }

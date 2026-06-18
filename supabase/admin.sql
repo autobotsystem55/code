@@ -1,19 +1,24 @@
 -- ============================================================
---  PÉTALE / Code Official — 管理员权限
---  让「某一个邮箱」可以从后台增删改商品；顾客只能浏览。
+--  Code Official — 管理员权限（基于 profiles.is_admin 标记）
+--  后台 admin.html 会根据这个标记决定谁能管理商品。
 --
---  用法：把下面的 YOUR_ADMIN_EMAIL@example.com 改成你要当管理员的邮箱
---        （就是你之后在网站 account.html 注册/登录用的那个邮箱），
---        然后整段粘进 Supabase → SQL Editor → Run。
---  （或者把邮箱发我，我帮你填好。）
+--  顺序很重要：
+--   1) 先在网站 /account.html 用「管理员邮箱」注册一个账号；
+--   2) 把下面 YOUR_ADMIN_EMAIL@example.com 改成那个邮箱；
+--   3) 整段粘进 Supabase → SQL Editor → Run。
+--   （把邮箱发我也行，我帮你填好；邮箱不会进公开仓库。）
 -- ============================================================
 
+-- 1) 给会员资料表加一个"管理员"标记（可重复运行，安全）
+alter table public.profiles add column if not exists is_admin boolean not null default false;
+
+-- 2) 把这个邮箱设为管理员（必须先注册过该账号，否则这步改不到任何行）
+update public.profiles set is_admin = true
+where id in (select id from auth.users where email = 'YOUR_ADMIN_EMAIL@example.com');
+
+-- 3) 只有管理员（is_admin = true）能 增/删/改 商品；顾客只能浏览
 drop policy if exists "admin manage products" on public.products;
 create policy "admin manage products" on public.products
-  for all
-  to authenticated
-  using      ( (auth.jwt() ->> 'email') = 'YOUR_ADMIN_EMAIL@example.com' )
-  with check ( (auth.jwt() ->> 'email') = 'YOUR_ADMIN_EMAIL@example.com' );
-
--- 说明：商品的「公开可读」策略之前已建（顾客能看上架商品）。
--- 这条新策略额外允许该管理员邮箱 增/删/改/看（含已下架）商品。
+  for all to authenticated
+  using      ( exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin) )
+  with check ( exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin) );
