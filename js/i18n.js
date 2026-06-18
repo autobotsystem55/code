@@ -13,8 +13,8 @@
   var DICT = {
     en: {
       'lang.toggle': '中文',
-      'title.home': 'Pétale — Sweet, Feminine Everyday Wear',
-      'title.shop': 'Shop All — Pétale',
+      'title.home': 'Code Official — Sweet, Feminine Everyday Wear',
+      'title.shop': 'Shop All — Code Official',
       'badge.sale': 'Sale', 'badge.new': 'New', 'card.quick': 'Quick add',
       'card.choose': 'Choose options', 'card.colours': '{n} colours', 'card.colour': '{n} colour',
       // announce
@@ -48,7 +48,7 @@
       'hero.cta': 'Shop the collection',
       'hero.newOuter': 'New dresses →',
       'hero.tag': '<b>New in</b> · The Silk Slip Dress',
-      'hero.est': 'Est. 2026 — Pétale',
+      'hero.est': 'Est. 2026 — Code Official',
       // values
       'val.shipping': 'Free shipping over {x}', 'val.shippingShort': 'Complimentary shipping',
       'val.returns': '30-day easy returns',
@@ -133,8 +133,8 @@
 
     zh: {
       'lang.toggle': 'EN',
-      'title.home': 'Pétale — 甜美女装 · 日常穿搭',
-      'title.shop': '全部商品 — Pétale',
+      'title.home': 'Code Official — 甜美女装 · 日常穿搭',
+      'title.shop': '全部商品 — Code Official',
       'badge.sale': '特惠', 'badge.new': '新品', 'card.quick': '快速加入',
       'card.choose': '选择规格', 'card.colours': '{n} 个颜色', 'card.colour': '{n} 个颜色',
       'ann.shipping': '满 {x} 免运费',
@@ -164,7 +164,7 @@
       'hero.cta': '选购系列',
       'hero.newOuter': '新款连衣裙 →',
       'hero.tag': '<b>新品</b> · 真丝吊带裙',
-      'hero.est': '创立于 2026 — Pétale',
+      'hero.est': '创立于 2026 — Code Official',
       'val.shipping': '满 {x} 免运费', 'val.shippingShort': '全场免运费',
       'val.returns': '30 天轻松退换',
       'val.sourced': '负责任采购', 'val.lasts': '经久耐穿',

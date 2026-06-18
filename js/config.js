@@ -6,7 +6,7 @@
 
 window.STORE_CONFIG = {
   /* --- Brand --- */
-  brand: 'Pétale',                                  // ← your shop name (placeholder; change freely)
+  brand: 'Code Official',                                  // ← your shop name (placeholder; change freely)
   tagline: 'Sweet, feminine everyday pieces',
   email: 'hello@petale-boutique.com',
 

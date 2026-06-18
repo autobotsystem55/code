@@ -1,4 +1,4 @@
-# Pétale — clothing store
+# Code Official — clothing store
 
 A fast, Shopify-style online clothing store built as a static site
 (HTML + CSS + vanilla JS). No build step, no dependencies. Includes a
