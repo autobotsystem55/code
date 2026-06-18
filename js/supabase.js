@@ -71,6 +71,21 @@
       if (!window.sb) return Promise.resolve({ data: [], error: null });
       return window.sb.from('orders').select('*').order('created_at', { ascending: false });
     },
+
+    // ---- admin (writes are protected by RLS — only the admin email can save) ----
+    allProducts: function () {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.from('products').select('*')
+        .order('sort', { ascending: true }).order('created_at', { ascending: true });
+    },
+    upsertProduct: function (row) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.from('products').upsert(row);
+    },
+    deleteProduct: function (id) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.from('products').delete().eq('id', id);
+    },
   };
 
   window.Auth = {
