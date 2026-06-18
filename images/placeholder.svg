@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#EAE2D4"/>
+      <stop offset="1" stop-color="#D8CDBB"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#g)"/>
+  <g fill="none" stroke="#A8503A" stroke-width="3" opacity="0.55"
+     transform="translate(400 470)">
+    <!-- simple garment (hanger + shirt) silhouette -->
+    <path d="M0 -150 a22 22 0 1 1 0 44 a22 22 0 1 1 0 -44" />
+    <path d="M0 -106 L0 -78 M0 -78 L-150 -10 M0 -78 L150 -10" stroke-linecap="round"/>
+    <path d="M-150 -10 L-205 70 L-130 120 L-120 300 L120 300 L130 120 L205 70 L150 -10
+             L95 30 L95 -25 L-95 -25 L-95 30 Z" stroke-linejoin="round"/>
+  </g>
+  <text x="400" y="860" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-size="34"
+        letter-spacing="6" fill="#8C8175">MAISON ÉCLAT</text>
+</svg>

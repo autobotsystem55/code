@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — Pétale</title>
+  <meta name="description" content="Thank you for your order.">
+  <meta name="robots" content="noindex">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/pixel.js"></script>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main>
+    <div class="thanks" id="thanks"></div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/products.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    (function () {
+      var order = null;
+      try { order = JSON.parse(localStorage.getItem('eclat_last_order')); } catch (e) {}
+      var el = document.getElementById('thanks');
+
+      var check = '<div class="thanks__check"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></div>';
+
+      if (!order) {
+        el.innerHTML = check + '<h1>' + t('ok.thanksPlain') + '</h1><p class="muted">' + t('ok.none') + '</p><br><a class="btn" href="shop.html">' + t('ok.continue') + '</a>';
+        return;
+      }
+
+      // ---- fire Pixel Purchase (once) then clear the order so refresh won't re-fire ----
+      if (window.Pixel) Pixel.purchase(order.items, order.total, order.orderId);
+      localStorage.removeItem('eclat_last_order');
+      localStorage.removeItem('eclat_cart_v1');
+      if (window.updateCartUI) updateCartUI();
+
+      el.innerHTML = check +
+        '<span class="eyebrow">' + t('ok.confirmed') + '</span>' +
+        '<h1>' + t('ok.thanks') + '</h1>' +
+        '<p>' + t('ok.line', { x: (order.email || '—') }) + '</p>' +
+        '<div class="thanks__order">' + t('ok.order') + ' <b>#' + order.orderId + '</b> &nbsp;·&nbsp; ' + t('ok.total') + ' ' + money(order.total) + '</div>' +
+        '<p class="muted">' + t('ok.tracking') + '</p>' +
+        '<br><a class="btn" href="shop.html">' + t('ok.continue') + '</a>';
+    })();
+  </script>
+</body>
+</html>

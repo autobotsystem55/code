@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account — Pétale</title>
+  <meta name="description" content="Sign in to your Pétale account.">
+  <meta name="robots" content="noindex">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/pixel.js"></script>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="wrap">
+    <div class="page-head">
+      <span class="eyebrow" data-i18n="acc.signInTitle">Sign in</span>
+      <h1 data-i18n="acc.title">My Account</h1>
+    </div>
+    <div id="account" style="max-width:460px;margin:0 auto 90px"></div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/products.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    (function () {
+      var root = document.getElementById('account');
+
+      if (!window.Auth || !Auth.enabled) {
+        root.innerHTML = '<p class="muted" style="text-align:center;padding:50px 0">' + t('acc.disabled') + '</p>';
+        return;
+      }
+
+      Auth.getUser().then(function (res) {
+        var user = res && res.data && res.data.user;
+        if (user) renderAccount(user); else renderAuth();
+      });
+
+      // ---------- signed-out: sign in / create account ----------
+      function renderAuth() {
+        root.innerHTML =
+          '<p class="muted" style="text-align:center;margin-bottom:26px">' + t('acc.lead') + '</p>' +
+          '<form id="authForm" novalidate>' +
+            '<div class="field" id="nameField" style="display:none"><label>' + t('acc.name') + '</label><input name="name" autocomplete="name"></div>' +
+            '<div class="field"><label>' + t('acc.email') + '</label><input type="email" name="email" autocomplete="email" required></div>' +
+            '<div class="field"><label>' + t('acc.password') + '</label><input type="password" name="password" autocomplete="current-password" required minlength="6"></div>' +
+            '<button class="btn btn--block" id="authBtn" type="submit">' + t('acc.signIn') + '</button>' +
+            '<p id="authMsg" style="text-align:center;margin-top:14px;font-size:13px;color:var(--wine)"></p>' +
+            '<p style="text-align:center;margin-top:18px" class="muted"><span id="toggleText">' + t('acc.noAccount') + '</span> ' +
+              '<a href="#" id="toggleMode" class="link-underline">' + t('acc.toSignUp') + '</a></p>' +
+          '</form>';
+
+        var mode = 'signin';
+        var form = document.getElementById('authForm');
+        var msg = document.getElementById('authMsg');
+
+        document.getElementById('toggleMode').addEventListener('click', function (e) {
+          e.preventDefault();
+          mode = (mode === 'signin') ? 'signup' : 'signin';
+          msg.textContent = '';
+          document.getElementById('nameField').style.display = (mode === 'signup') ? '' : 'none';
+          document.getElementById('authBtn').textContent = t(mode === 'signup' ? 'acc.signUp' : 'acc.signIn');
+          document.getElementById('toggleText').textContent = t(mode === 'signup' ? 'acc.haveAccount' : 'acc.noAccount');
+          document.getElementById('toggleMode').textContent = t(mode === 'signup' ? 'acc.toSignIn' : 'acc.toSignUp');
+        });
+
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          msg.style.color = 'var(--wine)';
+          var email = form.email.value.trim();
+          var pw = form.password.value;
+          if (!email || pw.length < 6) { msg.textContent = t('acc.err'); return; }
+          var btn = document.getElementById('authBtn'); btn.disabled = true;
+
+          var done = function (res) {
+            btn.disabled = false;
+            if (res && res.error) { msg.textContent = res.error.message || t('acc.err'); return; }
+            if (mode === 'signin') { location.reload(); return; }
+            // sign up
+            if (res && res.data && res.data.session) { location.reload(); return; }
+            msg.style.color = 'var(--green, #4C6149)';
+            msg.textContent = t('acc.created');
+          };
+
+          if (mode === 'signin') Auth.signIn(email, pw).then(done, function () { done({ error: {} }); });
+          else Auth.signUp(email, pw, form.name.value.trim()).then(done, function () { done({ error: {} }); });
+        });
+      }
+
+      // ---------- signed-in: profile + my orders ----------
+      function renderAccount(user) {
+        root.innerHTML =
+          '<div style="text-align:center">' +
+            '<p class="eyebrow">' + t('acc.welcome') + '</p>' +
+            '<h2 style="font-size:28px;margin:8px 0 6px">' + (user.email || '') + '</h2>' +
+            '<button class="btn btn--ghost" id="signOutBtn" style="margin-top:14px">' + t('acc.signOut') + '</button>' +
+          '</div>' +
+          '<h3 style="font-size:24px;margin:42px 0 6px">' + t('acc.myOrders') + '</h3>' +
+          '<div id="orders"><p class="muted" style="padding:14px 0">…</p></div>';
+
+        document.getElementById('signOutBtn').addEventListener('click', function () {
+          Auth.signOut().then(function () { location.reload(); });
+        });
+
+        DB.myOrders().then(function (r) {
+          var box = document.getElementById('orders');
+          var rows = (r && r.data) || [];
+          if (!rows.length) { box.innerHTML = '<p class="muted" style="padding:14px 0">' + t('acc.noOrders') + '</p>'; return; }
+          box.innerHTML = rows.map(function (o) {
+            var d = '';
+            try { d = new Date(o.created_at).toLocaleDateString(); } catch (e) {}
+            return '<div style="display:flex;justify-content:space-between;gap:12px;padding:15px 0;border-bottom:1px solid var(--line);font-size:14px">' +
+              '<div><b>#' + o.order_number + '</b><div class="muted" style="font-size:12px">' + d + '</div></div>' +
+              '<div style="text-align:right">' + money(Number(o.total)) +
+                '<div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">' + (o.status || '') + '</div></div>' +
+            '</div>';
+          }).join('');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

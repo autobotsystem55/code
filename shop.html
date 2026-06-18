@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title data-i18n="title.shop">Shop All — Pétale</title>
+  <meta name="description" content="Sweet, feminine everyday pieces — dresses, knitwear, tops and more. Free shipping over RM150 at Pétale.">
+  <link rel="canonical" href="https://www.petale-boutique.com/shop.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Pétale">
+  <meta property="og:title" content="Shop All — Pétale">
+  <meta property="og:description" content="Sweet, feminine everyday pieces. Free shipping over RM150.">
+  <meta property="og:url" content="https://www.petale-boutique.com/shop.html">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&h=630&q=80">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/pixel.js"></script>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="wrap">
+    <div class="page-head">
+      <span class="eyebrow" data-i18n="shop.collection">The collection</span>
+      <h1 id="shopTitle" data-i18n="shop.title">Shop All</h1>
+      <p data-i18n="shop.intro">Considered essentials, made to last.</p>
+    </div>
+
+    <div class="shopbar">
+      <div class="filters" id="filters"></div>
+      <div class="sortwrap">
+        <label for="sort" data-i18n="shop.sort">Sort</label>
+        <select id="sort">
+          <option value="featured" data-i18n="sort.featured">Featured</option>
+          <option value="price-asc" data-i18n="sort.priceAsc">Price: low to high</option>
+          <option value="price-desc" data-i18n="sort.priceDesc">Price: high to low</option>
+          <option value="name" data-i18n="sort.name">Alphabetical</option>
+        </select>
+      </div>
+    </div>
+
+    <p class="shop-count" id="count"></p>
+    <div class="grid" id="productGrid" style="padding-bottom:90px"></div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/products.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var activeCat = params.get('category') || 'All';
+      var sortBy = 'featured';
+
+      var filtersEl = document.getElementById('filters');
+      filtersEl.innerHTML = CATEGORIES.map(function (c) {
+        return '<button data-cat="' + c + '"' + (c === activeCat ? ' class="is-active"' : '') + '>' + tCat(c) + '</button>';
+      }).join('');
+
+      function apply() {
+        var list = PRODUCTS.filter(function (p) { return activeCat === 'All' || p.category === activeCat; });
+        if (sortBy === 'price-asc') list.sort(function (a, b) { return a.price - b.price; });
+        else if (sortBy === 'price-desc') list.sort(function (a, b) { return b.price - a.price; });
+        else if (sortBy === 'name') list.sort(function (a, b) { return pName(a).localeCompare(pName(b)); });
+
+        document.getElementById('shopTitle').textContent = activeCat === 'All' ? t('shop.title') : tCat(activeCat);
+        document.getElementById('count').textContent = list.length + ' ' + t(list.length === 1 ? 'shop.style' : 'shop.styles');
+        renderProducts(list, '#productGrid');
+      }
+
+      filtersEl.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-cat]'); if (!b) return;
+        activeCat = b.getAttribute('data-cat');
+        filtersEl.querySelectorAll('button').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+        history.replaceState(null, '', activeCat === 'All' ? 'shop.html' : 'shop.html?category=' + encodeURIComponent(activeCat));
+        apply();
+      });
+      document.getElementById('sort').addEventListener('change', function (e) { sortBy = e.target.value; apply(); });
+
+      productsReady.then(apply);
+    })();
+  </script>
+</body>
+</html>

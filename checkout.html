@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Pétale</title>
+  <meta name="description" content="Secure checkout.">
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://www.petale-boutique.com/checkout.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/pixel.js"></script>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="wrap">
+    <div class="page-head" style="padding-bottom:10px"><span class="eyebrow" data-i18n="co.almost">Almost yours</span><h1 data-i18n="co.title">Checkout</h1></div>
+
+    <div id="coRoot"></div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/products.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    productsReady.then(function () {
+      var lines = cartLines();
+      var root = document.getElementById('coRoot');
+
+      if (!lines.length) {
+        root.innerHTML = '<div style="text-align:center;padding:90px 0 130px"><p class="muted" style="margin-bottom:24px">' + t('co.empty') + '</p><a class="btn" href="shop.html">' + t('co.continue') + '</a></div>';
+        return;
+      }
+
+      var subtotal = cartSubtotal();
+      var shipping = subtotal >= (STORE_CONFIG.freeShippingThreshold || 0) ? 0 : (STORE_CONFIG.shippingFlat || 0);
+      var total = subtotal + shipping;
+
+      var payLink = (STORE_CONFIG.paymentLink || '').trim();
+      var demo = !payLink;
+
+      // ---- fire Pixel InitiateCheckout ----
+      if (window.Pixel) Pixel.initiateCheckout(lines.map(function (l) { return { id: l.id, qty: l.qty, price: l.price }; }), subtotal);
+
+      var summaryLines = lines.map(function (l) {
+        return '<div class="summary__line">' +
+          '<div class="li-img"><img src="' + imgUrl(l.image, 160) + '" alt="" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'"><b>' + l.qty + '</b></div>' +
+          '<div><div class="li-name">' + l.name + '</div><div class="li-meta">' + [l.color, l.size].filter(Boolean).join(' · ') + '</div></div>' +
+          '<div class="li-price">' + money(l.price * l.qty) + '</div>' +
+        '</div>';
+      }).join('');
+
+      var paymentFieldset = demo
+        ? '<fieldset><legend>' + t('co.payment') + ' <small>' + t('co.demo') + '</small></legend>' +
+            '<div class="field"><label>' + t('co.card') + '</label><input name="card" inputmode="numeric" placeholder="4242 4242 4242 4242" required></div>' +
+            '<div class="row2"><div class="field"><label>' + t('co.exp') + '</label><input name="exp" placeholder="04/28" required></div>' +
+            '<div class="field"><label>' + t('co.cvc') + '</label><input name="cvc" inputmode="numeric" placeholder="123" required></div></div>' +
+          '</fieldset>'
+        : '';
+
+      var btnLabel = demo ? t('co.place', { x: money(total) }) : t('co.proceed', { x: money(total) });
+      var secureNote = demo ? t('co.secureDemo') : t('co.secureReal');
+
+      root.innerHTML =
+        '<div class="checkout">' +
+          '<form class="co-form" id="coForm" novalidate>' +
+            '<fieldset><legend>' + t('co.contact') + '</legend>' +
+              '<div class="field"><label>' + t('co.email') + '</label><input type="email" name="email" placeholder="you@email.com" required></div>' +
+            '</fieldset>' +
+            '<fieldset><legend>' + t('co.shipping') + '</legend>' +
+              '<div class="row2"><div class="field"><label>' + t('co.first') + '</label><input name="first" required></div>' +
+              '<div class="field"><label>' + t('co.last') + '</label><input name="last" required></div></div>' +
+              '<div class="field"><label>' + t('co.address') + '</label><input name="address" required></div>' +
+              '<div class="field"><label>' + t('co.apt') + '</label><input name="apt"></div>' +
+              '<div class="row2"><div class="field"><label>' + t('co.city') + '</label><input name="city" required></div>' +
+              '<div class="field"><label>' + t('co.zip') + '</label><input name="zip" required></div></div>' +
+              '<div class="row2"><div class="field"><label>' + t('co.country') + '</label><select name="country" required>' +
+                '<option value="">' + t('co.select') + '</option><option>United States</option><option>United Kingdom</option><option>Canada</option><option>Australia</option><option>Hong Kong</option><option>Singapore</option><option>China</option><option>Other</option>' +
+              '</select></div>' +
+              '<div class="field"><label>' + t('co.phone') + '</label><input name="phone" required></div></div>' +
+            '</fieldset>' +
+            paymentFieldset +
+            '<button type="submit" class="btn btn--block" id="placeBtn">' + btnLabel + '</button>' +
+            '<div class="co-secure"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> ' + secureNote + '</div>' +
+          '</form>' +
+
+          '<aside class="summary">' +
+            '<h3>' + t('co.summary') + '</h3>' +
+            summaryLines +
+            '<div class="totals">' +
+              '<div><span>' + t('co.subtotal') + '</span><span>' + money(subtotal) + '</span></div>' +
+              '<div><span>' + t('co.shippingLbl') + '</span><span>' + (shipping === 0 ? t('co.free') : money(shipping)) + '</span></div>' +
+              '<div class="grand"><span>' + t('co.total') + '</span><b>' + money(total) + '</b></div>' +
+            '</div>' +
+          '</aside>' +
+        '</div>';
+
+      // ---- submit ----
+      document.getElementById('coForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var form = e.target;
+        var ok = true;
+        form.querySelectorAll('[required]').forEach(function (inp) {
+          var bad = !inp.value.trim() || (inp.type === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(inp.value));
+          inp.classList.toggle('err', bad);
+          if (bad) ok = false;
+        });
+        if (!ok) { toast(t('co.fill')); return; }
+
+        var orderId = 'ME' + String(Date.now()).slice(-7);
+        var f = form;
+        var itemRows = lines.map(function (l) {
+          return { id: l.id, name: l.name, qty: l.qty, price: l.price, size: l.size, color: l.color };
+        });
+        var customer = {
+          first: f.first.value, last: f.last.value, address: f.address.value, apt: f.apt.value,
+          city: f.city.value, zip: f.zip.value, country: f.country.value, phone: f.phone.value
+        };
+        localStorage.setItem('eclat_last_order', JSON.stringify({
+          orderId: orderId, email: f.email.value,
+          items: itemRows, subtotal: subtotal, shipping: shipping, total: total
+        }));
+
+        // DEMO → confirmation page. REAL → redirect to your Stripe/PayPal link.
+        function go() { location.href = demo ? 'success.html' : payLink; }
+
+        // Save the order to Supabase (attach the logged-in user if any).
+        // Never block checkout on a DB hiccup.
+        if (window.DB && DB.configured && window.Auth) {
+          var btn = document.getElementById('placeBtn'); if (btn) btn.disabled = true;
+          var orderRow = {
+            order_number: orderId, email: f.email.value, customer: customer,
+            items: itemRows, subtotal: subtotal, shipping: shipping, total: total,
+            currency: (STORE_CONFIG.currency || 'MYR')
+          };
+          Auth.getUser().then(function (res) {
+            var u = res && res.data && res.data.user; if (u) orderRow.user_id = u.id;
+            return DB.createOrder(orderRow);
+          }).then(function (r) {
+            if (r && r.error) console.warn('[Supabase] order save:', r.error.message);
+          }).then(go, go);
+        } else { go(); }
+      });
+    });
+  </script>
+</body>
+</html>

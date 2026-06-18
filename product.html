@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Generic meta; JS updates the <title> per product below.
+       (For per-product share previews that work in crawlers, generate a
+        static page per product or move to a server-rendered setup later.) -->
+  <title>Product — Pétale</title>
+  <meta name="description" content="Discover this sweet, feminine piece from the Pétale collection.">
+  <link rel="canonical" href="https://www.petale-boutique.com/product.html">
+
+  <meta property="og:type" content="product">
+  <meta property="og:site_name" content="Pétale">
+  <meta property="og:title" content="Pétale">
+  <meta property="og:description" content="A sweet, feminine piece from Pétale.">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/pixel.js"></script>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="wrap">
+    <div id="pdp"></div>
+
+    <section class="section" style="padding-top:clamp(50px,7vw,90px)">
+      <div class="sec-head reveal"><div><span class="eyebrow" data-i18n="pdp.also">You may also like</span><h2 style="font-size:clamp(28px,4vw,44px)" data-i18n="pdp.complete">Complete the look</h2></div></div>
+      <div class="grid grid--3" id="related"></div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/products.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    productsReady.then(function () {
+      var id = new URLSearchParams(location.search).get('id');
+      var p = findProduct(id);
+      var root = document.getElementById('pdp');
+
+      if (!p) {
+        root.innerHTML = '<div style="text-align:center;padding:120px 0"><h1 style="font-size:46px;margin-bottom:16px">' + t('pdp.notFound') + '</h1><p class="muted" style="margin-bottom:28px">' + t('pdp.notFoundSub') + '</p><a class="btn" href="shop.html">' + t('pdp.back') + '</a></div>';
+        return;
+      }
+
+      document.title = pName(p) + ' — ' + (STORE_CONFIG.brand || '');
+      var onSale = p.compareAt && p.compareAt > p.price;
+
+      var thumbs = p.images.map(function (im, i) {
+        return '<button class="' + (i === 0 ? 'is-active' : '') + '" data-thumb="' + i + '" aria-label="' + t('aria.thumb', { n: i + 1 }) + '"><img src="' + imgUrl(im, 200) + '" alt="" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'"></button>';
+      }).join('');
+
+      var swatches = p.colors.map(function (c, i) {
+        return '<button class="swatch ' + (i === 0 ? 'is-active' : '') + '" style="background:' + c.hex + '" data-color="' + c.name + '" title="' + c.name + '" aria-label="' + c.name + '"></button>';
+      }).join('');
+
+      var sizes = p.sizes.map(function (s) {
+        return '<button class="size" data-size="' + s + '">' + s + '</button>';
+      }).join('');
+
+      var price = onSale
+        ? '<span class="now sale">' + money(p.price) + '</span> <span class="was">' + money(p.compareAt) + '</span>'
+        : '<span class="now">' + money(p.price) + '</span>';
+
+      root.innerHTML =
+        '<div class="page-head" style="text-align:left;padding:26px 0 18px"><a class="link-underline muted" href="shop.html?category=' + encodeURIComponent(p.category) + '">← ' + pCat(p) + '</a></div>' +
+        '<div class="pdp">' +
+          '<div class="gallery">' +
+            '<div class="gallery__thumbs">' + thumbs + '</div>' +
+            '<div class="gallery__main"><img id="mainImg" src="' + imgUrl(p.images[0], 900) + '" alt="' + pName(p) + '" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'"></div>' +
+          '</div>' +
+          '<div class="pdp__info">' +
+            '<div class="pdp__cat">' + pCat(p) + '</div>' +
+            '<h1 class="pdp__title">' + pName(p) + '</h1>' +
+            '<div class="pdp__price">' + price + '</div>' +
+            '<p class="pdp__desc">' + pDesc(p) + '</p>' +
+            '<div class="opt"><div class="opt__label">' + t('pdp.colour') + ' <span id="colorName">' + p.colors[0].name + '</span></div><div class="swatch-row">' + swatches + '</div></div>' +
+            '<div class="opt"><div class="opt__label">' + t('pdp.size') + ' <span><a href="#" id="sizeGuide">' + t('pdp.sizeGuide') + '</a></span></div><div class="size-row" id="sizeRow">' + sizes + '</div></div>' +
+            '<div class="pdp__add">' +
+              '<div class="stepper" id="qtyStep"><button data-q="-1" aria-label="' + t('aria.dec') + '">–</button><span id="qty">1</span><button data-q="1" aria-label="' + t('aria.inc') + '">+</button></div>' +
+              '<button class="btn btn--block" id="addBtn">' + t('pdp.addToBag', { x: money(p.price) }) + '</button>' +
+            '</div>' +
+            '<div class="pdp__acc">' +
+              acc(t('pdp.details'), t('pdp.detailsBody')) +
+              acc(t('pdp.shipping'), t('pdp.shippingBody', { x: money(STORE_CONFIG.freeShippingThreshold) })) +
+              acc(t('pdp.care'), t('pdp.careBody')) +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+      // ---- fire Pixel ViewContent ----
+      if (window.Pixel) Pixel.viewContent(p);
+
+      // ---- state ----
+      var sel = { color: p.colors[0].name, size: p.sizes.length === 1 ? p.sizes[0] : null, qty: 1 };
+      if (p.sizes.length === 1) root.querySelector('.size').classList.add('is-active');
+
+      root.querySelector('#sizeGuide').addEventListener('click', function (e) { e.preventDefault(); toast(t('pdp.sizeGuideMsg')); });
+
+      // ---- gallery thumbs ----
+      root.querySelectorAll('[data-thumb]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var i = +b.getAttribute('data-thumb');
+          document.getElementById('mainImg').src = imgUrl(p.images[i], 900);
+          root.querySelectorAll('[data-thumb]').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+        });
+      });
+      // ---- colour ----
+      root.querySelectorAll('[data-color]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          sel.color = b.getAttribute('data-color');
+          document.getElementById('colorName').textContent = sel.color;
+          root.querySelectorAll('[data-color]').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+        });
+      });
+      // ---- size ----
+      root.querySelectorAll('[data-size]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          sel.size = b.getAttribute('data-size');
+          root.querySelectorAll('[data-size]').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+        });
+      });
+      // ---- qty ----
+      root.querySelector('#qtyStep').addEventListener('click', function (e) {
+        var d = e.target.getAttribute('data-q'); if (!d) return;
+        sel.qty = Math.max(1, sel.qty + parseInt(d, 10));
+        document.getElementById('qty').textContent = sel.qty;
+      });
+      // ---- accordions ----
+      root.querySelectorAll('.acc__q').forEach(function (q) {
+        q.addEventListener('click', function () { q.parentElement.classList.toggle('open'); });
+      });
+      // ---- add to bag ----
+      document.getElementById('addBtn').addEventListener('click', function () {
+        if (!sel.size) { toast(t('pdp.selectSize')); document.getElementById('sizeRow').animate(
+          [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 300 }); return; }
+        Store.addToCart(p.id, sel.size, sel.color, sel.qty);
+      });
+
+      function acc(q, a) {
+        return '<div class="acc"><button class="acc__q">' + q + '<span>+</span></button><div class="acc__a"><p>' + a + '</p></div></div>';
+      }
+
+      // ---- related ----
+      var related = PRODUCTS.filter(function (x) { return x.category === p.category && x.id !== p.id; });
+      if (related.length < 3) related = related.concat(PRODUCTS.filter(function (x) { return x.id !== p.id && related.indexOf(x) === -1; }));
+      renderProducts(related.slice(0, 3), '#related');
+    });
+  </script>
+</body>
+</html>
