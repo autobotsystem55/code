@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Official — 后台管理 Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   Code Official — Store Owner Admin (Demo A · 品牌一致版 / warm boutique)
+   Brand tokens lifted from the live storefront's styles.css
+   ===================================================================== */
+:root{
+  --cream:#FFFAF1;      /* canvas */
+  --cream-2:#FAF6F3;    /* panels */
+  --blush:#F2E4D9;
+  --pink:#E9C9CC;
+  --pink-soft:#F6E4E6;
+  --pink-border:#DAB0B7;
+  --wine:#82213E;       /* primary accent */
+  --wine-deep:#6A1A32;
+  --mauve:#6B4B4F;
+  --ink:#1C1C1C;
+  --ink-soft:#3E3E3E;
+  --muted:#6F635C;
+  --line:#ECD9D6;
+  --line-2:#E2DCD8;
+  --white:#FFFFFF;
+  --green:#3F6B4C;
+  --green-bg:#E6F0E8;
+  --amber:#9A6512;
+  --amber-bg:#FBEFD8;
+  --serif:'DM Serif Display',Georgia,'Times New Roman',serif;
+  --sans:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --radius:0px;
+  --radius-sm:2px;
+  --ease:cubic-bezier(0.22,1,0.36,1);
+  --sidebar:264px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  font-family:var(--sans);color:var(--ink);background:var(--cream);
+  line-height:1.6;font-size:15px;-webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--pink);color:var(--wine);}
+:focus-visible{outline:2px solid var(--wine);outline-offset:2px;}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:400;line-height:1.1;letter-spacing:.005em;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+input,textarea,select{font-family:inherit;font-size:inherit;color:inherit;}
+img{display:block;max-width:100%;}
+.eyebrow{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;color:var(--wine);}
+.muted{color:var(--muted);}
+
+/* ---------- shell layout ---------- */
+.app{display:grid;grid-template-columns:var(--sidebar) 1fr;min-height:100vh;}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  background:var(--cream-2);border-right:1px solid var(--line);
+  position:sticky;top:0;height:100vh;display:flex;flex-direction:column;
+  padding:26px 18px 18px;z-index:40;
+}
+.brand{font-family:var(--serif);font-size:25px;letter-spacing:.03em;color:var(--ink);padding:0 8px 4px;white-space:nowrap;}
+.brand sup{font-size:.42em;vertical-align:super;color:var(--wine);}
+.brand-sub{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);padding:0 8px;margin-bottom:30px;}
+.nav{display:flex;flex-direction:column;gap:2px;flex:1;}
+.nav-label{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:14px 12px 8px;}
+.nav-item{
+  display:flex;align-items:center;gap:13px;padding:11px 12px;border-radius:var(--radius-sm);
+  font-size:13.5px;font-weight:500;color:var(--ink-soft);letter-spacing:.01em;
+  transition:all .25s var(--ease);text-align:left;width:100%;position:relative;
+}
+.nav-item svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.5;fill:none;flex-shrink:0;}
+.nav-item .en{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-left:auto;font-weight:500;}
+.nav-item:hover{background:var(--pink-soft);color:var(--wine);}
+.nav-item.active{background:var(--wine);color:var(--cream);}
+.nav-item.active .en{color:var(--pink);}
+.nav-item.active::before{content:'';position:absolute;left:-18px;top:8px;bottom:8px;width:3px;background:var(--wine);}
+.nav-badge{margin-left:auto;background:var(--wine);color:var(--cream);font-size:10px;font-weight:600;min-width:19px;height:19px;border-radius:99px;display:grid;place-items:center;padding:0 5px;}
+.nav-item.active .nav-badge{background:var(--cream);color:var(--wine);}
+.nav-item.active .en + .nav-badge{margin-left:8px;}
+.side-foot{border-top:1px solid var(--line);padding:16px 12px 4px;margin-top:8px;}
+.side-foot .biz{font-size:12.5px;font-weight:600;}
+.side-foot .biz span{display:block;font-size:11px;color:var(--muted);font-weight:400;letter-spacing:.02em;}
+
+/* ---------- main ---------- */
+.main{display:flex;flex-direction:column;min-width:0;}
+.topbar{
+  position:sticky;top:0;z-index:30;background:rgba(255,250,241,.9);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;gap:18px;
+  padding:0 clamp(20px,3vw,38px);height:64px;
+}
+.topbar .burger{display:none;width:38px;height:38px;border:1px solid var(--pink-border);align-items:center;justify-content:center;}
+.topbar .burger svg{width:18px;height:18px;stroke:var(--ink);stroke-width:1.6;fill:none;}
+.crumb{display:flex;flex-direction:column;line-height:1.2;}
+.crumb b{font-family:var(--serif);font-size:20px;font-weight:400;}
+.crumb small{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+.topbar-spacer{flex:1;}
+.searchbox{display:flex;align-items:center;gap:9px;border:1px solid var(--pink-border);background:var(--white);padding:8px 13px;min-width:210px;}
+.searchbox svg{width:15px;height:15px;stroke:var(--muted);stroke-width:1.6;fill:none;}
+.searchbox input{border:none;outline:none;background:none;width:100%;font-size:13px;}
+.topbar .lang{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;padding:7px 11px;border:1px solid var(--pink-border);color:var(--ink-soft);transition:all .25s var(--ease);}
+.topbar .lang:hover{background:var(--wine);border-color:var(--wine);color:var(--cream);}
+.admin-chip{display:flex;align-items:center;gap:10px;}
+.admin-chip .avatar{width:34px;height:34px;border-radius:99px;background:var(--wine);color:var(--cream);display:grid;place-items:center;font-family:var(--serif);font-size:16px;}
+.admin-chip .meta{line-height:1.25;}
+.admin-chip .meta b{font-size:12.5px;font-weight:600;display:block;}
+.admin-chip .meta span{font-size:11px;color:var(--muted);}
+.logout{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;padding:8px 14px;border:1px solid var(--pink-border);color:var(--wine);transition:all .25s var(--ease);}
+.logout:hover{background:var(--wine);border-color:var(--wine);color:var(--cream);}
+
+.content{padding:clamp(22px,3vw,40px);max-width:1280px;width:100%;}
+.section{display:none;animation:fade .4s var(--ease);}
+.section.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px;flex-wrap:wrap;}
+.page-head h2{font-size:clamp(30px,4vw,42px);}
+.page-head .eyebrow{margin-bottom:7px;display:block;}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 24px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+  background:var(--wine);color:var(--cream);border:1px solid var(--wine);transition:all .3s var(--ease);
+}
+.btn:hover{background:var(--wine-deep);border-color:var(--wine-deep);}
+.btn svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;}
+.btn--ghost{background:transparent;color:var(--wine);}
+.btn--ghost:hover{background:var(--wine);color:var(--cream);}
+.btn--sm{padding:9px 16px;font-size:10px;}
+.btn[disabled]{opacity:.45;cursor:not-allowed;}
+
+/* ---------- stat cards ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;}
+.stat{background:var(--white);border:1px solid var(--line);padding:22px 22px 20px;position:relative;overflow:hidden;}
+.stat::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--wine);opacity:.85;}
+.stat .label{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.stat .label svg{width:15px;height:15px;stroke:var(--wine);stroke-width:1.6;fill:none;}
+.stat .num{font-family:var(--serif);font-size:38px;line-height:1;color:var(--ink);}
+.stat .num small{font-size:18px;color:var(--muted);}
+.stat .trend{font-size:11.5px;margin-top:11px;display:flex;align-items:center;gap:6px;color:var(--muted);}
+.trend .up{color:var(--green);font-weight:600;}
+.trend .down{color:var(--wine);font-weight:600;}
+
+/* ---------- panels ---------- */
+.grid-2{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;margin-bottom:22px;}
+.panel{background:var(--white);border:1px solid var(--line);}
+.panel__head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line);}
+.panel__head h3{font-size:20px;}
+.panel__head .more{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--wine);font-weight:600;}
+.panel__head .more:hover{opacity:.65;}
+.panel__body{padding:8px 22px 18px;}
+
+/* ---------- chart ---------- */
+.chart{padding:22px;}
+.chart .bars{display:flex;align-items:flex-end;gap:clamp(6px,1.5vw,16px);height:170px;margin-top:8px;}
+.chart .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:9px;height:100%;justify-content:flex-end;}
+.chart .bar i{width:100%;max-width:34px;background:linear-gradient(to top,var(--wine),#A8395A);display:block;transition:height 1s var(--ease),background .25s;border-radius:1px;}
+.chart .bar:hover i{background:linear-gradient(to top,var(--wine-deep),var(--wine));}
+.chart .bar.peak i{background:linear-gradient(to top,var(--wine),var(--pink-border));}
+.chart .bar span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.chart .bar b{font-size:10.5px;color:var(--ink-soft);font-weight:600;font-family:var(--sans);}
+.chart__foot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);margin-top:18px;padding-top:14px;}
+.chart__foot .big{font-family:var(--serif);font-size:26px;}
+.chart__foot small{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+
+/* ---------- tables ---------- */
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+thead th{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;}
+tbody td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr{transition:background .2s var(--ease);}
+tbody tr:hover{background:var(--cream-2);}
+.t-wrap{overflow-x:auto;}
+.cell-strong{font-weight:600;}
+.cell-sub{font-size:11.5px;color:var(--muted);}
+.mono{font-variant-numeric:tabular-nums;letter-spacing:.02em;}
+.thumb{width:46px;height:58px;object-fit:cover;background:var(--blush);}
+.prod-cell{display:flex;align-items:center;gap:13px;}
+
+/* ---------- badges / pills ---------- */
+.badge{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:4px 10px;border-radius:99px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.badge::before{content:'';width:6px;height:6px;border-radius:99px;background:currentColor;}
+.badge.green{background:var(--green-bg);color:var(--green);}
+.badge.amber{background:var(--amber-bg);color:var(--amber);}
+.badge.wine{background:var(--pink-soft);color:var(--wine);}
+.badge.grey{background:#EFEAE6;color:var(--muted);}
+.tag{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--blush);color:var(--ink-soft);font-weight:600;}
+.tag.sale{background:var(--wine);color:var(--cream);}
+.tag.new{background:var(--pink);color:var(--wine);}
+.status-toggle{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;cursor:pointer;}
+.toggle{width:36px;height:20px;border-radius:99px;background:var(--pink-border);position:relative;transition:background .25s var(--ease);flex-shrink:0;}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:99px;background:var(--white);transition:transform .25s var(--ease);box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.toggle.on{background:var(--green);}
+.toggle.on::after{transform:translateX(16px);}
+.row-actions{display:flex;gap:6px;}
+.icon-act{width:30px;height:30px;border:1px solid var(--line);display:grid;place-items:center;transition:all .2s var(--ease);}
+.icon-act svg{width:14px;height:14px;stroke:var(--ink-soft);stroke-width:1.6;fill:none;}
+.icon-act:hover{border-color:var(--wine);}
+.icon-act:hover svg{stroke:var(--wine);}
+.icon-act.del:hover{border-color:var(--wine);background:var(--pink-soft);}
+
+/* ---------- toolbar / filters ---------- */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.filters{display:flex;gap:6px;flex-wrap:wrap;}
+.filter{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;padding:8px 15px;border:1px solid var(--pink-border);border-radius:99px;color:var(--ink-soft);transition:all .25s var(--ease);}
+.filter:hover{border-color:var(--wine);color:var(--wine);}
+.filter.active{background:var(--wine);border-color:var(--wine);color:var(--cream);}
+.toolbar .searchbox{min-width:200px;}
+.toolbar-spacer{flex:1;}
+
+/* ---------- add product drawer/panel ---------- */
+.editor{background:var(--white);border:1px solid var(--line);margin-bottom:26px;overflow:hidden;max-height:0;opacity:0;transition:max-height .5s var(--ease),opacity .4s var(--ease),margin .4s;}
+.editor.open{max-height:2600px;opacity:1;}
+.editor__head{display:flex;align-items:center;justify-content:space-between;padding:20px 26px;border-bottom:1px solid var(--line);background:var(--cream-2);}
+.editor__head h3{font-size:24px;}
+.editor__head .eyebrow{display:block;margin-bottom:4px;}
+.editor__head .x{width:34px;height:34px;border:1px solid var(--pink-border);display:grid;place-items:center;background:var(--white);}
+.editor__head .x svg{width:15px;height:15px;stroke:var(--ink);stroke-width:1.8;fill:none;}
+.editor__head .x:hover{border-color:var(--wine);}
+.editor__body{padding:26px;}
+.form-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:28px;}
+.field{margin-bottom:18px;}
+.field > label{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;font-weight:600;}
+.field .hint{font-size:11px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;}
+.fld{width:100%;padding:12px 14px;background:var(--white);border:1px solid var(--pink-border);border-radius:var(--radius);outline:none;transition:border-color .2s var(--ease),box-shadow .2s;font-size:14px;}
+.fld:focus{border-color:var(--wine);box-shadow:0 0 0 3px var(--pink-soft);}
+textarea.fld{min-height:80px;resize:vertical;line-height:1.55;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.input-prefix{position:relative;}
+.input-prefix .pre{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);font-weight:600;pointer-events:none;}
+.input-prefix .fld{padding-left:42px;}
+
+.size-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{border:1px solid var(--pink-border);padding:9px 16px;font-size:12.5px;letter-spacing:.04em;cursor:pointer;transition:all .2s var(--ease);user-select:none;}
+.chip input{display:none;}
+.chip:hover{border-color:var(--wine);color:var(--wine);}
+.chip.on{background:var(--wine);border-color:var(--wine);color:var(--cream);}
+
+.color-list{display:flex;flex-direction:column;gap:10px;}
+.color-row{display:grid;grid-template-columns:46px 1fr 34px;gap:10px;align-items:center;}
+.color-row input[type=color]{width:46px;height:44px;border:1px solid var(--pink-border);padding:3px;background:var(--white);cursor:pointer;}
+.color-row .rm{width:34px;height:44px;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);transition:all .2s;}
+.color-row .rm:hover{border-color:var(--wine);color:var(--wine);}
+.color-row .rm svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.8;fill:none;}
+.add-color{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--wine);font-weight:600;margin-top:10px;display:inline-flex;align-items:center;gap:6px;}
+.add-color svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;}
+.add-color:hover{opacity:.65;}
+
+.uploader{border:1.5px dashed var(--pink-border);background:var(--cream-2);padding:24px;text-align:center;transition:all .25s var(--ease);}
+.uploader:hover{border-color:var(--wine);background:var(--pink-soft);}
+.uploader svg{width:26px;height:26px;stroke:var(--wine);stroke-width:1.4;fill:none;margin:0 auto 10px;}
+.uploader p{font-size:12.5px;color:var(--ink-soft);}
+.uploader small{font-size:11px;color:var(--muted);display:block;margin-top:3px;}
+.img-previews{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+.img-previews .ip{width:62px;height:78px;background:var(--blush);position:relative;}
+.img-previews .ip img{width:100%;height:100%;object-fit:cover;}
+.img-previews .ip b{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:99px;background:var(--white);border:1px solid var(--pink-border);font-size:11px;display:grid;place-items:center;color:var(--wine);cursor:pointer;}
+
+.switch-field{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--line);background:var(--cream-2);padding:14px 16px;}
+.switch-field .txt b{font-size:13px;font-weight:600;display:block;}
+.switch-field .txt span{font-size:11.5px;color:var(--muted);}
+.editor__foot{display:flex;align-items:center;gap:12px;padding:20px 26px;border-top:1px solid var(--line);background:var(--cream-2);}
+.editor__foot .msg{font-size:12.5px;margin-left:6px;}
+
+/* live preview card in editor */
+.preview-card{background:var(--cream);border:1px solid var(--line);padding:16px;}
+.preview-card .pc-img{aspect-ratio:4/5;background:var(--blush);overflow:hidden;position:relative;}
+.preview-card .pc-img img{width:100%;height:100%;object-fit:cover;}
+.preview-card .pc-badge{position:absolute;top:10px;left:10px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;background:var(--cream);padding:4px 9px;color:var(--ink);}
+.preview-card .pc-badge.sale{background:var(--wine);color:var(--cream);}
+.preview-card .pc-body{text-align:center;padding-top:13px;}
+.preview-card .pc-cat{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.preview-card .pc-name{font-size:14px;font-weight:500;margin:5px 0 7px;}
+.preview-card .pc-price{font-size:14px;display:flex;gap:8px;justify-content:center;align-items:baseline;}
+.preview-card .pc-price .was{color:var(--muted);text-decoration:line-through;font-size:12px;}
+.preview-card .pc-price .now.sale{color:var(--wine);font-weight:600;}
+.preview-card .pc-sw{display:flex;gap:5px;justify-content:center;margin-top:9px;}
+.preview-card .pc-sw i{width:12px;height:12px;border-radius:99px;border:1px solid rgba(0,0,0,.15);display:block;}
+.preview-note{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:10px;}
+
+/* ---------- settings ---------- */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.settings-grid .panel.span{grid-column:1/-1;}
+.set-block{padding:22px;}
+.set-block h3{font-size:21px;margin-bottom:4px;}
+.set-block > .eyebrow{display:block;margin-bottom:14px;}
+.set-block .field:last-child{margin-bottom:0;}
+
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.pay-card{border:1.5px solid var(--pink-border);background:var(--white);padding:16px 16px 14px;cursor:pointer;transition:all .25s var(--ease);position:relative;}
+.pay-card:hover{border-color:var(--wine);}
+.pay-card.active{border-color:var(--wine);background:var(--pink-soft);box-shadow:0 0 0 1px var(--wine);}
+.pay-card .pc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.pay-card .nm{font-size:14px;font-weight:600;}
+.pay-card .dsc{font-size:11.5px;color:var(--muted);line-height:1.4;}
+.pay-card .dot{width:16px;height:16px;border-radius:99px;border:1.5px solid var(--pink-border);transition:all .2s;}
+.pay-card.active .dot{border-color:var(--wine);background:var(--wine);box-shadow:inset 0 0 0 3px var(--white);}
+.pay-fields{border-top:1px solid var(--line);padding-top:18px;margin-top:4px;display:none;}
+.pay-fields.show{display:block;animation:fade .35s var(--ease);}
+.pay-note{display:flex;gap:9px;align-items:flex-start;background:var(--cream-2);border:1px solid var(--line);padding:11px 13px;font-size:12px;color:var(--muted);margin-top:14px;}
+.pay-note svg{width:15px;height:15px;stroke:var(--wine);stroke-width:1.6;fill:none;flex-shrink:0;margin-top:2px;}
+
+.choice-row{display:flex;gap:8px;flex-wrap:wrap;}
+.choice{font-size:12px;letter-spacing:.04em;padding:9px 16px;border:1px solid var(--pink-border);cursor:pointer;transition:all .2s var(--ease);user-select:none;}
+.choice:hover{border-color:var(--wine);color:var(--wine);}
+.choice.on{background:var(--wine);border-color:var(--wine);color:var(--cream);}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,30px);z-index:120;background:var(--wine);color:var(--cream);padding:14px 24px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;opacity:0;transition:all .45s var(--ease);pointer-events:none;box-shadow:0 14px 40px rgba(28,28,28,.22);display:flex;align-items:center;gap:9px;}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+.toast svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;}
+
+/* ---------- empty / scrim ---------- */
+.scrim{display:none;position:fixed;inset:0;background:rgba(28,28,28,.4);z-index:35;}
+
+/* ---------- responsive ---------- */
+@media(max-width:1100px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .grid-2{grid-template-columns:1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .settings-grid{grid-template-columns:1fr;}
+}
+@media(max-width:860px){
+  .app{grid-template-columns:1fr;}
+  .sidebar{position:fixed;left:0;top:0;width:280px;transform:translateX(-100%);transition:transform .35s var(--ease);box-shadow:8px 0 40px rgba(28,28,28,.14);}
+  .sidebar.open{transform:none;}
+  .topbar .burger{display:flex;}
+  .scrim.open{display:block;}
+  .topbar .searchbox{display:none;}
+  .admin-chip .meta{display:none;}
+}
+@media(max-width:560px){
+  .stats{grid-template-columns:1fr;}
+  .seg{grid-template-columns:1fr;}
+  .topbar .lang{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">Code Official <sup>✿</sup></div>
+    <div class="brand-sub">Admin · 后台</div>
+    <nav class="nav">
+      <span class="nav-label">主菜单 Menu</span>
+      <button class="nav-item active" data-go="dash">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        概览 <span class="en">Dashboard</span>
+      </button>
+      <button class="nav-item" data-go="products">
+        <svg viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg>
+        商品 <span class="en">Products</span>
+      </button>
+      <button class="nav-item" data-go="orders">
+        <svg viewBox="0 0 24 24"><path d="M6 2l1.5 3h9L18 2"/><path d="M3 5h18l-1.5 14a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2L3 5z"/><path d="M9 11h6"/></svg>
+        订单 <span class="en">Orders</span>
+        <span class="nav-badge">3</span>
+      </button>
+      <button class="nav-item" data-go="customers">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3 3 0 0 1 0 6"/><path d="M21 20c0-2.8-1.8-5-4.3-5.7"/></svg>
+        顾客 <span class="en">Customers</span>
+      </button>
+      <span class="nav-label">系统 System</span>
+      <button class="nav-item" data-go="settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4.6 15H4.4a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 11 4.6V4.4a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.2a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.5 1z"/></svg>
+        设置 <span class="en">Settings</span>
+      </button>
+    </nav>
+    <div class="side-foot">
+      <div class="biz">Code Official ✿<span>女装精品 · 自 2026</span></div>
+    </div>
+  </aside>
+
+  <div class="scrim" id="scrim"></div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="burger" id="burger" aria-label="菜单">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div class="crumb">
+        <small id="crumb-en">Dashboard</small>
+        <b id="crumb-zh">概览</b>
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="searchbox">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input type="text" placeholder="搜索 商品 / 订单…">
+      </div>
+      <button class="lang" id="langBtn">中 / EN</button>
+      <div class="admin-chip">
+        <div class="avatar">C</div>
+        <div class="meta"><b>店主 Admin</b><span>code.officialco@gmail.com</span></div>
+      </div>
+      <button class="logout" onclick="toast('已退出登录 (演示)')">退出登录</button>
+    </header>
+
+    <main class="content">
+
+      <!-- ===== 1. DASHBOARD ===== -->
+      <section class="section active" id="sec-dash">
+        <div class="page-head">
+          <div><span class="eyebrow">概览 · Overview</span><h2>早安，欢迎回来 ✿</h2></div>
+          <button class="btn" data-go="products"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>上新商品</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="label"><svg viewBox="0 0 24 24"><path d="M6 2l1.5 3h9L18 2"/><path d="M3 5h18l-1.5 14a2 2 0 0 1-2 2H6.5a2 2 0 0 1-2-2L3 5z"/></svg>今日订单 Today</div>
+            <div class="num">12</div>
+            <div class="trend"><span class="up">▲ 20%</span> 较昨日</div>
+          </div>
+          <div class="stat">
+            <div class="label"><svg viewBox="0 0 24 24"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>今日销售额 Revenue</div>
+            <div class="num"><small>RM</small> 2,148</div>
+            <div class="trend"><span class="up">▲ 14%</span> 较昨日</div>
+          </div>
+          <div class="stat">
+            <div class="label"><svg viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/></svg>在售商品 Products</div>
+            <div class="num">38</div>
+            <div class="trend">其中 <span class="up">&nbsp;6</span>&nbsp;件本周上新</div>
+          </div>
+          <div class="stat">
+            <div class="label"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12"/><path d="M16 9h4l3 3v6h-7"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg>待发货 To Ship</div>
+            <div class="num">5</div>
+            <div class="trend"><span class="down">● 需处理</span> 已付款待发</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- recent orders -->
+          <div class="panel">
+            <div class="panel__head"><h3>最近订单</h3><a class="more" data-go="orders">查看全部 →</a></div>
+            <div class="panel__body t-wrap">
+              <table>
+                <thead><tr><th>订单号</th><th>顾客</th><th>金额</th><th>状态</th><th>日期</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono cell-strong">#CO-1042</td><td>陈雅婷</td><td class="mono">RM 248.00</td><td><span class="badge amber">待发货</span></td><td class="cell-sub">06-19</td></tr>
+                  <tr><td class="mono cell-strong">#CO-1041</td><td>Sarah Lim</td><td class="mono">RM 350.00</td><td><span class="badge green">已发货</span></td><td class="cell-sub">06-19</td></tr>
+                  <tr><td class="mono cell-strong">#CO-1040</td><td>黄美玲</td><td class="mono">RM 165.00</td><td><span class="badge amber">待发货</span></td><td class="cell-sub">06-18</td></tr>
+                  <tr><td class="mono cell-strong">#CO-1039</td><td>Tan Wei Ling</td><td class="mono">RM 185.00</td><td><span class="badge wine">待付款</span></td><td class="cell-sub">06-18</td></tr>
+                  <tr><td class="mono cell-strong">#CO-1038</td><td>林晓彤</td><td class="mono">RM 433.00</td><td><span class="badge green">已发货</span></td><td class="cell-sub">06-17</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- revenue chart -->
+          <div class="panel">
+            <div class="panel__head"><h3>近 7 日销售</h3><span class="cell-sub">RM · Revenue</span></div>
+            <div class="chart">
+              <div class="bars">
+                <div class="bar" style="--h:42%"><b>1.4k</b><i style="height:42%"></i><span>周一</span></div>
+                <div class="bar" style="--h:58%"><b>1.9k</b><i style="height:58%"></i><span>周二</span></div>
+                <div class="bar" style="--h:48%"><b>1.6k</b><i style="height:48%"></i><span>周三</span></div>
+                <div class="bar" style="--h:72%"><b>2.4k</b><i style="height:72%"></i><span>周四</span></div>
+                <div class="bar" style="--h:64%"><b>2.1k</b><i style="height:64%"></i><span>周五</span></div>
+                <div class="bar peak" style="--h:96%"><b>3.2k</b><i style="height:96%"></i><span>周六</span></div>
+                <div class="bar" style="--h:66%"><b>2.1k</b><i style="height:66%"></i><span>周日</span></div>
+              </div>
+              <div class="chart__foot">
+                <div><small>本周合计 This week</small><br><span class="big">RM 14,720</span></div>
+                <div style="text-align:right"><small>同比</small><br><span class="big" style="color:var(--green);font-size:20px">▲ 18.4%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 2. PRODUCTS ===== -->
+      <section class="section" id="sec-products">
+        <div class="page-head">
+          <div><span class="eyebrow">商品 · Products</span><h2>商品管理</h2></div>
+          <button class="btn" id="addProductBtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>上新商品</button>
+        </div>
+
+        <!-- ADD PRODUCT EDITOR -->
+        <div class="editor" id="editor">
+          <div class="editor__head">
+            <div><span class="eyebrow">New Product</span><h3>上新商品</h3></div>
+            <button class="x" id="closeEditor" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <div class="editor__body">
+            <div class="form-grid">
+              <!-- left: fields -->
+              <div>
+                <div class="row2">
+                  <div class="field"><label>商品名 (English) <span class="hint">*必填</span></label><input class="fld" id="f_name" placeholder="Wool-Blend Overcoat" value="Wool-Blend Overcoat"></div>
+                  <div class="field"><label>商品名 (中文)</label><input class="fld" id="f_name_zh" placeholder="羊毛混纺大衣" value="羊毛混纺大衣"></div>
+                </div>
+                <div class="row2">
+                  <div class="field"><label>分类 Category</label>
+                    <select class="fld" id="f_cat">
+                      <option>Outerwear</option><option>Knitwear</option><option>Shirts</option>
+                      <option>Tops</option><option>Trousers</option><option>Dresses</option><option>Accessories</option>
+                    </select>
+                  </div>
+                  <div class="field"><label>标签 Badge</label>
+                    <select class="fld" id="f_badge"><option value="">无 None</option><option>New</option><option selected>Sale</option></select>
+                  </div>
+                </div>
+                <div class="row2">
+                  <div class="field"><label>价格 Price <span class="hint">*必填</span></label>
+                    <div class="input-prefix"><span class="pre">RM</span><input class="fld" id="f_price" type="number" step="0.01" value="248" oninput="syncPreview()"></div>
+                  </div>
+                  <div class="field"><label>原价 Compare-at <span class="hint">打折用·可空</span></label>
+                    <div class="input-prefix"><span class="pre">RM</span><input class="fld" id="f_cmp" type="number" step="0.01" value="298" oninput="syncPreview()"></div>
+                  </div>
+                </div>
+
+                <div class="field"><label>尺码 Sizes <span class="hint">可多选</span></label>
+                  <div class="size-chips" id="sizeChips">
+                    <label class="chip"><input type="checkbox" value="XS">XS</label>
+                    <label class="chip on"><input type="checkbox" value="S" checked>S</label>
+                    <label class="chip on"><input type="checkbox" value="M" checked>M</label>
+                    <label class="chip on"><input type="checkbox" value="L" checked>L</label>
+                    <label class="chip"><input type="checkbox" value="XL">XL</label>
+                    <label class="chip"><input type="checkbox" value="One Size">One Size</label>
+                  </div>
+                </div>
+
+                <div class="field"><label>颜色 Colours <span class="hint">名称 + 取色器，可多个</span></label>
+                  <div class="color-list" id="colorList">
+                    <div class="color-row">
+                      <input type="color" value="#C19A6B" oninput="syncPreview()">
+                      <input class="fld" placeholder="颜色名称 (如 Camel)" value="Camel 驼色">
+                      <button class="rm" onclick="removeColor(this)" aria-label="删除"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+                    </div>
+                    <div class="color-row">
+                      <input type="color" value="#1C1C1C" oninput="syncPreview()">
+                      <input class="fld" placeholder="颜色名称" value="Ink 墨黑">
+                      <button class="rm" onclick="removeColor(this)" aria-label="删除"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+                    </div>
+                  </div>
+                  <a class="add-color" onclick="addColor()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>添加颜色</a>
+                </div>
+
+                <div class="field"><label>图片 Images <span class="hint">URL 或上传</span></label>
+                  <input class="fld" id="f_img" placeholder="图片网址 https:// …" value="https://images.unsplash.com/photo-1539533018447-63fcce2678e3" oninput="syncPreview()" style="margin-bottom:10px">
+                  <div class="uploader">
+                    <svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                    <p>拖拽图片到此处，或 <b style="color:var(--wine)">点击上传</b></p>
+                    <small>支持 JPG / PNG / WEBP · 建议 1200×1500 · 最多 5 张</small>
+                  </div>
+                  <div class="img-previews">
+                    <div class="ip"><img src="https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=120&q=70" alt=""><b>×</b></div>
+                    <div class="ip"><img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=120&q=70" alt=""><b>×</b></div>
+                  </div>
+                </div>
+
+                <div class="row2">
+                  <div class="field"><label>描述 (English)</label><textarea class="fld" placeholder="Tailored wool-blend overcoat with a soft drape…">A tailored wool-blend overcoat with a clean lapel and soft drape — an everyday layer for cooler days.</textarea></div>
+                  <div class="field"><label>描述 (中文)</label><textarea class="fld" placeholder="精裁羊毛混纺大衣，垂感柔软…">精裁羊毛混纺大衣，线条利落、垂感柔软，是微凉天气的日常外搭之选。</textarea></div>
+                </div>
+
+                <div class="field" style="margin-bottom:0">
+                  <div class="switch-field">
+                    <div class="txt"><b>上架销售 Publish</b><span>开启后顾客可在店铺看到此商品</span></div>
+                    <button class="toggle on" id="f_active" onclick="this.classList.toggle('on')"></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- right: live preview -->
+              <div>
+                <div class="preview-note">店铺预览 · Live Preview</div>
+                <div class="preview-card">
+                  <div class="pc-img">
+                    <span class="pc-badge sale" id="pv_badge">Sale</span>
+                    <img id="pv_img" src="https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&q=70" alt="">
+                  </div>
+                  <div class="pc-body">
+                    <div class="pc-cat" id="pv_cat">Outerwear</div>
+                    <div class="pc-name" id="pv_name">羊毛混纺大衣</div>
+                    <div class="pc-price" id="pv_price"><span class="was">RM 298</span><span class="now sale">RM 248</span></div>
+                    <div class="pc-sw" id="pv_sw"><i style="background:#C19A6B"></i><i style="background:#1C1C1C"></i></div>
+                  </div>
+                </div>
+                <p style="font-size:11.5px;color:var(--muted);margin-top:14px;line-height:1.5">提示：右侧卡片实时展示顾客在店铺看到的样子，价格、颜色随左侧输入更新。</p>
+              </div>
+            </div>
+          </div>
+          <div class="editor__foot">
+            <button class="btn" onclick="saveProduct()"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>保存并上架</button>
+            <button class="btn--ghost btn" onclick="closeEditor()">取消</button>
+            <span class="msg muted">所有改动将同步到店铺前台 · 演示模式</span>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="filters">
+            <button class="filter active">全部 38</button>
+            <button class="filter">上架 32</button>
+            <button class="filter">下架 6</button>
+            <button class="filter">特价 Sale</button>
+          </div>
+          <div class="toolbar-spacer"></div>
+          <div class="searchbox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="搜索商品名…"></div>
+        </div>
+
+        <div class="panel">
+          <div class="t-wrap">
+            <table>
+              <thead><tr><th>图片</th><th>名称 (中 / EN)</th><th>分类</th><th>价格 RM</th><th>状态</th><th style="text-align:right">操作</th></tr></thead>
+              <tbody id="productRows">
+                <tr>
+                  <td><img class="thumb" src="https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=120&q=70" alt=""></td>
+                  <td><div class="cell-strong">羊毛混纺大衣 <span class="tag sale">Sale</span></div><div class="cell-sub">Wool-Blend Overcoat</div></td>
+                  <td><span class="tag">Outerwear</span></td>
+                  <td class="mono"><b>248</b> <span class="cell-sub" style="text-decoration:line-through">298</span></td>
+                  <td><div class="status-toggle"><button class="toggle on" onclick="this.classList.toggle('on');toast('已更新上架状态')"></button>上架</div></td>
+                  <td><div class="row-actions" style="justify-content:flex-end"><button class="icon-act" onclick="openEditor()" aria-label="编辑"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-act del" onclick="delRow(this)" aria-label="删除"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td><img class="thumb" src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=120&q=70" alt=""></td>
+                  <td><div class="cell-strong">羊绒圆领毛衣</div><div class="cell-sub">Cashmere Crewneck</div></td>
+                  <td><span class="tag">Knitwear</span></td>
+                  <td class="mono"><b>165</b></td>
+                  <td><div class="status-toggle"><button class="toggle on" onclick="this.classList.toggle('on');toast('已更新上架状态')"></button>上架</div></td>
+                  <td><div class="row-actions" style="justify-content:flex-end"><button class="icon-act" onclick="openEditor()" aria-label="编辑"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-act del" onclick="delRow(this)" aria-label="删除"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td><img class="thumb" src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=120&q=70" alt=""></td>
+                  <td><div class="cell-strong">真丝吊带连衣裙 <span class="tag new">New</span></div><div class="cell-sub">Silk Slip Dress</div></td>
+                  <td><span class="tag">Dresses</span></td>
+                  <td class="mono"><b>185</b></td>
+                  <td><div class="status-toggle"><button class="toggle on" onclick="this.classList.toggle('on');toast('已更新上架状态')"></button>上架</div></td>
+                  <td><div class="row-actions" style="justify-content:flex-end"><button class="icon-act" onclick="openEditor()" aria-label="编辑"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-act del" onclick="delRow(this)" aria-label="删除"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td><img class="thumb" src="https://images.unsplash.com/photo-1551163943-3f6a855d1153?w=120&q=70" alt=""></td>
+                  <td><div class="cell-strong">真丝缎面衬衫</div><div class="cell-sub">Silk Satin Blouse</div></td>
+                  <td><span class="tag">Shirts</span></td>
+                  <td class="mono"><b>142</b></td>
+                  <td><div class="status-toggle"><button class="toggle on" onclick="this.classList.toggle('on');toast('已更新上架状态')"></button>上架</div></td>
+                  <td><div class="row-actions" style="justify-content:flex-end"><button class="icon-act" onclick="openEditor()" aria-label="编辑"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-act del" onclick="delRow(this)" aria-label="删除"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></td>
+                </tr>
+                <tr style="opacity:.55">
+                  <td><img class="thumb" src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=120&q=70" alt=""></td>
+                  <td><div class="cell-strong">高腰阔腿西裤</div><div class="cell-sub">High-Waist Wide Trousers</div></td>
+                  <td><span class="tag">Trousers</span></td>
+                  <td class="mono"><b>128</b></td>
+                  <td><div class="status-toggle"><button class="toggle" onclick="this.classList.toggle('on');toast('已更新上架状态')"></button>下架</div></td>
+                  <td><div class="row-actions" style="justify-content:flex-end"><button class="icon-act" onclick="openEditor()" aria-label="编辑"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-act del" onclick="delRow(this)" aria-label="删除"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td><img class="thumb" src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=120&q=70" alt=""></td>
+                  <td><div class="cell-strong">羊毛针织开衫</div><div class="cell-sub">Merino Knit Cardigan</div></td>
+                  <td><span class="tag">Knitwear</span></td>
+                  <td class="mono"><b>156</b></td>
+                  <td><div class="status-toggle"><button class="toggle on" onclick="this.classList.toggle('on');toast('已更新上架状态')"></button>上架</div></td>
+                  <td><div class="row-actions" style="justify-content:flex-end"><button class="icon-act" onclick="openEditor()" aria-label="编辑"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-act del" onclick="delRow(this)" aria-label="删除"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 3. ORDERS ===== -->
+      <section class="section" id="sec-orders">
+        <div class="page-head">
+          <div><span class="eyebrow">订单 · Orders</span><h2>订单管理</h2></div>
+          <button class="btn btn--ghost"><svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7 9l5 5 5-5"/><path d="M4 19h16"/></svg>导出 CSV</button>
+        </div>
+
+        <div class="toolbar">
+          <div class="filters">
+            <button class="filter active">全部</button>
+            <button class="filter">待付款</button>
+            <button class="filter">已付款</button>
+            <button class="filter">已发货</button>
+          </div>
+          <div class="toolbar-spacer"></div>
+          <div class="searchbox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="搜索订单号 / 顾客…"></div>
+        </div>
+
+        <div class="panel">
+          <div class="t-wrap">
+            <table>
+              <thead><tr><th>订单号</th><th>顾客</th><th>商品</th><th>金额 RM</th><th>状态</th><th>日期</th></tr></thead>
+              <tbody>
+                <tr><td class="mono cell-strong">#CO-1042</td><td>陈雅婷<div class="cell-sub">yating.c@gmail.com</div></td><td class="cell-sub">羊毛混纺大衣 ×1</td><td class="mono">248.00</td><td><span class="badge amber">待发货</span></td><td class="cell-sub">2026-06-19</td></tr>
+                <tr><td class="mono cell-strong">#CO-1041</td><td>Sarah Lim<div class="cell-sub">sarah.lim@outlook.com</div></td><td class="cell-sub">真丝吊带裙 ×1, 缎面衬衫 ×1</td><td class="mono">350.00</td><td><span class="badge green">已发货</span></td><td class="cell-sub">2026-06-19</td></tr>
+                <tr><td class="mono cell-strong">#CO-1040</td><td>黄美玲<div class="cell-sub">meiling.h@gmail.com</div></td><td class="cell-sub">羊绒圆领毛衣 ×1</td><td class="mono">165.00</td><td><span class="badge amber">待发货</span></td><td class="cell-sub">2026-06-18</td></tr>
+                <tr><td class="mono cell-strong">#CO-1039</td><td>Tan Wei Ling<div class="cell-sub">weiling.tan@gmail.com</div></td><td class="cell-sub">真丝吊带连衣裙 ×1</td><td class="mono">185.00</td><td><span class="badge wine">待付款</span></td><td class="cell-sub">2026-06-18</td></tr>
+                <tr><td class="mono cell-strong">#CO-1038</td><td>林晓彤<div class="cell-sub">xiaotong.l@gmail.com</div></td><td class="cell-sub">大衣 ×1, 开衫 ×1</td><td class="mono">433.00</td><td><span class="badge green">已发货</span></td><td class="cell-sub">2026-06-17</td></tr>
+                <tr><td class="mono cell-strong">#CO-1037</td><td>Joanne Wong<div class="cell-sub">joanne.w@yahoo.com</div></td><td class="cell-sub">羊毛针织开衫 ×1</td><td class="mono">156.00</td><td><span class="badge green">已发货</span></td><td class="cell-sub">2026-06-17</td></tr>
+                <tr><td class="mono cell-strong">#CO-1036</td><td>周丽华<div class="cell-sub">lihua.z@gmail.com</div></td><td class="cell-sub">真丝缎面衬衫 ×2</td><td class="mono">284.00</td><td><span class="badge grey">已退款</span></td><td class="cell-sub">2026-06-16</td></tr>
+                <tr><td class="mono cell-strong">#CO-1035</td><td>Amira Hassan<div class="cell-sub">amira.h@gmail.com</div></td><td class="cell-sub">高腰阔腿西裤 ×1</td><td class="mono">128.00</td><td><span class="badge green">已发货</span></td><td class="cell-sub">2026-06-15</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 4. CUSTOMERS ===== -->
+      <section class="section" id="sec-customers">
+        <div class="page-head">
+          <div><span class="eyebrow">顾客 · Customers</span><h2>会员顾客</h2></div>
+          <button class="btn btn--ghost"><svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7 9l5 5 5-5"/><path d="M4 19h16"/></svg>导出名单</button>
+        </div>
+
+        <div class="toolbar">
+          <div class="filters">
+            <button class="filter active">全部 1,284</button>
+            <button class="filter">回头客</button>
+            <button class="filter">本月新增</button>
+          </div>
+          <div class="toolbar-spacer"></div>
+          <div class="searchbox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="搜索姓名 / 邮箱…"></div>
+        </div>
+
+        <div class="panel">
+          <div class="t-wrap">
+            <table>
+              <thead><tr><th>姓名</th><th>邮箱</th><th>订单数</th><th>累计消费 RM</th><th>加入日期</th></tr></thead>
+              <tbody>
+                <tr><td><div class="prod-cell"><div class="admin-chip"><div class="avatar" style="width:30px;height:30px;font-size:13px">陈</div></div><span class="cell-strong">陈雅婷</span></div></td><td class="cell-sub">yating.c@gmail.com</td><td class="mono">6</td><td class="mono">1,284.00</td><td class="cell-sub">2026-02-14</td></tr>
+                <tr><td><div class="prod-cell"><div class="admin-chip"><div class="avatar" style="width:30px;height:30px;font-size:13px">S</div></div><span class="cell-strong">Sarah Lim</span></div></td><td class="cell-sub">sarah.lim@outlook.com</td><td class="mono">4</td><td class="mono">962.00</td><td class="cell-sub">2026-03-02</td></tr>
+                <tr><td><div class="prod-cell"><div class="admin-chip"><div class="avatar" style="width:30px;height:30px;font-size:13px">黄</div></div><span class="cell-strong">黄美玲</span></div></td><td class="cell-sub">meiling.h@gmail.com</td><td class="mono">3</td><td class="mono">548.00</td><td class="cell-sub">2026-03-21</td></tr>
+                <tr><td><div class="prod-cell"><div class="admin-chip"><div class="avatar" style="width:30px;height:30px;font-size:13px">T</div></div><span class="cell-strong">Tan Wei Ling</span></div></td><td class="cell-sub">weiling.tan@gmail.com</td><td class="mono">2</td><td class="mono">313.00</td><td class="cell-sub">2026-04-08</td></tr>
+                <tr><td><div class="prod-cell"><div class="admin-chip"><div class="avatar" style="width:30px;height:30px;font-size:13px">林</div></div><span class="cell-strong">林晓彤</span></div></td><td class="cell-sub">xiaotong.l@gmail.com</td><td class="mono">5</td><td class="mono">1,047.00</td><td class="cell-sub">2026-04-19</td></tr>
+                <tr><td><div class="prod-cell"><div class="admin-chip"><div class="avatar" style="width:30px;height:30px;font-size:13px">J</div></div><span class="cell-strong">Joanne Wong</span></div></td><td class="cell-sub">joanne.w@yahoo.com</td><td class="mono">1</td><td class="mono">156.00</td><td class="cell-sub">2026-05-30</td></tr>
+                <tr><td><div class="prod-cell"><div class="admin-chip"><div class="avatar" style="width:30px;height:30px;font-size:13px">A</div></div><span class="cell-strong">Amira Hassan</span></div></td><td class="cell-sub">amira.h@gmail.com</td><td class="mono">2</td><td class="mono">256.00</td><td class="cell-sub">2026-06-01</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 5. SETTINGS ===== -->
+      <section class="section" id="sec-settings">
+        <div class="page-head">
+          <div><span class="eyebrow">设置 · Settings</span><h2>店铺设置</h2></div>
+          <button class="btn" onclick="toast('设置已保存 (演示)')"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>保存设置</button>
+        </div>
+
+        <div class="settings-grid">
+
+          <!-- Payment gateway (KEY) -->
+          <div class="panel span">
+            <div class="set-block">
+              <span class="eyebrow">Payment Gateway</span>
+              <h3>支付方式</h3>
+              <p class="muted" style="font-size:12.5px;margin:6px 0 16px">选择顾客结账时使用的收款渠道。切换后会显示对应渠道的填写项。</p>
+              <div class="seg">
+                <div class="pay-card active" data-pay="demo" onclick="selectPay(this)">
+                  <div class="pc-top"><span class="nm">演示 Demo</span><span class="dot"></span></div>
+                  <div class="dsc">假结账，不收真钱。用于测试流程与展示。</div>
+                </div>
+                <div class="pay-card" data-pay="stripe" onclick="selectPay(this)">
+                  <div class="pc-top"><span class="nm">Stripe</span><span class="dot"></span></div>
+                  <div class="dsc">信用卡 / FPX / GrabPay，自动收款，全球通用。</div>
+                </div>
+                <div class="pay-card" data-pay="paypal" onclick="selectPay(this)">
+                  <div class="pc-top"><span class="nm">PayPal</span><span class="dot"></span></div>
+                  <div class="dsc">PayPal 余额与信用卡，海外顾客常用。</div>
+                </div>
+              </div>
+
+              <div class="pay-fields show" data-fields="demo">
+                <div class="pay-note"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>演示模式不会向顾客收取任何费用，订单会标记为「已付款 (演示)」。正式开店前请切换到 Stripe 或 PayPal。</div>
+              </div>
+
+              <div class="pay-fields" data-fields="stripe">
+                <div class="row2">
+                  <div class="field"><label>Stripe Payment Link</label><input class="fld" placeholder="https://buy.stripe.com/…"></div>
+                  <div class="field"><label>Publishable Key</label><input class="fld" placeholder="pk_live_…"></div>
+                </div>
+                <div class="field"><label>Secret API Key</label><input class="fld" type="password" placeholder="sk_live_••••••••••••••••" value="sk_live_demo_key_0000"></div>
+                <div class="pay-note"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>密钥仅服务器保存，前台不会泄露。可在 Stripe Dashboard → Developers 取得。</div>
+              </div>
+
+              <div class="pay-fields" data-fields="paypal">
+                <div class="field"><label>PayPal.me 链接 / 商家邮箱</label><input class="fld" placeholder="https://paypal.me/codeofficial 或 pay@codeofficial.co"></div>
+                <div class="field"><label>Client ID</label><input class="fld" placeholder="ARxQ…"></div>
+                <div class="pay-note"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>在 PayPal Developer → My Apps 创建应用后获取 Client ID。</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Brand -->
+          <div class="panel">
+            <div class="set-block">
+              <span class="eyebrow">Brand</span>
+              <h3>品牌</h3>
+              <div class="field" style="margin-top:14px"><label>店名 Store name</label><input class="fld" value="Code Official"></div>
+              <div class="field"><label>标语 Tagline</label><input class="fld" value="Sweet, feminine everyday wear · 甜美女装 · 日常穿搭"></div>
+              <div class="field" style="margin-bottom:0"><label>默认语言 Default language</label>
+                <div class="choice-row">
+                  <label class="choice on">中文 ZH</label>
+                  <label class="choice">English</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Currency + shipping -->
+          <div class="panel">
+            <div class="set-block">
+              <span class="eyebrow">Currency &amp; Shipping</span>
+              <h3>货币与运费</h3>
+              <div class="field" style="margin-top:14px"><label>货币 Currency</label>
+                <div class="choice-row">
+                  <label class="choice on">RM</label>
+                  <label class="choice">HK$</label>
+                  <label class="choice">USD</label>
+                </div>
+              </div>
+              <div class="row2">
+                <div class="field"><label>免运门槛 Free over</label><div class="input-prefix"><span class="pre">RM</span><input class="fld" type="number" value="200"></div></div>
+                <div class="field" style="margin-bottom:0"><label>统一运费 Flat rate</label><div class="input-prefix"><span class="pre">RM</span><input class="fld" type="number" value="10"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Facebook pixel -->
+          <div class="panel span">
+            <div class="set-block">
+              <span class="eyebrow">Marketing</span>
+              <h3>Facebook Pixel</h3>
+              <div class="field" style="margin-top:14px;margin-bottom:0"><label>Pixel ID <span class="hint">用于 Meta / Facebook 广告追踪</span></label><input class="fld mono" placeholder="例如 1234567890123456" value="1029384756102938"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg><span id="toastMsg">已保存</span></div>
+
+<script>
+(function(){
+  /* ---- nav switching ---- */
+  var labels={
+    dash:['概览','Dashboard'], products:['商品','Products'], orders:['订单','Orders'],
+    customers:['顾客','Customers'], settings:['设置','Settings']
+  };
+  function go(key){
+    document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+    var sec=document.getElementById('sec-'+key); if(sec)sec.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.toggle('active',n.getAttribute('data-go')===key);});
+    if(labels[key]){document.getElementById('crumb-zh').textContent=labels[key][0];document.getElementById('crumb-en').textContent=labels[key][1];}
+    closeSidebar();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('[data-go]').forEach(function(b){
+    b.addEventListener('click',function(){go(b.getAttribute('data-go'));});
+  });
+
+  /* ---- mobile sidebar ---- */
+  var sb=document.getElementById('sidebar'),scrim=document.getElementById('scrim');
+  function closeSidebar(){sb.classList.remove('open');scrim.classList.remove('open');}
+  document.getElementById('burger').addEventListener('click',function(){sb.classList.toggle('open');scrim.classList.toggle('open');});
+  scrim.addEventListener('click',closeSidebar);
+
+  /* ---- product editor ---- */
+  var editor=document.getElementById('editor');
+  window.openEditor=function(){editor.classList.add('open');editor.scrollIntoView({behavior:'smooth',block:'start'});};
+  window.closeEditor=function(){editor.classList.remove('open');};
+  document.getElementById('addProductBtn').addEventListener('click',openEditor);
+  document.getElementById('closeEditor').addEventListener('click',closeEditor);
+
+  /* size chips visual toggle */
+  document.querySelectorAll('#sizeChips .chip').forEach(function(c){
+    var box=c.querySelector('input');
+    c.addEventListener('click',function(e){if(e.target.tagName!=='INPUT')box.checked=!box.checked;c.classList.toggle('on',box.checked);});
+  });
+
+  /* colours */
+  window.addColor=function(){
+    var row=document.createElement('div');row.className='color-row';
+    row.innerHTML='<input type="color" value="#E9C9CC" oninput="syncPreview()">'+
+      '<input class="fld" placeholder="颜色名称">'+
+      '<button class="rm" onclick="removeColor(this)" aria-label="删除"><svg viewBox=\'0 0 24 24\'><path d=\'M5 12h14\'/></svg></button>';
+    document.getElementById('colorList').appendChild(row);syncPreview();
+  };
+  window.removeColor=function(b){b.closest('.color-row').remove();syncPreview();};
+
+  /* live preview sync */
+  window.syncPreview=function(){
+    var name=document.getElementById('f_name_zh').value||document.getElementById('f_name').value||'未命名商品';
+    var cat=document.getElementById('f_cat').value;
+    var price=document.getElementById('f_price').value||'0';
+    var cmp=document.getElementById('f_cmp').value;
+    var badge=document.getElementById('f_badge').value;
+    var img=document.getElementById('f_img').value;
+    document.getElementById('pv_name').textContent=name;
+    document.getElementById('pv_cat').textContent=cat;
+    var pe=document.getElementById('pv_price');
+    if(cmp&&parseFloat(cmp)>parseFloat(price)){pe.innerHTML='<span class="was">RM '+cmp+'</span><span class="now sale">RM '+price+'</span>';}
+    else{pe.innerHTML='<span class="now">RM '+price+'</span>';}
+    var bd=document.getElementById('pv_badge');
+    if(badge){bd.style.display='';bd.textContent=badge;bd.className='pc-badge'+(badge.toLowerCase()==='sale'?' sale':'');}
+    else bd.style.display='none';
+    if(img){var pvImg=document.getElementById('pv_img');pvImg.src=img.indexOf('unsplash')>-1&&img.indexOf('?')<0?img+'?w=400&q=70':img;}
+    var sw='';document.querySelectorAll('#colorList input[type=color]').forEach(function(c){sw+='<i style="background:'+c.value+'"></i>';});
+    document.getElementById('pv_sw').innerHTML=sw;
+  };
+  document.getElementById('f_name_zh').addEventListener('input',syncPreview);
+  document.getElementById('f_name').addEventListener('input',syncPreview);
+  document.getElementById('f_cat').addEventListener('change',syncPreview);
+  document.getElementById('f_badge').addEventListener('change',syncPreview);
+
+  window.saveProduct=function(){
+    var name=document.getElementById('f_name').value.trim();
+    if(!name){toast('请填写商品名 (English)');return;}
+    closeEditor();toast('已保存并上架：'+name);
+  };
+  window.delRow=function(b){
+    if(!confirm('确定删除这个商品？此操作不可恢复。'))return;
+    var tr=b.closest('tr');tr.style.transition='opacity .3s';tr.style.opacity='0';
+    setTimeout(function(){tr.remove();toast('商品已删除');},300);
+  };
+
+  /* ---- filters (visual) ---- */
+  document.querySelectorAll('.filters').forEach(function(group){
+    group.querySelectorAll('.filter').forEach(function(f){
+      f.addEventListener('click',function(){group.querySelectorAll('.filter').forEach(function(x){x.classList.remove('active');});f.classList.add('active');});
+    });
+  });
+
+  /* ---- single-select choice rows ---- */
+  document.querySelectorAll('.choice-row').forEach(function(row){
+    row.querySelectorAll('.choice').forEach(function(c){
+      c.addEventListener('click',function(){row.querySelectorAll('.choice').forEach(function(x){x.classList.remove('on');});c.classList.add('on');});
+    });
+  });
+
+  /* ---- payment gateway switch ---- */
+  window.selectPay=function(card){
+    document.querySelectorAll('.pay-card').forEach(function(c){c.classList.remove('active');});
+    card.classList.add('active');
+    var key=card.getAttribute('data-pay');
+    document.querySelectorAll('.pay-fields').forEach(function(f){f.classList.toggle('show',f.getAttribute('data-fields')===key);});
+  };
+
+  /* ---- lang button (demo) ---- */
+  document.getElementById('langBtn').addEventListener('click',function(){toast('语言切换为演示功能');});
+
+  /* ---- toast ---- */
+  var tEl=document.getElementById('toast'),tMsg=document.getElementById('toastMsg'),tTimer;
+  window.toast=function(msg){tMsg.textContent=msg;tEl.classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(function(){tEl.classList.remove('show');},2400);};
+})();
+</script>
+</body>
+</html>
