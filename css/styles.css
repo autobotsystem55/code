@@ -226,21 +226,9 @@ h1, h2, h3, h4 { font-family: var(--serif); font-weight: 400; line-height: 1.08;
   padding: 5px 11px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; color: var(--ink);
 }
 .card__badge.is-sale { background: var(--wine); color: var(--cream); }
-.card__quick {
-  position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 3;
-  background: var(--cream); color: var(--wine); border: 1px solid var(--wine); padding: 12px;
-  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; text-align: center;
-  border-radius: var(--radius); transition: all .4s var(--ease);
-}
-
-/* Hover reveal + image swap — ONLY on devices with a real mouse pointer.
-   On touch screens (iOS/Android) these are skipped, so the FIRST tap opens
-   the product. Otherwise iOS treats the first tap as "hover" (just shows the
-   button) and needs a second tap. The button stays visible on touch instead. */
+/* Image swap on hover — only where a real mouse pointer exists (desktop).
+   Skipped on touch so a single tap opens the product. */
 @media (hover: hover) and (pointer: fine) {
-  .card__quick { opacity: 0; transform: translateY(12px); }
-  .card:hover .card__quick { opacity: 1; transform: translateY(0); }
-  .card__quick:hover { background: var(--wine); color: var(--cream); }
   .card:hover .card__media img.main { opacity: 0; }
   .card:hover .card__media img.alt { opacity: 1; transform: scale(1.04); }
 }

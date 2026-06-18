@@ -262,7 +262,6 @@
         badge +
         '<img class="main" src="' + imgUrl(p.images[0], 700) + '" alt="' + PN(p) + '" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'">' +
         '<img class="alt" src="' + imgUrl(img2, 700) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
-        '<a class="card__quick" href="product.html?id=' + p.id + '">' + T('card.choose') + '</a>' +
       '</div>' +
       '<div class="card__body">' +
         '<div class="card__cat">' + PC(p) + '</div>' +
