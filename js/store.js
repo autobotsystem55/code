@@ -144,7 +144,7 @@
               '<li><a href="shop.html?category=Knitwear">' + T('nav.knitwear') + '</a></li>' +
               '<li><a href="shop.html?category=Accessories">' + T('foot.accessories') + '</a></li></ul></div>' +
             '<div><h4>' + T('foot.help') + '</h4><ul>' +
-              '<li><a href="#">' + T('foot.shipReturns') + '</a></li>' +
+              '<li><a href="policies.html#shipping">' + T('foot.shipReturns') + '</a></li>' +
               '<li><a href="#">' + T('foot.size') + '</a></li>' +
               '<li><a href="#">' + T('foot.care') + '</a></li>' +
               '<li><a href="mailto:' + (CFG.email || '') + '">' + T('foot.contact') + '</a></li></ul></div>' +
@@ -155,6 +155,12 @@
               '<li><a href="#">' + T('foot.ig') + '</a></li></ul></div>' +
           '</div>' +
           '<div class="footer__bottom"><small>' + T('foot.rights', { y: thisYear(), brand: (CFG.brand || '') }) + '</small>' +
+            '<nav style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px">' +
+              '<a href="policies.html#privacy">' + T('foot.privacy') + '</a>' +
+              '<a href="policies.html#returns">' + T('foot.returns') + '</a>' +
+              '<a href="policies.html#shipping">' + T('foot.shippingP') + '</a>' +
+              '<a href="policies.html#terms">' + T('foot.terms') + '</a>' +
+            '</nav>' +
             '<div class="pay"><span>Visa</span><span>Master</span><span>Amex</span><span>PayPal</span><span>Apple Pay</span></div>' +
           '</div>' +
         '</div></footer>';

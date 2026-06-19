@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Policies — Code Official</title>
+  <meta name="description" content="Privacy, returns, shipping and terms of service for Code Official.">
+  <link rel="canonical" href="https://www.codeofficial.vercel.app/policies.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/pixel.js"></script>
+  <style>
+    .pol-nav{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:8px}
+    .pol-nav a{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);padding:8px 14px;border:1px solid var(--pink-border);border-radius:99px}
+    .pol-nav a:hover{border-color:var(--wine);color:var(--wine)}
+    .pol{padding:34px 0;border-bottom:1px solid var(--line);scroll-margin-top:90px}
+    .pol h2{font-size:clamp(26px,3.5vw,38px);margin-bottom:16px}
+    .pol p{color:var(--ink-soft);margin-bottom:12px;max-width:64ch}
+    .pol ul{color:var(--ink-soft);margin:0 0 12px 20px;max-width:62ch}
+    .pol li{margin-bottom:7px}
+    .pol-note{font-size:13px;color:var(--muted);background:var(--blush);padding:14px 18px;margin-bottom:8px}
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+  <main class="wrap" style="max-width:860px">
+    <div class="page-head" style="text-align:left">
+      <span class="eyebrow" id="kicker">Legal</span>
+      <h1 id="ptitle">Policies</h1>
+    </div>
+    <p class="pol-note" id="pnote"></p>
+    <nav class="pol-nav" id="polnav"></nav>
+    <section id="privacy" class="pol"></section>
+    <section id="returns" class="pol"></section>
+    <section id="shipping" class="pol"></section>
+    <section id="terms" class="pol"></section>
+  </main>
+  <div id="site-footer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/products.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    (function(){
+      var brand=(window.STORE_CONFIG||{}).brand||'Code Official';
+      var email=(window.STORE_CONFIG||{}).email||'hello@codeofficial.com';
+      var L=(window.LANG==='zh')?'zh':'en';
+      var T={
+        en:{kicker:'Legal',title:'Policies',
+          note:'Template policies — please review and adapt to your business and local law before relying on them.',
+          nav:['Privacy','Returns','Shipping','Terms'],
+          privacy:['Privacy Policy',
+            '<p>We collect the information you give us when you shop or sign up — your name, email, shipping address, phone and order details. Payment is handled by our payment provider (e.g. Stripe / PayPal); we never store your full card number.</p>'+
+            '<p>We use this information to process and deliver your orders, provide support, and (if you opt in) send you offers. We also use cookies and the Facebook/Meta Pixel to understand site usage and show relevant ads.</p>'+
+            '<p>We share data only with the services that run our store (payment, shipping, email, analytics) and never sell it. You can ask us to access or delete your data at any time at <b>'+email+'</b>.</p>'],
+          returns:['Returns &amp; Exchanges',
+            '<p>We accept returns within <b>30 days</b> of delivery on unworn, unwashed items with tags attached.</p>'+
+            '<ul><li>To start a return, email <b>'+email+'</b> with your order number.</li>'+
+            '<li>Refunds are issued to your original payment method within 5–10 business days of us receiving the item.</li>'+
+            '<li>Sale / final-sale items and accessories may be non-returnable (noted on the product).</li>'+
+            '<li>Return shipping is the customer’s responsibility unless the item arrived faulty or incorrect.</li></ul>'],
+          shipping:['Shipping',
+            '<p>Orders are processed within 1–2 business days. You’ll receive tracking by email once your order ships.</p>'+
+            '<ul><li>Free standard shipping on orders over the threshold shown at checkout.</li>'+
+            '<li>Delivery times are estimates and may vary during sales or holidays.</li>'+
+            '<li>Any customs duties or import taxes for international orders are the customer’s responsibility.</li></ul>'],
+          terms:['Terms of Service',
+            '<p>By using this site and placing an order you agree to these terms. We try to keep product, price and availability information accurate, but errors can occur and we may correct them or cancel an affected order with a full refund.</p>'+
+            '<p>All site content and designs are the property of '+brand+'. To the extent permitted by law, our liability for any order is limited to the amount you paid for it. These terms are governed by the laws of your store’s home jurisdiction. Questions? Email <b>'+email+'</b>.</p>']
+        },
+        zh:{kicker:'法律',title:'政策条款',
+          note:'以下为模板条款 —— 正式使用前请结合你的实际业务和当地法律核对、调整。',
+          nav:['隐私政策','退换货','配送','服务条款'],
+          privacy:['隐私政策',
+            '<p>当你购物或注册时，我们会收集你提供的信息——姓名、邮箱、收货地址、电话和订单详情。支付由第三方支付服务（如 Stripe / PayPal）处理，我们绝不保存你的完整卡号。</p>'+
+            '<p>这些信息用于处理与配送订单、提供客服，以及（在你同意的前提下）发送优惠。我们也使用 Cookie 和 Facebook/Meta Pixel 来了解网站使用情况并展示相关广告。</p>'+
+            '<p>我们仅与运营本店所需的服务（支付、物流、邮件、分析）共享数据，绝不出售。你可随时邮件 <b>'+email+'</b> 申请查看或删除你的数据。</p>'],
+          returns:['退换货',
+            '<p>自签收起 <b>30 天</b>内，未穿着、未洗涤、吊牌完整的商品可退换。</p>'+
+            '<ul><li>申请退换请邮件 <b>'+email+'</b> 并注明订单号。</li>'+
+            '<li>退款将在我们收到商品后 5–10 个工作日内原路退回。</li>'+
+            '<li>特价/清仓商品及配饰可能不支持退换（会在商品页注明）。</li>'+
+            '<li>除非商品到货有瑕疵或发错，退货运费由买家承担。</li></ul>'],
+          shipping:['配送说明',
+            '<p>订单在 1–2 个工作日内处理。发货后你会收到带物流单号的邮件。</p>'+
+            '<ul><li>订单满（结账页显示的）免运门槛即享免标准运费。</li>'+
+            '<li>送达时间为预估，大促或节假日可能有所延迟。</li>'+
+            '<li>跨境订单产生的关税或进口税由买家承担。</li></ul>'],
+          terms:['服务条款',
+            '<p>使用本站并下单即表示你同意以下条款。我们会尽力保证商品、价格与库存信息准确，但仍可能出现错误；如有错误，我们可更正或取消相关订单并全额退款。</p>'+
+            '<p>本站所有内容与设计归 '+brand+' 所有。在法律允许范围内，我们对任一订单的责任以你实际支付的金额为限。本条款受你店铺所在地法律管辖。有疑问请邮件 <b>'+email+'</b>。</p>']
+        }
+      }[L];
+      document.getElementById('kicker').textContent=T.kicker;
+      document.getElementById('ptitle').textContent=T.title;
+      document.getElementById('pnote').textContent=T.note;
+      var ids=['privacy','returns','shipping','terms'];
+      document.getElementById('polnav').innerHTML=ids.map(function(id,i){return '<a href="#'+id+'">'+T.nav[i]+'</a>';}).join('');
+      ids.forEach(function(id){document.getElementById(id).innerHTML='<h2>'+T[id][0]+'</h2>'+T[id][1];});
+    })();
+  </script>
+</body>
+</html>
