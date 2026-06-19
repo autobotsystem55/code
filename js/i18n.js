@@ -39,6 +39,8 @@
       'acc.welcome': 'Welcome back', 'acc.signedInAs': 'Signed in as {x}',
       'acc.myOrders': 'My orders', 'acc.noOrders': 'No orders yet.', 'acc.orderNo': 'Order',
       'acc.created': 'Account created! You can sign in now.',
+      'acc.regOk': 'Registration successful!', 'acc.regOkSub': 'Welcome — your account is ready.',
+      'acc.regConfirm': 'Please check your email to confirm, then sign in.', 'acc.goHome': 'Go to homepage',
       'acc.err': 'Something went wrong — please check your details and try again.',
       'acc.disabled': 'Member accounts are not enabled yet.',
       // hero
@@ -156,6 +158,8 @@
       'acc.welcome': '欢迎回来', 'acc.signedInAs': '已登录：{x}',
       'acc.myOrders': '我的订单', 'acc.noOrders': '还没有订单。', 'acc.orderNo': '订单',
       'acc.created': '注册成功！现在可以登录了。',
+      'acc.regOk': '注册成功！', 'acc.regOkSub': '欢迎加入，账号已创建。',
+      'acc.regConfirm': '请查收邮箱完成验证后再登录。', 'acc.goHome': '前往首页',
       'acc.err': '出错了——请检查信息后重试。',
       'acc.disabled': '会员功能尚未启用。',
       'hero.season': '新品 · 2026 春季',

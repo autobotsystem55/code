@@ -48,6 +48,25 @@
         DB.isAdmin().then(function (admin) { if (admin) location.replace('admin.html'); else renderAccount(user); });
       });
 
+      // popup shown after a successful registration, then redirect to the homepage
+      function showSignupSuccess(hasSession) {
+        var o = document.createElement('div');
+        o.style.cssText = 'position:fixed;inset:0;z-index:200;background:rgba(28,28,28,.45);backdrop-filter:blur(2px);display:grid;place-items:center;padding:24px;opacity:0;transition:opacity .3s var(--ease)';
+        o.innerHTML =
+          '<div style="background:var(--cream);max-width:380px;width:100%;padding:42px 32px;text-align:center;border:1px solid var(--line);transform:translateY(12px);transition:transform .4s var(--ease)">' +
+            '<div style="width:66px;height:66px;border-radius:999px;border:1.5px solid var(--wine);background:var(--pink-soft);display:grid;place-items:center;margin:0 auto 22px">' +
+              '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--wine)" stroke-width="1.6"><path d="M5 13l4 4L19 7"/></svg></div>' +
+            '<h2 style="font-family:var(--serif);font-size:32px;margin-bottom:10px">' + t('acc.regOk') + '</h2>' +
+            '<p class="muted" style="margin-bottom:26px">' + t(hasSession ? 'acc.regOkSub' : 'acc.regConfirm') + '</p>' +
+            '<button class="btn btn--block" id="goHomeBtn">' + t('acc.goHome') + '</button>' +
+          '</div>';
+        document.body.appendChild(o);
+        requestAnimationFrame(function () { o.style.opacity = '1'; o.firstChild.style.transform = 'none'; });
+        var go = function () { location.href = 'index.html'; };
+        document.getElementById('goHomeBtn').addEventListener('click', go);
+        setTimeout(go, 2200);
+      }
+
       // ---------- signed-out: sign in / create account ----------
       function renderAuth() {
         root.innerHTML =
@@ -88,10 +107,8 @@
             btn.disabled = false;
             if (res && res.error) { msg.textContent = res.error.message || t('acc.err'); return; }
             if (mode === 'signin') { DB.isAdmin().then(function (admin) { location.replace(admin ? 'admin.html' : 'account.html'); }); return; }
-            // sign up
-            if (res && res.data && res.data.session) { location.reload(); return; }
-            msg.style.color = 'var(--green, #4C6149)';
-            msg.textContent = t('acc.created');
+            // sign up succeeded — show success popup, then redirect to the homepage
+            showSignupSuccess(!!(res && res.data && res.data.session));
           };
 
           if (mode === 'signin') Auth.signIn(email, pw).then(done, function () { done({ error: {} }); });
