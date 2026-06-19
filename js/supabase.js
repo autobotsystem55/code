@@ -143,7 +143,7 @@
     return window.sb.from('settings').select('data').eq('id', 1).single().then(function (r) {
       var d = r && r.data && r.data.data;
       if (d && typeof d === 'object') {
-        ['brand', 'tagline', 'email', 'currency', 'currencySymbol',
+        ['brand', 'tagline', 'email', 'currency', 'currencySymbol', 'pixelId',
          'freeShippingThreshold', 'shippingFlat', 'paymentLink', 'paymentMode'].forEach(function (k) {
           if (d[k] !== undefined && d[k] !== null && d[k] !== '') window.STORE_CONFIG[k] = d[k];
         });
@@ -153,6 +153,8 @@
 
   // Pages await this before rendering. Always resolves (never blocks the store).
   window.productsReady = loadSettings().then(function () {
+    // boot the Pixel now that the Pixel ID (admin setting > config.js) is known
+    if (window.Pixel && Pixel.boot) { try { Pixel.boot(); } catch (e) {} }
     return window.DB.loadProducts();
   }).then(function () {
     if (window.applySettingsToChrome) { try { applySettingsToChrome(); } catch (e) {} }

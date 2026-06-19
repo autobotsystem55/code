@@ -353,6 +353,7 @@
         var s=(r&&r.data&&r.data.data)||{};
         function g(k,d){return s[k]!==undefined&&s[k]!==null&&s[k]!==''?s[k]:(CFG[k]!==undefined?CFG[k]:d);}
         var mode=g('paymentMode','demo'),link=g('paymentLink','');
+        var pix=g('pixelId','');if(pix==='YOUR_PIXEL_ID')pix='';
         view.innerHTML='<div class="panel"><h2>店铺设置</h2>'+
           '<div class="row2"><div class="field"><label>店名 Brand</label><input id="s_brand" value="'+esc(g('brand','Code Official'))+'"></div>'+
             '<div class="field"><label>标语 Tagline</label><input id="s_tag" value="'+esc(g('tagline',''))+'"></div></div>'+
@@ -362,12 +363,13 @@
             '<div class="field"><label>货币符号 (RM/HK$/$)</label><input id="s_sym" value="'+esc(g('currencySymbol','RM'))+'"></div></div>'+
           '<div class="row2"><div class="field"><label>免运门槛</label><input id="s_free" type="number" value="'+esc(g('freeShippingThreshold',150))+'"></div>'+
             '<div class="field"><label>统一运费</label><input id="s_ship" type="number" value="'+esc(g('shippingFlat',10))+'"></div></div>'+
+          '<div class="field"><label>Facebook Pixel ID（广告追踪）</label><input id="s_pixel" value="'+esc(pix)+'" placeholder="纯数字，如 1234567890123456"></div>'+
           '<h2 style="font-size:20px;margin:28px 0 12px">支付方式 Payment Gateway</h2>'+
           '<div class="seg" id="payseg">'+[['demo','演示 Demo'],['stripe','Stripe'],['paypal','PayPal']].map(function(x){return '<button type="button" data-pm="'+x[0]+'"'+(mode===x[0]?' class="on"':'')+'>'+x[1]+'</button>';}).join('')+'</div>'+
           '<div class="field" id="linkWrap" style="margin-top:14px;'+(mode==='demo'?'display:none':'')+'"><label id="linkLbl">支付链接</label><input id="s_link" value="'+esc(link)+'" placeholder="粘贴 Stripe Payment Link 或 PayPal 链接"></div>'+
           '<p class="muted" style="font-size:12px;margin-top:6px">演示=不真实扣款；选 Stripe/PayPal 并粘贴收款链接后，结账会跳转到该链接收款（在该链接的"付款后跳转"设为你的 success.html，Purchase 事件才会触发）。</p>'+
           '<div style="display:flex;gap:10px;margin-top:22px"><button class="btn" id="saveS">保存设置</button><span class="msg" id="sm"></span></div>'+
-          '<p class="muted" style="font-size:12px;margin-top:18px">注：Facebook Pixel ID 仍在 js/config.js 里设置（把 ID 发给开发者填入）。保存后店面会即时采用新设置。</p>'+
+          '<p class="muted" style="font-size:12px;margin-top:18px">提示：保存后店面会即时采用这些设置（店名、货币、运费、支付方式、Pixel）。Pixel ID 在 Meta「事件管理工具」里复制（一串数字）。</p>'+
         '</div>';
         var seg=document.getElementById('payseg'),curMode=mode;
         seg.addEventListener('click',function(e){var b=e.target.closest('[data-pm]');if(!b)return;curMode=b.getAttribute('data-pm');
@@ -378,7 +380,7 @@
         document.getElementById('saveS').addEventListener('click',function(){
           var m=document.getElementById('sm');m.style.color='var(--wine)';
           var out={brand:v('s_brand'),tagline:v('s_tag'),email:v('s_email'),defaultLang:document.getElementById('s_lang').value,
-            currency:v('s_cur'),currencySymbol:v('s_sym'),
+            currency:v('s_cur'),currencySymbol:v('s_sym'),pixelId:v('s_pixel'),
             freeShippingThreshold:parseFloat(v('s_free'))||0,shippingFlat:parseFloat(v('s_ship'))||0,
             paymentMode:curMode,paymentLink:curMode==='demo'?'':v('s_link')};
           document.getElementById('saveS').disabled=true;

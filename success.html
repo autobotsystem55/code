@@ -30,7 +30,7 @@
   <script src="js/supabase.js"></script>
   <script src="js/store.js"></script>
   <script>
-    (function () {
+    productsReady.then(function () {
       var order = null;
       try { order = JSON.parse(localStorage.getItem('eclat_last_order')); } catch (e) {}
       var el = document.getElementById('thanks');
@@ -55,7 +55,7 @@
         '<div class="thanks__order">' + t('ok.order') + ' <b>#' + order.orderId + '</b> &nbsp;·&nbsp; ' + t('ok.total') + ' ' + money(order.total) + '</div>' +
         '<p class="muted">' + t('ok.tracking') + '</p>' +
         '<br><a class="btn" href="shop.html">' + t('ok.continue') + '</a>';
-    })();
+    });
   </script>
 </body>
 </html>
