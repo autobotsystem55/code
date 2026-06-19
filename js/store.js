@@ -8,7 +8,6 @@
 (function () {
   var CFG = window.STORE_CONFIG || {};
   var CART_KEY = 'eclat_cart_v1';
-  var SYM = CFG.currencySymbol || '$';
 
   // i18n helpers (fall back gracefully if i18n.js isn't present)
   function T(k, v) { return window.t ? window.t(k, v) : k; }
@@ -17,8 +16,9 @@
 
   /* ---------- money ---------- */
   function money(n) {
+    var sym = (window.STORE_CONFIG && window.STORE_CONFIG.currencySymbol) || '$';
     var v = Math.round(n * 100) / 100;
-    return SYM + (Number.isInteger(v) ? v.toString() : v.toFixed(2));
+    return sym + (Number.isInteger(v) ? v.toString() : v.toFixed(2));
   }
   window.money = money;
 
@@ -90,6 +90,13 @@
     // small superscript flourish for flavour (matches the sweet ✿ motif)
     return b + ' <sup>✿</sup>';
   }
+
+  // Called after DB settings load — refresh the brand wordmark + cart (currency)
+  // so admin Settings changes show without a hard reload.
+  window.applySettingsToChrome = function () {
+    document.querySelectorAll('.brand').forEach(function (el) { el.innerHTML = brandMarkup(); });
+    if (window.updateCartUI) updateCartUI();
+  };
 
   /* ---------- header / footer / drawer injection ---------- */
   function injectChrome() {

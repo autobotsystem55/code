@@ -96,6 +96,26 @@
           .then(function (r) { return !!(r.data && r.data.is_admin); }, function () { return false; });
       });
     },
+    allOrders: function () {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.from('orders').select('*').order('created_at', { ascending: false });
+    },
+    updateOrderStatus: function (id, status) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.from('orders').update({ status: status }).eq('id', id);
+    },
+    allCustomers: function () {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.from('profiles').select('*').order('created_at', { ascending: false });
+    },
+    getSettings: function () {
+      if (!window.sb) return Promise.resolve({ data: null, error: null });
+      return window.sb.from('settings').select('data').eq('id', 1).single();
+    },
+    saveSettings: function (data) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.from('settings').update({ data: data, updated_at: new Date().toISOString() }).eq('id', 1);
+    },
   };
 
   window.Auth = {
@@ -115,9 +135,28 @@
     },
   };
 
-  // Pages await this before rendering products. Always resolves.
-  window.productsReady = window.DB.loadProducts().then(function (replaced) {
-    if (replaced && window.updateCartUI) { try { updateCartUI(); } catch (e) {} }
+  // Load shop settings from the DB and merge into STORE_CONFIG, so the admin's
+  // Settings page actually changes the live store (brand, currency, shipping,
+  // payment gateway). Safe: any failure keeps the js/config.js defaults.
+  function loadSettings() {
+    if (!window.sb) return Promise.resolve();
+    return window.sb.from('settings').select('data').eq('id', 1).single().then(function (r) {
+      var d = r && r.data && r.data.data;
+      if (d && typeof d === 'object') {
+        ['brand', 'tagline', 'email', 'currency', 'currencySymbol',
+         'freeShippingThreshold', 'shippingFlat', 'paymentLink', 'paymentMode'].forEach(function (k) {
+          if (d[k] !== undefined && d[k] !== null && d[k] !== '') window.STORE_CONFIG[k] = d[k];
+        });
+      }
+    }).catch(function () {});
+  }
+
+  // Pages await this before rendering. Always resolves (never blocks the store).
+  window.productsReady = loadSettings().then(function () {
+    return window.DB.loadProducts();
+  }).then(function () {
+    if (window.applySettingsToChrome) { try { applySettingsToChrome(); } catch (e) {} }
+    else if (window.updateCartUI) { try { updateCartUI(); } catch (e) {} }
     return true;
   });
 })();

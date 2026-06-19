@@ -44,7 +44,8 @@
 
       Auth.getUser().then(function (res) {
         var user = res && res.data && res.data.user;
-        if (user) renderAccount(user); else renderAuth();
+        if (!user) { renderAuth(); return; }
+        DB.isAdmin().then(function (admin) { if (admin) location.replace('admin.html'); else renderAccount(user); });
       });
 
       // ---------- signed-out: sign in / create account ----------
@@ -86,7 +87,7 @@
           var done = function (res) {
             btn.disabled = false;
             if (res && res.error) { msg.textContent = res.error.message || t('acc.err'); return; }
-            if (mode === 'signin') { location.reload(); return; }
+            if (mode === 'signin') { DB.isAdmin().then(function (admin) { location.replace(admin ? 'admin.html' : 'account.html'); }); return; }
             // sign up
             if (res && res.data && res.data.session) { location.reload(); return; }
             msg.style.color = 'var(--green, #4C6149)';
