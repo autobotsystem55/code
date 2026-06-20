@@ -116,6 +116,29 @@
       if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
       return window.sb.from('settings').update({ data: data, updated_at: new Date().toISOString() }).eq('id', 1);
     },
+
+    // ---- discount codes ----
+    validateDiscount: function (code, subtotal) {
+      if (!window.sb) return Promise.resolve({ data: null, error: null });
+      return window.sb.rpc('validate_discount', { p_code: code, p_subtotal: subtotal })
+        .then(function (r) { return { data: (r.data && r.data[0]) || null, error: r.error }; });
+    },
+    redeemDiscount: function (code) {
+      if (!window.sb) return Promise.resolve({});
+      return window.sb.rpc('redeem_discount', { p_code: code });
+    },
+    allDiscounts: function () {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.from('discount_codes').select('*').order('created_at', { ascending: false });
+    },
+    upsertDiscount: function (row) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.from('discount_codes').upsert(row);
+    },
+    deleteDiscount: function (code) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.from('discount_codes').delete().eq('code', code);
+    },
   };
 
   window.Auth = {

@@ -44,6 +44,7 @@
 
       var subtotal = cartSubtotal();
       var shipping = subtotal >= (STORE_CONFIG.freeShippingThreshold || 0) ? 0 : (STORE_CONFIG.shippingFlat || 0);
+      var discount = 0, discountCode = '';
       var total = subtotal + shipping;
 
       var payLink = (STORE_CONFIG.paymentLink || '').trim();
@@ -97,13 +98,48 @@
           '<aside class="summary">' +
             '<h3>' + t('co.summary') + '</h3>' +
             summaryLines +
+            '<div style="display:flex;gap:8px;margin:16px 0 2px">' +
+              '<input id="discInput" placeholder="' + t('co.discPh') + '" style="flex:1;padding:11px 13px;background:var(--white);border:1px solid var(--pink-border);border-radius:var(--radius);outline:none;text-transform:uppercase">' +
+              '<button type="button" class="btn btn--ghost" id="discBtn" style="padding:11px 18px">' + t('co.apply') + '</button>' +
+            '</div>' +
+            '<p id="discMsg" class="muted" style="font-size:12px;margin:4px 0 0;min-height:16px"></p>' +
             '<div class="totals">' +
               '<div><span>' + t('co.subtotal') + '</span><span>' + money(subtotal) + '</span></div>' +
+              '<div id="discRow" style="display:none"><span>' + t('co.discount') + ' <b id="discTag" style="color:var(--wine)"></b></span><span id="discAmt"></span></div>' +
               '<div><span>' + t('co.shippingLbl') + '</span><span>' + (shipping === 0 ? t('co.free') : money(shipping)) + '</span></div>' +
-              '<div class="grand"><span>' + t('co.total') + '</span><b>' + money(total) + '</b></div>' +
+              '<div class="grand"><span>' + t('co.total') + '</span><b id="grandTotal">' + money(total) + '</b></div>' +
             '</div>' +
           '</aside>' +
         '</div>';
+
+      // ---- discount code ----
+      function renderTotals() {
+        total = Math.max(0, subtotal - discount) + shipping;
+        var row = document.getElementById('discRow');
+        if (discount > 0) {
+          row.style.display = '';
+          document.getElementById('discTag').textContent = discountCode;
+          document.getElementById('discAmt').textContent = '−' + money(discount);
+        } else { row.style.display = 'none'; }
+        document.getElementById('grandTotal').textContent = money(total);
+        var pb = document.getElementById('placeBtn');
+        if (pb) pb.textContent = demo ? t('co.place', { x: money(total) }) : t('co.proceed', { x: money(total) });
+      }
+      document.getElementById('discBtn').addEventListener('click', function () {
+        var code = document.getElementById('discInput').value.trim();
+        var msg = document.getElementById('discMsg');
+        if (!code) return;
+        if (!(window.DB && DB.validateDiscount)) { msg.style.color = 'var(--muted)'; msg.textContent = t('co.discNa'); return; }
+        this.disabled = true;
+        DB.validateDiscount(code, subtotal).then(function (r) {
+          document.getElementById('discBtn').disabled = false;
+          var d = r && r.data;
+          if (!d) { discount = 0; discountCode = ''; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); renderTotals(); return; }
+          discount = Number(d.discount) || 0; discountCode = d.code;
+          msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discOk', { x: money(discount) });
+          renderTotals();
+        }, function () { document.getElementById('discBtn').disabled = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); });
+      });
 
       // ---- submit ----
       document.getElementById('coForm').addEventListener('submit', function (e) {
@@ -128,7 +164,8 @@
         };
         localStorage.setItem('eclat_last_order', JSON.stringify({
           orderId: orderId, email: f.email.value,
-          items: itemRows, subtotal: subtotal, shipping: shipping, total: total
+          items: itemRows, subtotal: subtotal, shipping: shipping, total: total,
+          discount_code: discountCode || null, discount_amount: discount || 0
         }));
 
         // DEMO → confirmation page. REAL → redirect to your Stripe/PayPal link.
@@ -141,6 +178,7 @@
           var orderRow = {
             order_number: orderId, email: f.email.value, customer: customer,
             items: itemRows, subtotal: subtotal, shipping: shipping, total: total,
+            discount_code: discountCode || null, discount_amount: discount || 0,
             currency: (STORE_CONFIG.currency || 'MYR')
           };
           Auth.getUser().then(function (res) {
@@ -148,6 +186,7 @@
             return DB.createOrder(orderRow);
           }).then(function (r) {
             if (r && r.error) console.warn('[Supabase] order save:', r.error.message);
+            else if (discountCode && DB.redeemDiscount) { try { DB.redeemDiscount(discountCode); } catch (e) {} }
           }).then(go, go);
         } else { go(); }
       });
