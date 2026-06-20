@@ -468,7 +468,7 @@
     }
 
     // ---------- app shell ----------
-    var NAV=[['dash','概览',ICON.dash],['products','商品',ICON.box],['inventory','库存',ICON.inv],['orders','订单',ICON.bag],['customers','顾客',ICON.user],['discounts','优惠券',ICON.tag],['bundles','套装',ICON.gift],['settings','设置',ICON.gear]];
+    var NAV=[['dash','概览',ICON.dash],['products','商品',ICON.box],['inventory','库存',ICON.inv],['orders','订单',ICON.bag],['customers','顾客',ICON.user],['discounts','优惠券',ICON.tag],['settings','设置',ICON.gear]];
     function renderApp(u){
       root.innerHTML='<div class="shell">'+
         '<aside class="side">'+
@@ -487,7 +487,7 @@
     }
     function show(s){
       document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-s')===s);});
-      var titles={dash:'概览',products:'商品',inventory:'库存',orders:'订单',customers:'顾客',discounts:'优惠券',bundles:'套装',settings:'设置'};
+      var titles={dash:'概览',products:'商品',inventory:'库存',orders:'订单',customers:'顾客',discounts:'优惠券',bundles:'组合价 · 套装',settings:'设置'};
       document.getElementById('title').textContent=titles[s];
       view.innerHTML='<p class="muted">载入中…</p>';
       ({dash:secDash,products:secProducts,inventory:secInventory,orders:secOrders,customers:secCustomers,discounts:secDiscounts,bundles:secBundles,settings:secSettings}[s])();
@@ -805,7 +805,7 @@
           {key:'free_shipping',live:true,big:'免运费',unit:'',title:'免运费',sub:'满额免运费',en:'free shipping'},
           {key:'bxgy',live:true,big:'1+1',unit:'',title:'买一送一',sub:'指定商品买一送一',en:'buy 1 free 1'},
           {key:'nth',live:true,big:'50%',unit:'OFF',title:'第 N 件优惠',sub:'每第 X 件打折',en:'every Xth item'},
-          {key:'setdeal',live:false,big:sym+' 99',unit:'',title:'组合价',sub:'任选 N 件特价',en:'buy N at price'},
+          {key:'setdeal',live:true,big:sym+' 99',unit:'',title:'组合价',sub:'任选 N 件套装价 · 点此管理套装',en:'bundles · buy N at price'},
           {key:'gift',live:true,big:'赠品',unit:'',title:'满额送赠品',sub:'满额送礼',en:'free gift'},
           {key:'addon',live:false,big:'加购',unit:'',title:'加购价',sub:'满件可加购',en:'add-on price'},
           {key:'credit',live:false,big:'购物金',unit:'',title:'消费送购物金',sub:'每消费回馈',en:'store credit'}
@@ -892,6 +892,7 @@
           }).join('');
           $$('#dTplGrid .dtpl').forEach(function(el){el.addEventListener('click',function(){
             var k=el.getAttribute('data-tpl');var t=tplOf(k);
+            if(k==='setdeal'){show('bundles');return;}   // 组合价 = 套装管理（同一功能）
             if(!t.live){toast('「'+t.title+'」即将推出，敬请期待 ✿');return;}
             if(S.type===k){$('#dGo2').disabled=false;return;}   // 重复点同一类型：保留已填/已恢复的设置
             S.type=k;S.value=(k==='percent'?10:(k==='fixed'?5:0));
