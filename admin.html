@@ -336,10 +336,10 @@
     @media(max-width:760px){.bw .bstats{grid-template-columns:1fr}.bw .choices,.bw .pmode,.bw .review{grid-template-columns:1fr}.bw .step .d{display:none}}
 
     /* ===== settings page (design A · grouped cards) ===== */
-    .setpage{max-width:1760px;display:grid;grid-template-columns:1fr 1fr;gap:18px 20px;align-items:start}
-    .setpage>.page-head,.setpage>.savebar{grid-column:1/-1}
-    .setpage>.card{margin-bottom:0}
-    @media(max-width:1024px){.setpage{grid-template-columns:1fr}}
+    .setpage{max-width:1760px}
+    .setpage .cards{columns:2;column-gap:20px}
+    .setpage .cards .card{break-inside:avoid;-webkit-column-break-inside:avoid}
+    @media(max-width:1024px){.setpage .cards{columns:1}}
     .setpage .page-head{margin-bottom:24px}
     .setpage .page-head h1{font-family:var(--serif);font-size:clamp(24px,3vw,30px);color:var(--ink);line-height:1.1}
     .setpage .page-head p{color:var(--muted);font-size:14px;margin-top:7px}
@@ -1050,6 +1050,7 @@
         var segs=[['demo','演示 Demo'],['stripe','Stripe'],['paypal','PayPal']];
         view.innerHTML='<div class="setpage">'+
           '<div class="page-head"><h1>店铺设置 <span style="color:var(--muted);font-size:.6em">/ Store settings</span></h1><p>管理品牌信息、货币运费、广告追踪与套装功能。</p></div>'+
+          '<div class="cards">'+
           card(IC.basics,'基本信息','品牌名称、标语与联系方式',
             '<div class="grid">'+
               fT('s_brand','店名 Brand',esc(g('brand','Code Official')))+
@@ -1075,6 +1076,7 @@
             tRow('s_bun','在店面显示套装组合','导航入口 + 套装页 /bundles.html',bun)+
             tRow('s_bunHome','在首页显示套装板块','需先开启上面的总开关',bunHome)+
             '<div class="bundle-note">关掉总开关：顾客完全看不到套装。每个套装还能在「套装」区单独上架/下架。</div>')+
+          '</div>'+
           '<div class="savebar"><div class="savebar-inner"><div class="save-hint"><span class="saved-pill" id="savedPill"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>已保存，店面已生效</span><span class="msg2" id="sm">改动后记得点「保存设置」生效。</span></div><button class="btn-primary" id="saveS">保存设置</button></div></div>'+
         '</div>';
         var seg=document.getElementById('payseg'),curMode=mode;
