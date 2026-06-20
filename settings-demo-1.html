@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>店铺设置 · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFFAF1; --cream2:#FAF6F3; --white:#FFFFFF;
+    --wine:#82213E; --wine-deep:#6A1A32;
+    --pink:#E9C9CC; --pink-soft:#F3E2E4; --blush:#F2E4D9;
+    --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C;
+    --line:#ECD9D6; --line2:#E2DCD8;
+    --green:#2F7D4F; --green-bg:#E3F1E8; --red:#B23A3A;
+    --radius:8px; --radius-sm:5px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'DM Sans',system-ui,sans-serif;
+    color:var(--ink);
+    background:var(--cream);
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    min-height:100vh;
+  }
+  .serif{font-family:'DM Serif Display',Georgia,serif;font-weight:400;}
+
+  /* ===== SIDEBAR ===== */
+  .sidebar{
+    width:230px;flex-shrink:0;
+    background:var(--cream2);
+    border-right:1px solid var(--line);
+    display:flex;flex-direction:column;
+    position:sticky;top:0;height:100vh;
+    padding:26px 16px 20px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:9px;
+    padding:0 8px 4px;margin-bottom:26px;
+  }
+  .brand .mark{
+    color:var(--wine);font-size:20px;line-height:1;
+  }
+  .brand .name{
+    font-family:'DM Serif Display',serif;
+    font-size:21px;color:var(--ink);letter-spacing:.2px;
+  }
+  .nav{display:flex;flex-direction:column;gap:3px;flex:1;}
+  .nav a{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 13px;border-radius:7px;
+    color:var(--ink2);text-decoration:none;
+    font-size:14.5px;font-weight:500;
+    transition:background .15s,color .15s;
+  }
+  .nav a:hover{background:var(--pink-soft);color:var(--wine-deep);}
+  .nav a.active{background:var(--wine);color:var(--cream);}
+  .nav a.active:hover{background:var(--wine);}
+  .nav a svg{width:18px;height:18px;flex-shrink:0;}
+  .side-bottom{
+    border-top:1px solid var(--line);
+    padding-top:14px;margin-top:10px;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .side-bottom a{
+    color:var(--muted);text-decoration:none;
+    font-size:13.5px;font-weight:500;
+    padding:7px 13px;border-radius:6px;
+    transition:color .15s,background .15s;
+  }
+  .side-bottom a:hover{color:var(--wine);background:var(--pink-soft);}
+
+  /* ===== MAIN ===== */
+  .main{
+    flex:1;min-width:0;
+    overflow-y:auto;height:100vh;
+    display:flex;flex-direction:column;
+  }
+  .main-inner{
+    padding:clamp(24px,3.4vw,40px);
+    padding-bottom:30px;
+    max-width:1000px;width:100%;
+  }
+  .page-head{margin-bottom:26px;}
+  .page-head h1{
+    font-family:'DM Serif Display',serif;
+    font-size:clamp(26px,3vw,32px);
+    color:var(--ink);line-height:1.1;
+  }
+  .page-head p{
+    color:var(--muted);font-size:14.5px;margin-top:7px;
+  }
+
+  /* ===== CARD ===== */
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:0 1px 2px rgba(130,33,62,.04),0 4px 16px rgba(130,33,62,.03);
+    padding:26px 28px;
+    margin-bottom:20px;
+  }
+  .card-head{
+    display:flex;align-items:center;gap:11px;
+    padding-bottom:14px;margin-bottom:22px;
+    border-bottom:1px solid var(--line);
+  }
+  .card-head .ic{
+    width:32px;height:32px;border-radius:7px;
+    background:var(--pink-soft);color:var(--wine);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .card-head .ic svg{width:17px;height:17px;}
+  .card-head h2{
+    font-family:'DM Serif Display',serif;
+    font-size:20px;color:var(--ink);line-height:1.15;
+  }
+  .card-head .sub{
+    font-size:12.5px;color:var(--muted);margin-top:1px;
+  }
+
+  /* ===== GRID + FIELDS ===== */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:18px 22px;
+  }
+  .field{display:flex;flex-direction:column;gap:7px;}
+  .field.full{grid-column:1 / -1;}
+  label.lbl{
+    font-size:11px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.7px;
+    color:var(--muted);
+  }
+  input[type=text],input[type=number],select{
+    width:100%;height:44px;
+    background:var(--white);
+    border:1px solid var(--line2);
+    border-radius:var(--radius-sm);
+    padding:0 12px;
+    font-family:'DM Sans',sans-serif;
+    font-size:14.5px;color:var(--ink);
+    transition:border-color .15s,box-shadow .15s;
+  }
+  input::placeholder{color:#B9ADA6;}
+  input:focus,select:focus{
+    outline:none;border-color:var(--wine);
+    box-shadow:0 0 0 3px rgba(130,33,62,.10);
+  }
+  select{
+    appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2382213E' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;
+    padding-right:36px;
+  }
+  .input-affix{position:relative;}
+  .input-affix .pre{
+    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    font-size:14px;color:var(--muted);pointer-events:none;
+  }
+  .input-affix input{padding-left:34px;}
+  .help{
+    font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:1px;
+  }
+
+  /* ===== SEGMENTED CONTROL ===== */
+  .seg{
+    display:inline-flex;
+    background:var(--cream2);
+    border:1px solid var(--line2);
+    border-radius:7px;padding:4px;gap:4px;
+    width:100%;max-width:430px;
+  }
+  .seg button{
+    flex:1;
+    border:none;background:transparent;cursor:pointer;
+    font-family:'DM Sans',sans-serif;
+    font-size:13.5px;font-weight:600;color:var(--ink2);
+    padding:9px 10px;border-radius:5px;
+    transition:background .15s,color .15s,box-shadow .15s;
+  }
+  .seg button:hover:not(.active){color:var(--wine-deep);}
+  .seg button.active{
+    background:var(--wine);color:var(--white);
+    box-shadow:0 1px 3px rgba(130,33,62,.22);
+  }
+  .pay-link{margin-top:18px;}
+  .pay-link.hidden{display:none;}
+  .demo-note{
+    margin-top:16px;
+    display:flex;align-items:center;gap:9px;
+    background:var(--cream2);
+    border:1px dashed var(--line2);
+    border-radius:var(--radius-sm);
+    padding:11px 14px;
+    font-size:13px;color:var(--muted);
+  }
+  .demo-note svg{width:16px;height:16px;color:var(--wine);flex-shrink:0;}
+
+  /* ===== TOGGLE ROWS ===== */
+  .toggle-row{
+    display:flex;align-items:center;gap:18px;
+    background:var(--cream2);
+    border:1px solid var(--line2);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .toggle-row + .toggle-row{margin-top:12px;}
+  .toggle-row .tr-text{flex:1;min-width:0;}
+  .toggle-row .tr-title{
+    font-size:14.5px;font-weight:600;color:var(--ink);
+  }
+  .toggle-row .tr-help{
+    font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5;
+  }
+  .switch{
+    position:relative;flex-shrink:0;
+    width:46px;height:25px;border-radius:999px;
+    background:var(--line2);
+    border:none;cursor:pointer;padding:0;
+    transition:background .2s ease;
+  }
+  .switch .knob{
+    position:absolute;top:2px;left:2px;
+    width:21px;height:21px;border-radius:50%;
+    background:var(--white);
+    box-shadow:0 1px 3px rgba(0,0,0,.22);
+    transition:transform .2s ease;
+  }
+  .switch.on{background:var(--green);}
+  .switch.on .knob{transform:translateX(21px);}
+  .switch:focus-visible{outline:2px solid var(--wine);outline-offset:2px;}
+  .bundle-note{
+    margin-top:16px;
+    font-size:12.5px;color:var(--muted);line-height:1.6;
+  }
+
+  /* ===== SAVE BAR (sticky) ===== */
+  .savebar{
+    position:sticky;bottom:0;
+    background:var(--white);
+    border-top:1px solid var(--line);
+    box-shadow:0 -2px 12px rgba(130,33,62,.05);
+    margin-top:auto;
+  }
+  .savebar-inner{
+    max-width:1000px;width:100%;
+    padding:16px clamp(24px,3.4vw,40px);
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .save-hint{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--muted);
+  }
+  .saved-pill{
+    display:none;align-items:center;gap:6px;
+    background:var(--green-bg);color:var(--green);
+    font-size:13px;font-weight:600;
+    padding:7px 13px;border-radius:999px;
+  }
+  .saved-pill.show{display:inline-flex;}
+  .saved-pill svg{width:15px;height:15px;}
+  .btn-primary{
+    background:var(--wine);color:var(--white);
+    border:none;border-radius:var(--radius-sm);
+    font-family:'DM Sans',sans-serif;
+    font-size:14.5px;font-weight:600;
+    letter-spacing:.3px;
+    padding:13px 30px;cursor:pointer;
+    transition:background .15s,transform .05s;
+  }
+  .btn-primary:hover{background:var(--wine-deep);}
+  .btn-primary:active{transform:translateY(1px);}
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width:720px){
+    body{flex-direction:column;}
+    .sidebar{
+      width:100%;height:auto;position:static;
+      flex-direction:row;flex-wrap:wrap;align-items:center;
+      padding:14px 16px;gap:8px;
+    }
+    .brand{margin:0 auto 0 0;padding:0;}
+    .nav{flex-direction:row;flex-wrap:wrap;flex:1 0 100%;order:3;gap:4px;}
+    .nav a{padding:8px 11px;font-size:13.5px;}
+    .nav a svg{display:none;}
+    .side-bottom{
+      border:none;padding:0;margin:0;
+      flex-direction:row;gap:4px;order:2;
+    }
+    .main{height:auto;overflow:visible;}
+    .grid{grid-template-columns:1fr;}
+    .seg{max-width:100%;}
+    .savebar-inner{flex-direction:column-reverse;align-items:stretch;}
+    .btn-primary{width:100%;}
+    .save-hint{justify-content:center;}
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="mark">✿</span>
+      <span class="name">Code Official</span>
+    </div>
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>概览</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg>商品</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 14h6"/></svg>库存</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></svg>订单</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>顾客</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 9.4l-9-9A2 2 0 0010.2 0H4a2 2 0 00-2 2v6.2a2 2 0 00.6 1.4l9 9a2 2 0 002.8 0l6.2-6.2a2 2 0 000-2.8z"/><circle cx="7" cy="7" r="1.3"/></svg>折扣码</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>套装</a>
+      <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 01-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 01-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 010-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 012.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 014 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 012.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 010 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg>设置</a>
+    </nav>
+    <div class="side-bottom">
+      <a href="#">↗&nbsp; 查看店面</a>
+      <a href="#">退出登录</a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+    <div class="main-inner">
+      <div class="page-head">
+        <h1>店铺设置 <span style="color:var(--muted);font-size:.62em;">/ Store settings</span></h1>
+        <p>管理品牌信息、货币运费、广告追踪与套装功能。</p>
+      </div>
+
+      <!-- 1. 基本信息 -->
+      <section class="card">
+        <div class="card-head">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg></span>
+          <div>
+            <h2>基本信息</h2>
+            <div class="sub">品牌名称、标语与联系方式</div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="field">
+            <label class="lbl" for="brand">店名 Brand</label>
+            <input type="text" id="brand" value="Code Official">
+          </div>
+          <div class="field">
+            <label class="lbl" for="tagline">标语 Tagline</label>
+            <input type="text" id="tagline" value="Sweet, feminine everyday pieces">
+          </div>
+          <div class="field">
+            <label class="lbl" for="email">联系邮箱</label>
+            <input type="text" id="email" value="hello@petale-boutique.com">
+          </div>
+          <div class="field">
+            <label class="lbl" for="lang">默认语言</label>
+            <select id="lang">
+              <option selected>自动</option>
+              <option>English</option>
+              <option>中文</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 货币与运费 -->
+      <section class="card">
+        <div class="card-head">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.6"/><path d="M6 6v0M18 19v0"/></svg></span>
+          <div>
+            <h2>货币与运费</h2>
+            <div class="sub">结账显示的货币与运费规则</div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="field">
+            <label class="lbl" for="ccode">货币代码 (MYR/HKD/USD)</label>
+            <input type="text" id="ccode" value="MYR">
+          </div>
+          <div class="field">
+            <label class="lbl" for="csym">货币符号 (RM/HK$/$)</label>
+            <input type="text" id="csym" value="RM">
+          </div>
+          <div class="field">
+            <label class="lbl" for="freeship">免运门槛</label>
+            <div class="input-affix">
+              <span class="pre">RM</span>
+              <input type="number" id="freeship" value="150">
+            </div>
+          </div>
+          <div class="field">
+            <label class="lbl" for="flatship">统一运费</label>
+            <div class="input-affix">
+              <span class="pre">RM</span>
+              <input type="number" id="flatship" value="10">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 广告追踪 -->
+      <section class="card">
+        <div class="card-head">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg></span>
+          <div>
+            <h2>广告追踪</h2>
+            <div class="sub">Facebook / Meta 像素追踪</div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="field full">
+            <label class="lbl" for="pixel">Facebook Pixel ID</label>
+            <input type="text" id="pixel" placeholder="纯数字，如 1234567890123456">
+            <div class="help">在 Meta「事件管理工具」里复制（一串数字）。</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. 支付方式 -->
+      <section class="card">
+        <div class="card-head">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
+          <div>
+            <h2>支付方式 <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:var(--muted);">Payment Gateway</span></h2>
+            <div class="sub">选择结账时如何收款</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="lbl">收款方式</label>
+          <div class="seg" id="payseg">
+            <button class="active" data-pay="demo">演示 Demo</button>
+            <button data-pay="stripe">Stripe</button>
+            <button data-pay="paypal">PayPal</button>
+          </div>
+        </div>
+
+        <div class="pay-link hidden" id="payLinkWrap">
+          <div class="field full">
+            <label class="lbl" for="paylink">支付链接 Payment link</label>
+            <input type="text" id="paylink" placeholder="粘贴 Stripe / PayPal 收款链接，例如 https://buy.stripe.com/...">
+          </div>
+        </div>
+
+        <div class="demo-note" id="demoNote">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>当前为「演示 Demo」模式：不真实扣款，无需填写支付链接。</span>
+        </div>
+
+        <div class="help" style="margin-top:14px;">演示=不真实扣款；选 Stripe/PayPal 并粘贴收款链接后，结账会跳转到该链接收款。</div>
+      </section>
+
+      <!-- 5. 套装功能 -->
+      <section class="card">
+        <div class="card-head">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg></span>
+          <div>
+            <h2>套装功能 <span style="font-family:'DM Sans';font-size:13px;font-weight:500;color:var(--muted);">Bundles</span></h2>
+            <div class="sub">控制套装组合在店面的展示</div>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div class="tr-text">
+            <div class="tr-title">在店面显示套装组合</div>
+            <div class="tr-help">导航入口 + 套装页 /bundles.html</div>
+          </div>
+          <button class="switch" id="sw1" role="switch" aria-checked="false" aria-label="在店面显示套装组合">
+            <span class="knob"></span>
+          </button>
+        </div>
+
+        <div class="toggle-row">
+          <div class="tr-text">
+            <div class="tr-title">在首页显示套装板块</div>
+            <div class="tr-help">需先开启上面的总开关</div>
+          </div>
+          <button class="switch" id="sw2" role="switch" aria-checked="false" aria-label="在首页显示套装板块">
+            <span class="knob"></span>
+          </button>
+        </div>
+
+        <div class="bundle-note">关掉总开关：顾客完全看不到套装。每个套装还能在「套装」区单独上架/下架。</div>
+      </section>
+    </div>
+
+    <!-- ===== STICKY SAVE BAR ===== -->
+    <div class="savebar">
+      <div class="savebar-inner">
+        <div class="save-hint">
+          <span class="saved-pill" id="savedPill">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            ✓ 已保存，店面已生效
+          </span>
+          <span id="autosaveHint">改动会即时预览，记得点保存生效。</span>
+        </div>
+        <button class="btn-primary" id="saveBtn">保存设置</button>
+      </div>
+    </div>
+  </main>
+
+<script>
+  /* ---- payment segmented control ---- */
+  var seg = document.getElementById('payseg');
+  var linkWrap = document.getElementById('payLinkWrap');
+  var demoNote = document.getElementById('demoNote');
+  seg.addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-pay]');
+    if(!btn) return;
+    seg.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var isDemo = btn.dataset.pay === 'demo';
+    linkWrap.classList.toggle('hidden', isDemo);
+    demoNote.style.display = isDemo ? 'flex' : 'none';
+  });
+
+  /* ---- toggle switches ---- */
+  function bindSwitch(id){
+    var sw = document.getElementById(id);
+    sw.addEventListener('click', function(){
+      var on = sw.classList.toggle('on');
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+  }
+  bindSwitch('sw1');
+  bindSwitch('sw2');
+
+  /* ---- save ---- */
+  var saveBtn = document.getElementById('saveBtn');
+  var pill = document.getElementById('savedPill');
+  var hint = document.getElementById('autosaveHint');
+  var t;
+  saveBtn.addEventListener('click', function(){
+    pill.classList.add('show');
+    hint.style.display = 'none';
+    clearTimeout(t);
+    t = setTimeout(function(){
+      pill.classList.remove('show');
+      hint.style.display = '';
+    }, 2600);
+  });
+</script>
+</body>
+</html>
