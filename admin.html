@@ -863,7 +863,7 @@
         function renderRows(){
           $('#dRows').innerHTML=rows.length?rows.map(function(c){
             var cf=c.config||{};
-            var val=c.type==='percent'?(c.value+'%')
+            var val=c.type==='percent'?( ((cf.method==='fixed')?('减'+money(c.value)):(cf.method==='unit_price')?('每件'+money(c.value)):(c.value+'%')) + ((cf.req==='qty')?(' · 满'+(cf.req_min||0)+'件'):((+cf.req_min>0)?(' · 满'+money(cf.req_min)):'')) )
               :c.type==='free_shipping'?'免运费'
               :c.type==='bxgy'?('买'+(cf.buy||1)+'送'+(cf.get||1))
               :c.type==='nth'?('第'+(cf.nth||2)+'件'+((+cf.off_pct===50)?'半价':((cf.off_pct||50)+'% off')))
@@ -897,6 +897,7 @@
             S.scopeType='all';S.scopeIds=[];S.autoApply=(k==='bxgy'||k==='nth');  // 切换类型 → 范围重置 + 默认领取方式
             if(k==='bxgy')S.config={buy:1,get:1,free_pct:100,max_per_order:''};
             else if(k==='nth')S.config={nth:2,off_pct:50,repeating:true,max_per_order:''};
+            else if(k==='percent')S.config={req:'amount',req_min:0,applies_to:'order',method:'percent'};
             else S.config={};
             $$('#dTplGrid .dtpl').forEach(function(x){x.classList.toggle('sel',x===el);});
             $('#dGo2').disabled=false;
@@ -904,14 +905,14 @@
         }
 
         function scopeText(){
-          if(S.type!=='bxgy'&&S.type!=='nth')return '全部商品';
+          if(S.type!=='bxgy'&&S.type!=='nth'&&S.type!=='percent')return '全部商品';
           if(S.scopeType==='all')return '全部商品';
           if(S.scopeType==='category')return '系列：'+((S.scopeIds||[]).join('、')||'未选');
           return '指定商品 '+((S.scopeIds||[]).length)+' 款';
         }
         function ruleText(){
           var c=S.config||{};
-          if(S.type==='percent')return (S.min>0?('满 '+sym+' '+S.min+'，'):'全场 ')+(S.value||0)+'% 折扣';
+          if(S.type==='percent'){var cond=(c.req==='qty')?('满 '+(c.req_min||0)+' 件'):((+c.req_min>0)?('满 '+sym+' '+c.req_min):'全场');var mt=(c.method==='fixed')?('减 '+sym+' '+(S.value||0)):((c.method==='unit_price')?('每件 '+sym+' '+(S.value||0)):((S.value||0)+'% 折扣'));var tgt=(c.applies_to||'order')==='order'?'整单':'指定商品';return cond+'，'+tgt+' '+mt+' · '+scopeText();}
           if(S.type==='fixed')return (S.min>0?('满 '+sym+' '+S.min+'，'):'')+'立减 '+sym+' '+(S.value||0);
           if(S.type==='free_shipping')return (S.min>0?('满 '+sym+' '+S.min+'，'):'')+'免运费';
           if(S.type==='bxgy')return '买 '+(c.buy||1)+' 送 '+(c.get||1)+'（'+((c.free_pct==null||+c.free_pct>=100)?'赠品免费':('赠品 '+c.free_pct+'% off'))+'）· '+scopeText();
@@ -927,11 +928,8 @@
         }
         function renderRule(){
           var t=S.type,c=S.config||{},box=$('#dRuleFields');
-          if(t==='percent'){
-            box.innerHTML='<div class="row2"><div class="field"><label>折扣百分比</label><div class="priceinput pct"><input id="dVal" type="number" min="1" max="99" value="'+(S.value||10)+'"><span class="suf">%</span></div><div class="hint">例：10 = 打 9 折。</div></div>'+
-              '<div class="field"><label>满额门槛（0 = 不限）</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dMin" type="number" min="0" step="0.01" value="'+(S.min||0)+'"></div></div></div>';
-            $('#dS2title').textContent='第二步 · 设置「满额打折」';
-          } else if(t==='fixed'){
+          if(t==='percent'){ renderPctRule(); renderScope(); updatePrev(); return; }
+          if(t==='fixed'){
             box.innerHTML='<div class="row2"><div class="field"><label>立减金额</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dVal" type="number" min="1" step="0.01" value="'+(S.value||5)+'"></div><div class="hint">直接从小计中扣除。</div></div>'+
               '<div class="field"><label>满额门槛（0 = 不限）</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dMin" type="number" min="0" step="0.01" value="'+(S.min||0)+'"></div></div></div>';
             $('#dS2title').textContent='第二步 · 设置「满额立减」';
@@ -963,7 +961,7 @@
         }
         function renderScope(){
           var box=$('#dScopeBox');if(!box)return;
-          if(S.type!=='bxgy'&&S.type!=='nth'){box.innerHTML='<div class="field" style="margin-top:6px"><label>适用范围</label><div class="dscope">全部商品（按整单计算）</div></div>';return;}
+          if(S.type!=='bxgy'&&S.type!=='nth'&&S.type!=='percent'){box.innerHTML='<div class="field" style="margin-top:6px"><label>适用范围</label><div class="dscope">全部商品（按整单计算）</div></div>';return;}
           var seg='<div class="field" style="margin-top:8px"><label>适用范围（参加活动的商品）</label>'+
             '<div class="seg3" id="dScopeSeg">'+
               '<button type="button" class="sopt'+(S.scopeType==='all'?' on':'')+'" data-sc="all">全部商品</button>'+
@@ -982,6 +980,24 @@
           $$('#dScopeBox [data-pid]').forEach(function(cb){cb.addEventListener('change',function(){toggleScope(cb.getAttribute('data-pid'),cb.checked,cb);});});
         }
         function toggleScope(v,on,cb){var i=S.scopeIds.indexOf(v);if(on&&i<0)S.scopeIds.push(v);else if(!on&&i>=0)S.scopeIds.splice(i,1);if(cb&&cb.parentNode)cb.parentNode.classList.toggle('on',on);updatePrev();}
+        function renderPctRule(){
+          var c=S.config||{},box=$('#dRuleFields');
+          var req=c.req||'amount',applies=c.applies_to||'order',method=c.method||'percent';
+          var valLabel=method==='percent'?'折扣百分比':(method==='unit_price'?'每件改成单价':(applies==='order'?'立减金额':'每件减'));
+          box.innerHTML=
+            '<div class="field"><label>购买条件</label>'+
+              '<div class="seg3" id="dReqSeg"><button type="button" class="sopt'+(req==='qty'?' on':'')+'" data-req="qty">满件数</button><button type="button" class="sopt'+(req==='amount'?' on':'')+'" data-req="amount">满金额</button></div>'+
+              '<div class="field" style="margin-top:8px"><label>'+(req==='qty'?'最少购买件数':('最低消费门槛 '+sym))+'</label><div class="priceinput">'+(req==='amount'?('<span class="pre">'+sym+'</span>'):'')+'<input id="dReqMin" type="number" min="0" value="'+(c.req_min!=null?c.req_min:(req==='qty'?2:0))+'">'+(req==='qty'?'<span class="suf">件</span>':'')+'</div><div class="hint">'+(req==='qty'?'购物车里（指定范围内）满这么多件才触发。':'（指定范围内）消费满这个金额才触发；0 = 不限。')+'</div></div></div>'+
+            '<div class="field"><label>优惠作用对象</label><div class="seg3" id="dAppSeg"><button type="button" class="sopt'+(applies==='order'?' on':'')+'"'+(method==='unit_price'?' disabled style="opacity:.45;cursor:not-allowed"':'')+' data-app="order">整单</button><button type="button" class="sopt'+(applies==='product'?' on':'')+'" data-app="product">仅指定商品</button></div>'+(method==='unit_price'?'<div class="hint">固定单价只能作用于指定商品。</div>':'')+'</div>'+
+            '<div class="field"><label>优惠形式</label><div class="seg3" id="dMethSeg"><button type="button" class="sopt'+(method==='percent'?' on':'')+'" data-meth="percent">按百分比</button><button type="button" class="sopt'+(method==='fixed'?' on':'')+'" data-meth="fixed">按固定金额</button><button type="button" class="sopt'+(method==='unit_price'?' on':'')+'" data-meth="unit_price">固定单价</button></div>'+
+              '<div class="field" style="margin-top:8px"><label>'+valLabel+'</label><div class="priceinput'+(method==='percent'?' pct':'')+'">'+(method!=='percent'?('<span class="pre">'+sym+'</span>'):'')+'<input id="dVal" type="number" min="0" value="'+(S.value!=null?S.value:10)+'">'+(method==='percent'?'<span class="suf">%</span>':'')+'</div></div></div>';
+          $('#dS2title').textContent='第二步 · 设置「满额打折（条件型）」';
+          $$('#dReqSeg .sopt').forEach(function(b){b.addEventListener('click',function(){S.config.req=b.getAttribute('data-req');renderPctRule();updatePrev();});});
+          $$('#dAppSeg .sopt').forEach(function(b){b.addEventListener('click',function(){if(b.hasAttribute('disabled'))return;S.config.applies_to=b.getAttribute('data-app');renderPctRule();updatePrev();});});
+          $$('#dMethSeg .sopt').forEach(function(b){b.addEventListener('click',function(){S.config.method=b.getAttribute('data-meth');if(S.config.method==='unit_price')S.config.applies_to='product';renderPctRule();updatePrev();});});
+          var rmEl=$('#dReqMin');if(rmEl)rmEl.addEventListener('input',function(){S.config.req_min=(this.value===''?'':(+this.value||0));updatePrev();});
+          var vv=$('#dVal');if(vv)vv.addEventListener('input',function(){S.value=+this.value||0;updatePrev();});
+        }
 
         function renderReview(){
           var codeU=(S.code||'').toUpperCase();
@@ -1007,7 +1023,7 @@
           $$('#dSteps .step').forEach(function(s){var k=+s.getAttribute('data-step');s.classList.toggle('active',k===n);s.classList.toggle('done',k<n);});
           $$('#dSteps .step-line').forEach(function(l){l.classList.toggle('fill',+l.getAttribute('data-line')<n);});
           if(n===2){renderRule();}
-          if(n===3){$('#dName').value=S.name;$('#dCode').value=S.code;$('#dLimit').value=S.limit;$('#dStart').value=S.start;$('#dExp').value=S.exp;$('#dMinEcho').textContent=S.min>0?(sym+' '+S.min):'不限';$('#dLiveSw').classList.toggle('on',S.live);applyModeUI();}
+          if(n===3){$('#dName').value=S.name;$('#dCode').value=S.code;$('#dLimit').value=S.limit;$('#dStart').value=S.start;$('#dExp').value=S.exp;$('#dMinEcho').textContent=(S.type==='percent')?((S.config.req==='qty')?('满 '+(S.config.req_min||0)+' 件'):((+S.config.req_min>0)?('满 '+sym+' '+S.config.req_min):'不限')):(S.min>0?(sym+' '+S.min):'不限');$('#dLiveSw').classList.toggle('on',S.live);applyModeUI();}
           if(n===4){pullStep3();renderReview();}
           window.scrollTo(0,0);
         }
@@ -1028,10 +1044,12 @@
           pullStep3();
           if(!S.type){toast('请先选择优惠类型');goStep(1);return;}
           var cart=(S.type==='bxgy'||S.type==='nth');
+          var cond=(S.type==='percent'); var hasCfg=cart||cond;
           if((S.type==='percent'||S.type==='fixed')&&!(S.value>0)){toast('请填写有效的折扣值');goStep(2);return;}
           if(S.type==='bxgy'&&(!((+S.config.buy)>=1)||!((+S.config.get)>=1))){toast('买 / 送数量需 ≥ 1');goStep(2);return;}
           if(S.type==='nth'&&!((+S.config.nth)>=2)){toast('「每几件优惠」需 ≥ 2');goStep(2);return;}
-          if(cart&&S.scopeType!=='all'&&!((S.scopeIds||[]).length)){toast('请选择参加活动的系列或商品');goStep(2);return;}
+          if(cond&&(S.config.req||'amount')==='qty'&&!((+S.config.req_min)>=1)){toast('「最少购买件数」需 ≥ 1');goStep(2);return;}
+          if(hasCfg&&S.scopeType!=='all'&&!((S.scopeIds||[]).length)){toast('请选择参加活动的系列或商品');goStep(2);return;}
           if(!S.name){toast('请填写优惠名称');goStep(3);return;}
           if(S.autoApply&&!S.code)S.code='AUTO'+String(Date.now()).slice(-6);
           if(!S.autoApply&&!S.code){toast('请填写优惠码');goStep(3);return;}
@@ -1041,11 +1059,13 @@
               ?{buy:Math.max(1,parseInt(cc.buy,10)||1),get:Math.max(1,parseInt(cc.get,10)||1),free_pct:Math.min(100,Math.max(1,parseInt(cc.free_pct,10)||100)),max_per_order:cap(cc.max_per_order)}
               :{nth:Math.max(2,parseInt(cc.nth,10)||2),off_pct:Math.min(100,Math.max(1,parseInt(cc.off_pct,10)||50)),repeating:cc.repeating!==false,max_per_order:cap(cc.max_per_order)};
           }
+          if(cond){var pc=S.config||{};S.config={req:(pc.req||'amount'),req_min:(+pc.req_min||0),applies_to:(pc.applies_to||'order'),method:(pc.method||'percent')};if(S.config.method==='unit_price')S.config.applies_to='product';}
+          var pmin=cond?((S.config.req==='amount')?(+S.config.req_min||0):0):(+S.min||0);
           var row={code:S.code.toUpperCase(),name:S.name,type:S.type,value:((S.type==='free_shipping'||cart)?0:(+S.value||0)),
-            min_subtotal:+S.min||0,usage_limit:S.limit?parseInt(S.limit,10):null,
+            min_subtotal:pmin,usage_limit:S.limit?parseInt(S.limit,10):null,
             starts_at:S.start?new Date(S.start+'T00:00:00').toISOString():null,
             expires_at:S.exp?new Date(S.exp+'T23:59:59').toISOString():null,active:!!live,
-            config:cart?S.config:{},scope_type:cart?S.scopeType:'all',scope_ids:cart?(S.scopeIds||[]):[],auto_apply:!!S.autoApply};
+            config:hasCfg?S.config:{},scope_type:hasCfg?S.scopeType:'all',scope_ids:hasCfg?(S.scopeIds||[]):[],auto_apply:!!S.autoApply};
           $('#dSave').disabled=true;$('#dDraft').disabled=true;
           DB.upsertDiscount(row).then(function(rr){
             if(rr&&rr.error){toast('保存失败：'+rr.error.message);$('#dSave').disabled=false;$('#dDraft').disabled=false;return;}

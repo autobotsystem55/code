@@ -111,9 +111,8 @@ begin
       and p_subtotal >= min_subtotal
     limit 1;
   if not found then return; end if;
-  if    r.type = 'percent'        then d := round(p_subtotal * r.value / 100.0, 2);
-  elsif r.type = 'free_shipping'  then d := 0;
-  elsif r.type in ('bxgy','nth')  then d := 0;   -- 由结账页按购物车明细计算
+  if    r.type = 'free_shipping'  then d := 0;
+  elsif r.type in ('bxgy','nth','percent') then d := 0;   -- 由结账页按购物车明细/条件计算
   else                                 d := least(r.value, p_subtotal);
   end if;
   return query select r.code, r.type, r.value, d, r.config, r.scope_type, r.scope_ids;
