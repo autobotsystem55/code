@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>套装·组合购 — 交互搭配台 (Demo C) · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFFAF1;
+  --panel:#FAF6F3;
+  --white:#ffffff;
+  --wine:#82213E;
+  --wine-dark:#6c1a33;
+  --pink:#E9C9CC;
+  --pink-soft:#F3E2E4;
+  --ink:#1C1C1C;
+  --muted:#6F635C;
+  --green:#2F7D4F;
+  --green-soft:#EAF3EC;
+  --radius:6px;
+  --shadow:0 1px 3px rgba(28,28,28,.06), 0 8px 28px rgba(28,28,28,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"DM Sans",system-ui,sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:96px;
+}
+h1,h2,h3,.serif{font-family:"DM Serif Display",Georgia,serif;font-weight:400}
+img{display:block;width:100%;height:100%;object-fit:cover}
+
+/* ---------- top bar ---------- */
+.topbar{
+  background:var(--white);
+  border-bottom:1px solid var(--pink-soft);
+  position:sticky;top:0;z-index:60;
+}
+.topbar__in{
+  max-width:1120px;margin:0 auto;padding:14px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.wordmark{font-family:"DM Serif Display",serif;font-size:23px;letter-spacing:.3px;color:var(--ink);white-space:nowrap}
+.wordmark .flower{color:var(--wine);margin-left:2px}
+.topbar__nav{display:flex;gap:26px;font-size:14px;color:var(--muted)}
+.topbar__nav span{cursor:default}
+.topbar__nav .active{color:var(--ink);font-weight:500}
+.demo-pill{
+  font-size:11.5px;letter-spacing:.4px;color:var(--wine);
+  border:1px solid var(--pink);background:var(--pink-soft);
+  padding:3px 10px;border-radius:40px;white-space:nowrap;
+}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+.hero{padding:40px 0 18px}
+.hero .eyebrow{
+  font-size:12px;letter-spacing:2.4px;text-transform:uppercase;color:var(--wine);font-weight:600;
+}
+.hero h1{font-size:42px;line-height:1.08;margin:12px 0 10px}
+.hero p{color:var(--muted);max-width:560px;font-size:15.5px;margin:0}
+
+/* mode toggle */
+.modes{
+  display:flex;gap:8px;margin:26px 0 8px;background:var(--panel);
+  padding:6px;border-radius:var(--radius);border:1px solid var(--pink-soft);width:max-content;max-width:100%;
+}
+.mode-btn{
+  font-family:inherit;font-size:14px;font-weight:500;color:var(--muted);
+  border:0;background:transparent;padding:10px 20px;border-radius:4px;cursor:pointer;
+  transition:.18s;white-space:nowrap;
+}
+.mode-btn .sub{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:1px;opacity:.85}
+.mode-btn.active{background:var(--white);color:var(--ink);box-shadow:0 1px 4px rgba(28,28,28,.08)}
+.mode-btn.active .sub{color:var(--wine)}
+
+.section{display:none;animation:fade .35s ease}
+.section.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* set header card */
+.set-head{
+  display:flex;flex-wrap:wrap;align-items:center;gap:14px;
+  margin:22px 0 6px;padding:18px 20px;background:var(--white);
+  border:1px solid var(--pink-soft);border-radius:var(--radius);box-shadow:var(--shadow);
+}
+.set-head h2{font-size:25px;margin:0}
+.set-head .desc{color:var(--muted);font-size:14px;flex:1 1 220px;min-width:180px}
+.save-badge{
+  background:var(--green-soft);color:var(--green);font-weight:600;font-size:13.5px;
+  padding:7px 13px;border-radius:40px;border:1px solid #cfe6d6;white-space:nowrap;
+}
+.save-badge b{font-weight:700}
+
+/* progress (mix) */
+.progress-wrap{margin:14px 0 4px}
+.progress-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;color:var(--muted);margin-bottom:7px}
+.progress-top b{color:var(--ink);font-weight:600}
+.progress-track{height:8px;background:var(--pink-soft);border-radius:40px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--wine),#a83b5b);border-radius:40px;transition:width .35s cubic-bezier(.4,0,.2,1)}
+
+/* product grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:18px;margin-top:18px}
+.card{
+  background:var(--white);border:1px solid var(--pink-soft);border-radius:var(--radius);
+  overflow:hidden;display:flex;flex-direction:column;transition:.2s;position:relative;
+}
+.card.selected{border-color:var(--wine);box-shadow:0 0 0 1px var(--wine), var(--shadow)}
+.card.fixed{box-shadow:var(--shadow)}
+.thumb{aspect-ratio:4/5;background:var(--pink-soft);position:relative;overflow:hidden}
+.thumb .fallback{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:"DM Serif Display",serif;color:var(--wine);font-size:15px;text-align:center;padding:14px;
+  background:linear-gradient(135deg,#f6e3e6,#efd2d6);
+}
+.tick{
+  position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;
+  background:var(--wine);color:#fff;display:none;align-items:center;justify-content:center;font-size:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+.card.selected .tick{display:flex}
+.tag{
+  position:absolute;top:10px;left:10px;font-size:11px;letter-spacing:.3px;
+  background:rgba(255,255,255,.92);color:var(--wine);padding:3px 9px;border-radius:40px;font-weight:600;
+}
+.card-body{padding:13px 14px 15px;display:flex;flex-direction:column;gap:9px;flex:1}
+.card-name{font-size:15px;font-weight:600;line-height:1.3}
+.card-price{font-size:14px;color:var(--ink)}
+.card-price .unit{color:var(--muted);font-size:12.5px}
+
+/* size picker */
+.sizes{display:flex;flex-wrap:wrap;gap:6px}
+.size{
+  font-family:inherit;font-size:12.5px;min-width:34px;text-align:center;
+  border:1px solid var(--pink);background:var(--white);color:var(--ink);
+  padding:6px 9px;border-radius:4px;cursor:pointer;transition:.15s;
+}
+.size:hover{border-color:var(--wine)}
+.size.on{background:var(--wine);border-color:var(--wine);color:#fff}
+.size.soldout{opacity:.38;text-decoration:line-through;cursor:not-allowed}
+.size.soldout:hover{border-color:var(--pink)}
+.size-hint{font-size:11.5px;color:var(--wine);min-height:14px}
+.size-hint.ok{color:var(--green)}
+
+.card-actions{margin-top:auto;display:flex;gap:8px;align-items:center}
+.swap{
+  font-family:inherit;font-size:12.5px;color:var(--muted);background:transparent;border:0;
+  cursor:pointer;text-decoration:underline;text-underline-offset:2px;padding:4px 0;
+}
+.swap:hover{color:var(--wine)}
+.pick-btn{
+  flex:1;font-family:inherit;font-size:13px;font-weight:600;border:1px solid var(--wine);
+  color:var(--wine);background:transparent;padding:9px;border-radius:4px;cursor:pointer;transition:.15s;
+}
+.pick-btn:hover{background:var(--pink-soft)}
+.card.selected .pick-btn{background:var(--wine);color:#fff}
+.pool-note{font-size:13px;color:var(--muted);margin:2px 0 0}
+
+/* fixed set total inline */
+.set-total{
+  margin-top:20px;background:var(--panel);border:1px solid var(--pink-soft);border-radius:var(--radius);
+  padding:18px 20px;display:flex;flex-wrap:wrap;gap:18px 30px;align-items:center;justify-content:space-between;
+}
+.totrow{display:flex;flex-direction:column;gap:2px}
+.totrow .lbl{font-size:12.5px;color:var(--muted)}
+.totrow .strike{color:var(--muted);text-decoration:line-through;font-size:15px}
+.totrow .big{font-family:"DM Serif Display",serif;font-size:26px;color:var(--ink)}
+.totrow .saved{color:var(--green);font-weight:700;font-size:17px}
+
+/* ---------- sticky summary bar ---------- */
+.summary{
+  position:fixed;left:0;right:0;bottom:0;z-index:70;
+  background:var(--white);border-top:1px solid var(--pink);
+  box-shadow:0 -6px 24px rgba(28,28,28,.07);
+}
+.summary__in{
+  max-width:1120px;margin:0 auto;padding:14px 22px;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+}
+.sum-stats{display:flex;align-items:center;gap:26px;flex:1;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;line-height:1.2}
+.stat .k{font-size:11.5px;color:var(--muted);letter-spacing:.3px}
+.stat .v{font-family:"DM Serif Display",serif;font-size:21px;color:var(--ink)}
+.stat .v.saved{color:var(--green)}
+.stat .v .ghost{font-family:"DM Sans";font-size:13px;color:var(--muted);text-decoration:line-through;margin-right:6px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--pink);align-self:center}
+.add-btn{
+  font-family:inherit;font-size:15px;font-weight:600;color:#fff;background:var(--wine);
+  border:0;padding:14px 30px;border-radius:var(--radius);cursor:pointer;transition:.18s;white-space:nowrap;
+  box-shadow:0 3px 10px rgba(130,33,62,.25);
+}
+.add-btn:hover:not(:disabled){background:var(--wine-dark)}
+.add-btn:disabled{background:var(--pink);color:#fff;cursor:not-allowed;box-shadow:none;opacity:.85}
+.add-btn .cnt{opacity:.85;font-weight:500}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;bottom:108px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:13px 22px;border-radius:40px;font-size:14px;
+  opacity:0;pointer-events:none;transition:.3s;z-index:90;box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast b{color:#f3c6cf}
+
+.foot{padding:34px 0 10px;color:var(--muted);font-size:12.5px;text-align:center}
+
+@media(max-width:680px){
+  .hero h1{font-size:32px}
+  .topbar__nav{display:none}
+  .stat .v{font-size:18px}
+  .sum-stats{gap:16px}
+  .add-btn{width:100%;padding:13px}
+  .summary__in{gap:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="topbar__in">
+    <div class="wordmark">Code Official <span class="flower">✿</span></div>
+    <nav class="topbar__nav">
+      <span>新品</span><span>上衣</span><span>裙装</span>
+      <span class="active">套装 · 组合购</span><span>关于</span>
+    </nav>
+    <span class="demo-pill">设计样稿 C · 交互搭配台</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <span class="eyebrow">套装 · 组合购</span>
+    <h1>搭配购买，省得更多</h1>
+    <p>把整套造型一次带走。固定套装由我们为你搭好，自选组合任你挑 N 件——边搭边看「已选 · 合计 · 已省」，越搭越划算。</p>
+  </section>
+
+  <!-- ============ MODE TOGGLE ============ -->
+  <div class="modes" role="tablist">
+    <button class="mode-btn active" data-mode="fixed" role="tab">
+      固定套装
+      <span class="sub">为你搭好 · 直接拿</span>
+    </button>
+    <button class="mode-btn" data-mode="mix" role="tab">
+      自选组合
+      <span class="sub">任选 3 件 · 享套价</span>
+    </button>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- ============ 固定套装 (FIXED SET) ==================== -->
+  <!-- ====================================================== -->
+  <section class="section on" id="fixedSection">
+    <div class="set-head">
+      <h2>通勤三件套</h2>
+      <p class="desc">一件混纺大衣、一件牛津纺衬衫、一条褶裥阔腿裤——从早会到晚餐，一套到位。每件可单独选码。</p>
+      <span class="save-badge">套装价省 <b>RM 74</b> · 约 16%</span>
+    </div>
+
+    <div class="grid" id="fixedGrid"></div>
+
+    <div class="set-total">
+      <div class="totrow">
+        <span class="lbl">单买合计</span>
+        <span class="strike">RM 473</span>
+      </div>
+      <div class="totrow">
+        <span class="lbl">套装价</span>
+        <span class="big">RM 399</span>
+      </div>
+      <div class="totrow">
+        <span class="lbl">立省</span>
+        <span class="saved">RM 74</span>
+      </div>
+      <div class="totrow" style="flex:1;min-width:160px">
+        <span class="lbl" id="fixedSizeStatus" style="font-size:13px">请为每件选择尺码 ↑</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- ============ 自选组合 (MIX & MATCH) ================== -->
+  <!-- ====================================================== -->
+  <section class="section" id="mixSection">
+    <div class="set-head">
+      <h2>任选 3 件 · 针织 / 上衣</h2>
+      <p class="desc">从下方精选池中挑选任意 3 件，整组立享套装价 <b>RM 299</b>。每件单独选码，随挑随省。</p>
+      <span class="save-badge">最高可省 <b>RM 130</b></span>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span>已选 <b id="mixCountTop">0</b> / 3 件</span>
+        <span id="mixHintTop">再选 3 件即可享套价 RM 299</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="mixFill"></div></div>
+    </div>
+
+    <p class="pool-note">精选池（5 选 3）：</p>
+    <div class="grid" id="mixGrid"></div>
+  </section>
+
+  <div class="foot">这是供店主挑选版式的设计样稿（样本数据，无后端）。✿ Code Official</div>
+</main>
+
+<!-- ============ STICKY SUMMARY BAR ============ -->
+<div class="summary">
+  <div class="summary__in">
+    <div class="sum-stats">
+      <div class="stat">
+        <span class="k">已选件数</span>
+        <span class="v" id="sumCount">0 件</span>
+      </div>
+      <div class="dot"></div>
+      <div class="stat">
+        <span class="k">合计</span>
+        <span class="v" id="sumTotal"><span class="ghost" id="sumStrike"></span>RM 0</span>
+      </div>
+      <div class="dot"></div>
+      <div class="stat">
+        <span class="k">已省</span>
+        <span class="v saved" id="sumSaved">RM 0</span>
+      </div>
+    </div>
+    <button class="add-btn" id="addBtn" disabled>加入购物袋 <span class="cnt" id="addCnt"></span></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   样本数据 (mock) — 无后端
+   ========================================================= */
+var FALLBACK = "1521572163474-6864f9cf17ab";
+function img(id){return "https://images.unsplash.com/photo-"+id+"?auto=format&fit=crop&w=500&q=80";}
+
+/* 固定套装：3 件，单买 473 → 套装 399 (省 74) */
+var FIXED = {
+  price: 399,
+  listTotal: 473,
+  items:[
+    {id:"f1", name:"羊毛混纺大衣", price:248, img:"1539109136881-3be0616acf4b", sizes:["S","M","L","XL"], soldout:["XL"]},
+    {id:"f2", name:"牛津纺棉质衬衫", price:95, img:"1503342217505-b0a15ec3261c", sizes:["S","M","L"], soldout:[]},
+    {id:"f3", name:"褶裥阔腿裤", price:130, img:"1542272604-787c3835535d", sizes:["S","M","L","XL"], soldout:["S"]}
+  ]
+};
+
+/* 自选组合：5 选 3，套价 299 */
+var MIX = {
+  pick:3,
+  price:299,
+  pool:[
+    {id:"m1", name:"羊绒圆领毛衣", price:165, img:"1576566588028-4147f3842f27", sizes:["S","M","L"], soldout:[]},
+    {id:"m2", name:"罗纹针织开衫", price:145, img:"1556905055-8f358a7a47b2", sizes:["S","M","L","XL"], soldout:["M"]},
+    {id:"m3", name:"美利奴高领衫", price:120, img:"1521577352947-9bb58764b69a", sizes:["S","M","L"], soldout:[]},
+    {id:"m4", name:"有机棉 T 恤", price:48, img:"1521572163474-6864f9cf17ab", sizes:["S","M","L","XL"], soldout:[]},
+    {id:"m5", name:"牛津纺衬衫", price:95, img:"1503342217505-b0a15ec3261c", sizes:["S","M","L"], soldout:["L"]}
+  ]
+};
+
+var rm = function(n){return "RM "+Math.round(n);};
+
+/* =========================================================
+   通用：建一张卡片
+   ========================================================= */
+function buildCard(item, opts){
+  opts = opts || {};
+  var card = document.createElement("div");
+  card.className = "card" + (opts.fixed ? " fixed" : "");
+  card.dataset.id = item.id;
+
+  var sizeBtns = item.sizes.map(function(s){
+    var dead = item.soldout.indexOf(s) > -1;
+    return '<button class="size'+(dead?' soldout':'')+'" data-size="'+s+'"'+(dead?' disabled':'')+'>'+s+'</button>';
+  }).join("");
+
+  card.innerHTML =
+    '<div class="thumb">'+
+      (opts.fixed ? '<span class="tag">包含</span>' : '')+
+      '<span class="tick">✓</span>'+
+      '<div class="fallback">'+item.name+'</div>'+
+      '<img src="'+img(item.img)+'" alt="'+item.name+'" '+
+        'onerror="this.style.display=\'none\'">'+
+    '</div>'+
+    '<div class="card-body">'+
+      '<div class="card-name">'+item.name+'</div>'+
+      '<div class="card-price">'+rm(item.price)+' <span class="unit">/ 单买</span></div>'+
+      '<div class="sizes">'+sizeBtns+'</div>'+
+      '<div class="size-hint" data-hint>请选择尺码</div>'+
+      '<div class="card-actions">'+
+        (opts.fixed
+          ? '<button class="swap" data-swap>换一件</button><button class="pick-btn" data-pickbtn disabled>选好尺码</button>'
+          : '<button class="pick-btn" data-pickbtn>＋ 选入组合</button>')+
+      '</div>'+
+    '</div>';
+
+  return card;
+}
+
+/* =========================================================
+   固定套装逻辑
+   ========================================================= */
+var fixedGrid = document.getElementById("fixedGrid");
+var fixedState = {}; // id -> size
+
+FIXED.items.forEach(function(it){
+  fixedState[it.id] = null;
+  var card = buildCard(it, {fixed:true});
+  fixedGrid.appendChild(card);
+
+  var hint = card.querySelector("[data-hint]");
+  var pickBtn = card.querySelector("[data-pickbtn]");
+
+  card.querySelectorAll(".size").forEach(function(b){
+    if(b.disabled) return;
+    b.addEventListener("click", function(){
+      card.querySelectorAll(".size").forEach(function(x){x.classList.remove("on");});
+      b.classList.add("on");
+      fixedState[it.id] = b.dataset.size;
+      hint.textContent = "已选尺码 "+b.dataset.size;
+      hint.classList.add("ok");
+      pickBtn.textContent = "✓ 已加入套装";
+      pickBtn.disabled = false;
+      card.classList.add("selected");
+      updateFixed();
+    });
+  });
+
+  // 换一件 — demo affordance
+  card.querySelector("[data-swap]").addEventListener("click", function(){
+    toast("「换一件」演示：可在此弹出同类替换款 ✿");
+  });
+});
+
+function updateFixed(){
+  var chosen = FIXED.items.filter(function(it){return fixedState[it.id];}).length;
+  var total = FIXED.items.length;
+  var status = document.getElementById("fixedSizeStatus");
+  if(chosen === total){
+    status.textContent = "✓ 全部尺码已选 · 可加入购物袋";
+    status.style.color = "var(--green)";
+  } else {
+    status.textContent = "已选 "+chosen+"/"+total+" 件尺码（满 "+total+" 件可加购）";
+    status.style.color = "var(--muted)";
+  }
+  if(MODE === "fixed") renderSummary();
+}
+
+/* =========================================================
+   自选组合逻辑
+   ========================================================= */
+var mixGrid = document.getElementById("mixGrid");
+var mixState = {};      // id -> size (only for selected)
+var mixSelected = [];   // ordered ids
+
+MIX.pool.forEach(function(it){
+  var card = buildCard(it, {fixed:false});
+  mixGrid.appendChild(card);
+
+  var hint = card.querySelector("[data-hint]");
+  var pickBtn = card.querySelector("[data-pickbtn]");
+
+  card.querySelectorAll(".size").forEach(function(b){
+    if(b.disabled) return;
+    b.addEventListener("click", function(){
+      card.querySelectorAll(".size").forEach(function(x){x.classList.remove("on");});
+      b.classList.add("on");
+      mixState[it.id] = b.dataset.size;
+      hint.textContent = "尺码 "+b.dataset.size;
+      hint.classList.add("ok");
+      // selecting a size auto-adds to combo (friendly)
+      if(mixSelected.indexOf(it.id) === -1) toggleMix(it, card, pickBtn, true);
+    });
+  });
+
+  pickBtn.addEventListener("click", function(){
+    var isIn = mixSelected.indexOf(it.id) > -1;
+    if(isIn){
+      toggleMix(it, card, pickBtn, false);
+    } else {
+      if(!mixState[it.id]){ hint.textContent = "请先选择尺码 ↑"; hint.classList.remove("ok"); return; }
+      if(mixSelected.length >= MIX.pick){ toast("已选满 "+MIX.pick+" 件，先取消一件再换 ✿"); return; }
+      toggleMix(it, card, pickBtn, true);
+    }
+  });
+});
+
+function toggleMix(it, card, pickBtn, add){
+  if(add){
+    if(mixSelected.length >= MIX.pick){ toast("最多选 "+MIX.pick+" 件 ✿"); return; }
+    mixSelected.push(it.id);
+    card.classList.add("selected");
+    pickBtn.textContent = "✓ 已选入 · 点此取消";
+  } else {
+    mixSelected = mixSelected.filter(function(x){return x !== it.id;});
+    card.classList.remove("selected");
+    pickBtn.textContent = "＋ 选入组合";
+  }
+  updateMix();
+}
+
+function updateMix(){
+  var n = mixSelected.length, need = MIX.pick;
+  document.getElementById("mixCountTop").textContent = n;
+  document.getElementById("mixFill").style.width = (Math.min(n,need)/need*100)+"%";
+  var hint = document.getElementById("mixHintTop");
+  if(n >= need){
+    hint.textContent = "✓ 已满 "+need+" 件 · 立享套价 "+rm(MIX.price);
+    hint.style.color = "var(--green)";
+  } else {
+    hint.textContent = "再选 "+(need-n)+" 件即可享套价 "+rm(MIX.price);
+    hint.style.color = "var(--muted)";
+  }
+  if(MODE === "mix") renderSummary();
+}
+
+/* =========================================================
+   模式切换
+   ========================================================= */
+var MODE = "fixed";
+var modeBtns = document.querySelectorAll(".mode-btn");
+modeBtns.forEach(function(b){
+  b.addEventListener("click", function(){
+    MODE = b.dataset.mode;
+    modeBtns.forEach(function(x){x.classList.remove("active");});
+    b.classList.add("active");
+    document.getElementById("fixedSection").classList.toggle("on", MODE==="fixed");
+    document.getElementById("mixSection").classList.toggle("on", MODE==="mix");
+    renderSummary();
+  });
+});
+
+/* =========================================================
+   sticky 汇总条
+   ========================================================= */
+function renderSummary(){
+  var count, total, listSum, saved, ready, btnTxt;
+
+  if(MODE === "fixed"){
+    count = FIXED.items.length;
+    total = FIXED.price;
+    listSum = FIXED.listTotal;
+    saved = listSum - total;
+    var allSized = FIXED.items.every(function(it){return fixedState[it.id];});
+    ready = allSized;
+    btnTxt = "加入购物袋";
+  } else {
+    count = mixSelected.length;
+    listSum = mixSelected.reduce(function(s,id){
+      var it = MIX.pool.find(function(p){return p.id===id;});
+      return s + (it?it.price:0);
+    },0);
+    if(count >= MIX.pick){
+      total = MIX.price;
+      saved = listSum - total;
+    } else {
+      total = listSum;     // 未满 N，按单买预览
+      saved = 0;
+    }
+    ready = count >= MIX.pick;
+    btnTxt = "加入购物袋";
+  }
+
+  document.getElementById("sumCount").textContent = count + " 件";
+
+  var strikeEl = document.getElementById("sumStrike");
+  var totalEl = document.getElementById("sumTotal");
+  if(saved > 0){
+    strikeEl.textContent = rm(listSum);
+    totalEl.innerHTML = '<span class="ghost">'+rm(listSum)+'</span>'+rm(total);
+  } else {
+    totalEl.innerHTML = rm(total);
+  }
+
+  document.getElementById("sumSaved").textContent = rm(saved);
+
+  var addBtn = document.getElementById("addBtn");
+  var addCnt = document.getElementById("addCnt");
+  addBtn.disabled = !ready;
+  if(MODE === "mix" && !ready){
+    addCnt.textContent = "(还差 "+(MIX.pick-count)+" 件)";
+  } else if(MODE === "fixed" && !ready){
+    addCnt.textContent = "(请选尺码)";
+  } else {
+    addCnt.textContent = "· "+rm(total);
+  }
+}
+
+/* 加入购物袋 (demo) */
+document.getElementById("addBtn").addEventListener("click", function(){
+  if(this.disabled) return;
+  if(MODE === "fixed"){
+    toast("已加入「通勤三件套」· 省 <b>RM 74</b> ✿");
+  } else {
+    var listSum = mixSelected.reduce(function(s,id){
+      var it = MIX.pool.find(function(p){return p.id===id;}); return s+(it?it.price:0);
+    },0);
+    toast("已加入自选 3 件组合 · 省 <b>"+rm(listSum-MIX.price)+"</b> ✿");
+  }
+});
+
+/* toast */
+var toastEl = document.getElementById("toast"), toastT;
+function toast(msg){
+  toastEl.innerHTML = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){toastEl.classList.remove("show");}, 2600);
+}
+
+/* init */
+updateFixed();
+updateMix();
+renderSummary();
+</script>
+</body>
+</html>

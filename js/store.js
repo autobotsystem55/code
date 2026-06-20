@@ -28,18 +28,27 @@
     catch (e) { return []; }
   }
   function saveCart(c) { localStorage.setItem(CART_KEY, JSON.stringify(c)); updateCartUI(); }
-  function keyOf(it) { return it.id + '|' + (it.size || '') + '|' + (it.color || ''); }
+  function keyOf(it) {
+    if (it.b) return 'B|' + it.bid + '|' + (it.items || []).map(function (x) { return x.id + ':' + (x.size || ''); }).join(',');
+    return it.id + '|' + (it.size || '') + '|' + (it.color || '');
+  }
   function cartCount() { return getCart().reduce(function (n, i) { return n + i.qty; }, 0); }
   function cartSubtotal() {
     return getCart().reduce(function (s, i) {
+      if (i.b) return s + (i.price || 0) * i.qty;
       var p = findProduct(i.id); return p ? s + p.price * i.qty : s;
     }, 0);
   }
   // detailed lines (product joined) for pixel + summaries
   function cartLines() {
     return getCart().map(function (i) {
+      if (i.b) {
+        var nm = (window.LANG === 'zh' && i.name_zh) ? i.name_zh : i.name;
+        return { b: 1, key: keyOf(i), id: i.bid, name: nm, price: i.price || 0, qty: i.qty, image: i.image,
+          items: (i.items || []).map(function (x) { var cp = findProduct(x.id) || {}; return { id: x.id, name: cp.id ? PN(cp) : x.id, size: x.size, qty: x.qty || 1 }; }) };
+      }
       var p = findProduct(i.id) || {};
-      return { id: i.id, name: p.id ? PN(p) : i.id, price: p.price || 0, qty: i.qty, size: i.size, color: i.color, image: (p.images || [])[0] };
+      return { key: keyOf(i), id: i.id, name: p.id ? PN(p) : i.id, price: p.price || 0, qty: i.qty, size: i.size, color: i.color, image: (p.images || [])[0] };
     });
   }
   window.cartLines = cartLines;
@@ -68,7 +77,18 @@
   function removeItem(key) {
     saveCart(getCart().filter(function (c) { return keyOf(c) !== key; }));
   }
-  window.Store = { addToCart: addToCart, getCart: getCart, money: money };
+  function addBundle(line) {
+    if (!line || !line.items || !line.items.length) return;
+    var cart = getCart();
+    var item = { b: 1, bid: line.bid, name: line.name, name_zh: line.name_zh, image: line.image, price: line.price, qty: 1, items: line.items };
+    var ex = cart.find(function (c) { return keyOf(c) === keyOf(item); });
+    if (ex) ex.qty += 1; else cart.push(item);
+    saveCart(cart);
+    if (window.Pixel) Pixel.addToCart({ id: line.bid, name: line.name, price: line.price }, 1);
+    toast(T('cart.added', { x: (window.LANG === 'zh' && line.name_zh) ? line.name_zh : line.name }));
+    openDrawer();
+  }
+  window.Store = { addToCart: addToCart, addBundle: addBundle, getCart: getCart, money: money };
 
   /* ---------- icons ---------- */
   var ICON = {
@@ -208,11 +228,15 @@
     }
 
     itemsEl.innerHTML = lines.map(function (l) {
-      var k = l.id + '|' + (l.size || '') + '|' + (l.color || '');
+      var k = l.key;
+      var imgHref = l.b ? ('bundle.html?id=' + l.id) : ('product.html?id=' + l.id);
+      var meta = l.b
+        ? '<span class="line__set">' + T('bundle.set') + '</span>' + (l.items || []).map(function (x) { return x.name + (x.size ? ' (' + x.size + ')' : ''); }).join('、')
+        : [l.color, l.size].filter(Boolean).join(' · ');
       return '<div class="line">' +
-        '<a class="line__img" href="product.html?id=' + l.id + '"><img src="' + imgUrl(l.image, 200) + '" alt="' + l.name + '" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'"></a>' +
+        '<a class="line__img" href="' + imgHref + '"><img src="' + imgUrl(l.image, 200) + '" alt="' + l.name + '" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'"></a>' +
         '<div><div class="line__name">' + l.name + '</div>' +
-        '<div class="line__meta">' + [l.color, l.size].filter(Boolean).join(' · ') + '</div>' +
+        '<div class="line__meta">' + meta + '</div>' +
         '<div class="stepper" data-key="' + k + '"><button data-step="-1" aria-label="' + T('aria.dec') + '">–</button><span>' + l.qty + '</span><button data-step="1" aria-label="' + T('aria.inc') + '">+</button></div></div>' +
         '<div class="line__right"><div class="line__price">' + money(l.price * l.qty) + '</div>' +
         '<button class="line__rm" data-rm="' + k + '">' + T('cart.remove') + '</button></div>' +

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>套装 · 组合购 — Code Official（设计样稿 A · 商品页式）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFFAF1; --cream-2:#FAF6F3; --blush:#F2E4D9;
+    --pink:#E9C9CC; --pink-soft:#F6E4E6; --pink-border:#DAB0B7;
+    --wine:#82213E; --wine-deep:#6A1A32; --mauve:#6B4B4F;
+    --ink:#1C1C1C; --ink-soft:#3E3E3E; --muted:#6F635C;
+    --line:#ECD9D6; --line-2:#E2DCD8; --white:#FFFFFF;
+    --green:#2F7D4F; --green-soft:#E7F2EB;
+    --serif:'DM Serif Display',Georgia,serif;
+    --sans:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --wrap:1240px; --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);color:var(--ink);background:var(--cream);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  img{display:block;max-width:100%;height:auto}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  select{font-family:inherit;font-size:inherit;color:inherit}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:400;line-height:1.1;letter-spacing:.005em}
+  ::selection{background:var(--pink);color:var(--wine)}
+  :focus-visible{outline:2px solid var(--wine);outline-offset:2px}
+
+  /* ---------- top bar ---------- */
+  .topbar{background:var(--wine);color:var(--pink-soft);text-align:center;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;padding:9px 16px}
+  .header{position:sticky;top:0;z-index:50;background:rgba(255,250,241,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .header__in{max-width:var(--wrap);margin:0 auto;padding:16px clamp(18px,5vw,50px);display:flex;align-items:center;justify-content:space-between}
+  .wordmark{font-family:var(--serif);font-size:25px;letter-spacing:.02em}
+  .wordmark .flower{color:var(--wine)}
+  .nav{display:flex;gap:26px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .nav a:hover{color:var(--wine)}
+  .nav .on{color:var(--wine)}
+  .hicons{display:flex;gap:18px;color:var(--ink);font-size:18px}
+
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 clamp(18px,5vw,50px)}
+
+  /* ---------- page intro ---------- */
+  .intro{padding:46px 0 8px;text-align:center}
+  .intro .eyebrow{font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--wine);font-weight:600}
+  .intro h1{font-size:clamp(34px,5vw,54px);margin:14px 0 10px}
+  .intro p{color:var(--muted);max-width:560px;margin:0 auto;font-size:15.5px}
+  .crumb{font-size:12.5px;letter-spacing:.04em;color:var(--muted);padding:22px 0 0}
+  .crumb a:hover{color:var(--wine)}
+
+  /* ---------- PRODUCT PAGE (fixed set) ---------- */
+  .pdp{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,4vw,64px);align-items:start;padding:30px 0 12px}
+  .pdp__media{position:sticky;top:96px}
+  .pdp__cover{position:relative;background:var(--blush);overflow:hidden;aspect-ratio:4/5}
+  .pdp__cover img{width:100%;height:100%;object-fit:cover}
+  .cover-badge{position:absolute;top:16px;left:16px;background:var(--wine);color:#fff;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:7px 13px;font-weight:600}
+  .cover-save{position:absolute;top:16px;right:16px;background:var(--green);color:#fff;font-size:13px;letter-spacing:.02em;padding:7px 13px;font-weight:600}
+  .cover-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+  .cover-strip .cell{aspect-ratio:1;background:var(--blush);overflow:hidden}
+  .cover-strip img{width:100%;height:100%;object-fit:cover}
+
+  .pdp__info .cat{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .pdp__info .title-row{display:flex;align-items:flex-start;gap:12px;margin:8px 0 4px;flex-wrap:wrap}
+  .pdp__info h2{font-size:clamp(28px,3.6vw,40px)}
+  .set-badge{display:inline-flex;align-items:center;gap:5px;background:var(--pink-soft);color:var(--wine);border:1px solid var(--pink-border);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:5px 11px;margin-top:8px}
+  .pdp__lede{color:var(--muted);font-size:15px;margin:6px 0 4px;max-width:46ch}
+
+  .sec-label{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);font-weight:600;margin:26px 0 12px;display:flex;align-items:center;justify-content:space-between}
+  .sec-label .n{color:var(--muted);font-weight:500;letter-spacing:.04em;text-transform:none}
+
+  /* included rows */
+  .incl{border:1px solid var(--line);background:var(--white)}
+  .irow{display:grid;grid-template-columns:62px 1fr auto;gap:14px;align-items:center;padding:14px;border-bottom:1px solid var(--line)}
+  .irow:last-child{border-bottom:none}
+  .ithumb{width:62px;height:78px;background:var(--blush);overflow:hidden}
+  .ithumb img{width:100%;height:100%;object-fit:cover}
+  .iname{font-size:15px;font-weight:600;line-height:1.25}
+  .imeta{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .iright{text-align:right;min-width:118px}
+  .iprice{font-size:14px;color:var(--ink-soft);margin-bottom:7px}
+  .selsize{width:100%;border:1px solid var(--pink-border);background:var(--cream);padding:8px 10px;font-size:13px;letter-spacing:.02em;cursor:pointer;transition:border-color .2s}
+  .selsize:hover{border-color:var(--wine)}
+  .selsize.warn{border-color:var(--wine);background:var(--pink-soft)}
+
+  /* price breakdown */
+  .pricebox{margin-top:22px;border:1px solid var(--line);background:var(--cream-2);padding:20px}
+  .prow{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px}
+  .prow .k{font-size:14px;color:var(--muted)}
+  .prow .v{font-size:15px}
+  .strike{text-decoration:line-through;color:var(--muted)}
+  .prow.total{margin:6px 0 0;padding-top:14px;border-top:1px dashed var(--pink-border)}
+  .prow.total .k{font-size:14px;color:var(--ink);font-weight:600;letter-spacing:.02em;text-transform:uppercase}
+  .bigprice{font-family:var(--serif);font-size:34px;color:var(--wine);line-height:1}
+  .save-badge{display:inline-block;background:var(--green-soft);color:var(--green);font-weight:600;font-size:13px;padding:5px 11px;margin-top:2px}
+
+  .add-wrap{position:sticky;bottom:0;background:linear-gradient(to top,var(--cream) 72%,rgba(255,250,241,0));padding:16px 0 18px;margin-top:16px;z-index:5}
+  .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--wine);color:#fff;font-size:14px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;padding:17px 20px;transition:background .2s,transform .15s}
+  .btn:hover{background:var(--wine-deep)}
+  .btn:active{transform:translateY(1px)}
+  .btn[disabled]{background:var(--line-2);color:var(--muted);cursor:not-allowed}
+  .btn .amt{font-family:var(--sans)}
+  .reassure{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:12px;letter-spacing:.02em}
+  .reassure span{display:flex;align-items:center;gap:6px}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--wine)}
+
+  /* ---------- divider ---------- */
+  .divider{max-width:var(--wrap);margin:60px auto 0;padding:0 clamp(18px,5vw,50px)}
+  .divider hr{border:none;border-top:1px solid var(--line)}
+
+  /* ---------- MIX & MATCH ---------- */
+  .mix{padding:48px 0 80px}
+  .mix__head{text-align:center;margin-bottom:8px}
+  .mix__head .eyebrow{font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--wine);font-weight:600}
+  .mix__head h2{font-size:clamp(28px,4vw,44px);margin:12px 0 8px}
+  .mix__head p{color:var(--muted);font-size:15px;max-width:540px;margin:0 auto}
+
+  .mix__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:18px;margin-top:34px}
+  .card{position:relative;border:1px solid var(--line);background:var(--white);overflow:hidden;cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .2s}
+  .card:hover{border-color:var(--pink-border)}
+  .card.sel{border-color:var(--wine);box-shadow:0 0 0 1px var(--wine)}
+  .card__img{position:relative;aspect-ratio:4/5;background:var(--blush);overflow:hidden}
+  .card__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s var(--ease)}
+  .card:hover .card__img img{transform:scale(1.04)}
+  .check{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.85);border:1px solid var(--pink-border);display:flex;align-items:center;justify-content:center;color:var(--wine);font-size:15px;opacity:0;transform:scale(.8);transition:.2s}
+  .card.sel .check{opacity:1;transform:scale(1);background:var(--wine);color:#fff;border-color:var(--wine)}
+  .card__body{padding:13px 14px 15px}
+  .card__cat{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .card__name{font-size:15px;font-weight:600;margin:5px 0 3px;line-height:1.2}
+  .card__price{font-size:14px;color:var(--ink-soft)}
+  .card__size{margin-top:11px}
+  .card__size select{width:100%;border:1px solid var(--pink-border);background:var(--cream);padding:8px 9px;font-size:13px;cursor:pointer}
+  .card.sel .card__size select{border-color:var(--wine)}
+
+  /* sticky mix summary */
+  .summary{position:sticky;bottom:18px;margin-top:34px;background:var(--white);border:1px solid var(--pink-border);box-shadow:0 8px 30px rgba(130,33,62,.1);padding:18px 22px;display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+  .summary .grp{display:flex;flex-direction:column;gap:2px}
+  .summary .lab{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .summary .val{font-size:20px;font-family:var(--serif);color:var(--ink)}
+  .summary .val.wine{color:var(--wine)}
+  .summary .val.green{color:var(--green);font-size:16px;font-family:var(--sans);font-weight:600;background:var(--green-soft);padding:3px 9px;align-self:flex-start}
+  .summary .pill{display:flex;gap:6px;align-items:center}
+  .pip{width:11px;height:11px;border:1.5px solid var(--pink-border);border-radius:50%;transition:.2s}
+  .pip.on{background:var(--wine);border-color:var(--wine)}
+  .summary__btn{margin-left:auto;min-width:230px}
+  .summary__btn .btn{padding:16px 22px}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--cream);padding:14px 22px;font-size:14px;letter-spacing:.02em;opacity:0;pointer-events:none;transition:.35s var(--ease);z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .footnote{text-align:center;color:var(--muted);font-size:12.5px;padding:0 0 50px}
+
+  @media(max-width:880px){
+    .pdp{grid-template-columns:1fr;gap:26px}
+    .pdp__media{position:static}
+    .nav{display:none}
+    .add-wrap{position:sticky}
+  }
+  @media(max-width:520px){
+    .summary{gap:14px;padding:16px}
+    .summary__btn{margin-left:0;width:100%;min-width:0}
+    .summary .grp{flex:1}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">满 RM250 免运费 · 套装更省 · 7 天无忧退换</div>
+
+<header class="header">
+  <div class="header__in">
+    <div class="wordmark">Code Official <span class="flower">✿</span></div>
+    <nav class="nav">
+      <a href="#">新品</a>
+      <a href="#">上衣</a>
+      <a href="#">外套</a>
+      <a class="on" href="#">套装组合</a>
+      <a href="#">配饰</a>
+    </nav>
+    <div class="hicons">♡ ⌕ ⛂</div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="crumb"><a href="#">首页</a> / <a href="#">套装组合</a> / <span>通勤三件套</span></div>
+  </div>
+
+  <!-- ============ FIXED SET — product page ============ -->
+  <section class="wrap">
+    <div class="pdp">
+      <!-- media -->
+      <div class="pdp__media">
+        <div class="pdp__cover">
+          <span class="cover-badge">固定套装</span>
+          <span class="cover-save">省 RM74</span>
+          <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=900&q=80" alt="通勤三件套"
+               onerror="this.onerror=null;this.style.display='none';this.parentNode.style.background='#C9A9A0'">
+        </div>
+        <div class="cover-strip">
+          <div class="cell"><img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=400&q=80" alt="" onerror="this.onerror=null;this.style.display='none';this.parentNode.style.background='#C9A9A0'"></div>
+          <div class="cell"><img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="" onerror="this.onerror=null;this.style.display='none';this.parentNode.style.background='#D8C3B5'"></div>
+          <div class="cell"><img src="https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=400&q=80" alt="" onerror="this.onerror=null;this.style.display='none';this.parentNode.style.background='#B8A99B'"></div>
+        </div>
+      </div>
+
+      <!-- info -->
+      <div class="pdp__info">
+        <div class="cat">秋冬 · 通勤系列</div>
+        <div class="title-row">
+          <h2>通勤三件套</h2>
+        </div>
+        <span class="set-badge">✦ 套装 · 一套搞定</span>
+        <p class="pdp__lede">羊毛混纺大衣、牛津纺衬衫与褶裥阔腿裤，一套即成型的优雅通勤造型。每件可单独选码。</p>
+
+        <div class="sec-label">包含 / What's included <span class="n">共 3 件</span></div>
+
+        <div class="incl" id="fixedList">
+          <!-- rows injected by JS -->
+        </div>
+
+        <!-- price breakdown -->
+        <div class="pricebox">
+          <div class="prow">
+            <span class="k">单买合计</span>
+            <span class="v strike">RM473</span>
+          </div>
+          <div class="prow total">
+            <span class="k">套装价</span>
+            <span class="v"><span class="bigprice">RM399</span></span>
+          </div>
+          <div style="text-align:right"><span class="save-badge">省 RM74（约 16% off）</span></div>
+        </div>
+
+        <!-- sticky add -->
+        <div class="add-wrap">
+          <button class="btn" id="fixedAdd">
+            <span>加入购物袋</span><span class="amt">· RM399</span>
+          </button>
+          <div class="reassure">
+            <span><i class="dot"></i> 每件独立选码</span>
+            <span><i class="dot"></i> 满 RM250 免运费</span>
+            <span><i class="dot"></i> 7 天无忧退换</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"><hr></div>
+
+  <!-- ============ MIX & MATCH ============ -->
+  <section class="wrap mix">
+    <div class="mix__head">
+      <span class="eyebrow">自选组合 · Mix &amp; Match</span>
+      <h2>任选 3 件针织 / 上衣，整套 RM299</h2>
+      <p>从下方精选池中挑选 3 件，每件单独选码。选满 3 件即可享套装价并解锁加入购物袋。</p>
+    </div>
+
+    <div class="mix__grid" id="mixGrid"><!-- cards injected by JS --></div>
+
+    <!-- sticky live summary -->
+    <div class="summary">
+      <div class="pill" id="pips">
+        <span class="pip"></span><span class="pip"></span><span class="pip"></span>
+      </div>
+      <div class="grp">
+        <span class="lab">已选</span>
+        <span class="val" id="mCount">0 / 3</span>
+      </div>
+      <div class="grp">
+        <span class="lab">合计</span>
+        <span class="val wine" id="mTotal">RM299</span>
+      </div>
+      <div class="grp">
+        <span class="lab">已省</span>
+        <span class="val green" id="mSave">省 RM0</span>
+      </div>
+      <div class="summary__btn">
+        <button class="btn" id="mixAdd" disabled><span id="mixAddTxt">再选 3 件解锁</span></button>
+      </div>
+    </div>
+    <p class="footnote">设计样稿 A · 商品页式 — 模拟数据，无后端。选定方案后将接入真实商店与购物袋。</p>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var IMG='https://images.unsplash.com/photo-';
+  function url(id,w){return IMG+id+'?auto=format&fit=crop&w='+(w||500)+'&q=80';}
+  function rm(n){return 'RM'+Math.round(n);}
+  function imgAttrs(id,w,fb){
+    return 'src="'+url(id,w)+'" onerror="this.onerror=null;this.style.display=\'none\';this.parentNode.style.background=\''+fb+'\'"';
+  }
+  var toastEl=document.getElementById('toast'),toastT;
+  function toast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){toastEl.classList.remove('show');},2600);}
+
+  /* ===== FIXED SET ===== */
+  var SIZES=['S','M','L','XL'];
+  var fixedItems=[
+    {name:'羊毛混纺大衣',cat:'外套',price:248,img:'1539109136881-3be0616acf4b',fb:'#C9A9A0'},
+    {name:'牛津纺棉质衬衫',cat:'上衣',price:95,img:'1503342217505-b0a15ec3261c',fb:'#D8C3B5'},
+    {name:'褶裥阔腿裤',cat:'下装',price:130,img:'1542272604-787c3835535d',fb:'#B8A99B'}
+  ];
+  var fixedList=document.getElementById('fixedList');
+  fixedList.innerHTML=fixedItems.map(function(it,i){
+    var opts=SIZES.map(function(s){return '<option value="'+s+'">尺码 '+s+'</option>';}).join('');
+    return '<div class="irow">'+
+      '<div class="ithumb">'+'<img alt="" '+imgAttrs(it.img,200,it.fb)+'></div>'+
+      '<div><div class="iname">'+it.name+'</div><div class="imeta">'+it.cat+' · 选码后入袋</div></div>'+
+      '<div class="iright"><div class="iprice">'+rm(it.price)+'</div>'+
+        '<select class="selsize" data-fx="'+i+'"><option value="" disabled selected>选择尺码</option>'+opts+'</select>'+
+      '</div></div>';
+  }).join('');
+
+  var fixedAdd=document.getElementById('fixedAdd');
+  fixedAdd.addEventListener('click',function(){
+    var sels=fixedList.querySelectorAll('.selsize');
+    var picked=[],missing=false;
+    sels.forEach(function(s){if(!s.value){missing=true;s.classList.add('warn');}else{s.classList.remove('warn');picked.push(fixedItems[+s.dataset.fx].name+' '+s.value);}});
+    if(missing){toast('请先为每件单品选择尺码');return;}
+    toast('已加入购物袋 · 通勤三件套（'+picked.join(' / ')+'）RM399');
+  });
+  fixedList.addEventListener('change',function(e){if(e.target.classList.contains('selsize'))e.target.classList.remove('warn');});
+
+  /* ===== MIX & MATCH ===== */
+  var N=3, MIX_PRICE=299;
+  var pool=[
+    {name:'羊绒圆领毛衣',cat:'针织',price:165,img:'1576566588028-4147f3842f27',fb:'#C7B29E'},
+    {name:'罗纹针织开衫',cat:'针织',price:145,img:'1556905055-8f358a7a47b2',fb:'#D2BBA8'},
+    {name:'美利奴高领衫',cat:'针织',price:120,img:'1521577352947-9bb58764b69a',fb:'#BBA89A'},
+    {name:'有机棉 T 恤',cat:'上衣',price:48,img:'1521572163474-6864f9cf17ab',fb:'#CDBBA9'},
+    {name:'牛津纺衬衫',cat:'上衣',price:95,img:'1503342217505-b0a15ec3261c',fb:'#D8C3B5'}
+  ];
+
+  var grid=document.getElementById('mixGrid');
+  grid.innerHTML=pool.map(function(p,i){
+    var opts=SIZES.map(function(s){return '<option value="'+s+'">尺码 '+s+'</option>';}).join('');
+    return '<div class="card" data-i="'+i+'">'+
+      '<div class="card__img">'+'<img alt="'+p.name+'" '+imgAttrs(p.img,500,p.fb)+'>'+
+        '<span class="check">✓</span></div>'+
+      '<div class="card__body">'+
+        '<div class="card__cat">'+p.cat+'</div>'+
+        '<div class="card__name">'+p.name+'</div>'+
+        '<div class="card__price">单买 '+rm(p.price)+'</div>'+
+        '<div class="card__size"><select data-size="'+i+'"><option value="" disabled selected>选择尺码</option>'+opts+'</select></div>'+
+      '</div></div>';
+  }).join('');
+
+  var selected={}; // index -> size
+  var mCount=document.getElementById('mCount'),
+      mTotal=document.getElementById('mTotal'),
+      mSave=document.getElementById('mSave'),
+      mixAdd=document.getElementById('mixAdd'),
+      mixAddTxt=document.getElementById('mixAddTxt'),
+      pips=document.getElementById('pips').querySelectorAll('.pip');
+
+  function selCount(){return Object.keys(selected).length;}
+
+  function render(){
+    var c=selCount();
+    mCount.textContent=c+' / '+N;
+    pips.forEach(function(p,i){p.classList.toggle('on',i<c);});
+
+    // single-buy total of chosen items (for savings); bundle price only realised at N
+    var listTotal=0;
+    Object.keys(selected).forEach(function(i){listTotal+=pool[+i].price;});
+
+    if(c>=N){
+      mTotal.textContent=rm(MIX_PRICE);
+      var save=Math.max(0,listTotal-MIX_PRICE);
+      mSave.textContent='省 '+rm(save);
+      mixAdd.disabled=false;
+      mixAddTxt.textContent='加入购物袋 · '+rm(MIX_PRICE);
+    }else{
+      mTotal.textContent=rm(MIX_PRICE);
+      mSave.textContent='省 RM0';
+      mixAdd.disabled=true;
+      var left=N-c;
+      mixAddTxt.textContent=left===N?('任选 '+N+' 件解锁'):('再选 '+left+' 件解锁');
+    }
+  }
+
+  function toggle(i,card){
+    if(selected.hasOwnProperty(i)){
+      delete selected[i];
+      card.classList.remove('sel');
+    }else{
+      if(selCount()>=N){toast('最多选择 '+N+' 件，请先取消一件');return;}
+      var sizeSel=card.querySelector('select');
+      selected[i]=sizeSel.value||'';
+      card.classList.add('sel');
+      if(!sizeSel.value){sizeSel.focus();}
+    }
+    render();
+  }
+
+  grid.addEventListener('click',function(e){
+    if(e.target.tagName==='SELECT'||e.target.tagName==='OPTION')return; // let dropdown work
+    var card=e.target.closest('.card');if(!card)return;
+    toggle(+card.dataset.i,card);
+  });
+  grid.addEventListener('change',function(e){
+    if(e.target.tagName!=='SELECT')return;
+    var i=+e.target.dataset.size,card=e.target.closest('.card');
+    if(e.target.value && !selected.hasOwnProperty(i)){ // selecting a size auto-selects card
+      if(selCount()<N){selected[i]=e.target.value;card.classList.add('sel');render();}
+    }else if(selected.hasOwnProperty(i)){
+      selected[i]=e.target.value;
+    }
+  });
+
+  mixAdd.addEventListener('click',function(){
+    if(selCount()<N)return;
+    var miss=false,names=[];
+    Object.keys(selected).forEach(function(i){
+      var card=grid.querySelector('.card[data-i="'+i+'"]'),s=card.querySelector('select');
+      if(!s.value){miss=true;s.style.borderColor='var(--wine)';s.style.background='var(--pink-soft)';}
+      else names.push(pool[+i].name+' '+s.value);
+    });
+    if(miss){toast('请为已选单品补全尺码');return;}
+    toast('已加入购物袋 · 自选组合（'+names.join(' / ')+'）'+rm(MIX_PRICE));
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
