@@ -543,51 +543,78 @@
       var colorRows=[0,1,2,3].map(function(i){var c=cl[i]||{};return '<div class="color-row"><input class="cname field-in" placeholder="颜色名 (Camel)" value="'+esc(c.name)+'"><input type="color" class="chex" value="'+(c.hex||'#cccccc')+'"></div>';}).join('');
       var catOpts=CATS.map(function(c){return '<option'+(p.category===c?' selected':'')+'>'+c+'</option>';}).join('');
       var badges=['','New','Sale'].map(function(b){return '<option value="'+b+'"'+(p.badge===b?' selected':'')+'>'+(b||'无')+'</option>';}).join('');
-      document.getElementById('pEditor').innerHTML='<div class="panel"><h2>'+(id?'编辑商品':'上新商品')+'</h2>'+
-        '<div class="row2"><div class="field"><label>商品 ID'+(id?'（不可改）':'（留空自动生成）')+'</label><input id="f_id" '+(id?'readonly':'')+' value="'+esc(p.id)+'"></div>'+
-          '<div class="field"><label>分类</label><select id="f_cat">'+catOpts+'</select></div></div>'+
-        '<div class="row2"><div class="field"><label>商品名 (English) *</label><input id="f_name" value="'+esc(p.name)+'"></div>'+
-          '<div class="field"><label>商品名 (中文)</label><input id="f_name_zh" value="'+esc(p.name_zh)+'"></div></div>'+
-        '<div class="row2"><div class="field"><label>价格 *</label><input id="f_price" type="number" step="0.01" value="'+(p.price!=null?p.price:'')+'"></div>'+
-          '<div class="field"><label>原价（打折用，可空）</label><input id="f_cmp" type="number" step="0.01" value="'+(p.compare_at!=null?p.compare_at:'')+'"></div></div>'+
-        '<div class="row2"><div class="field"><label>标签</label><select id="f_badge">'+badges+'</select></div>'+
-          '<div class="field"><label>排序（越小越前）</label><input id="f_sort" type="number" value="'+(p.sort!=null?p.sort:0)+'"></div></div>'+
-        '<div class="field"><label>尺码</label><div class="chips">'+sizeChips+'</div></div>'+
-        '<div class="field"><label>颜色（最多 4 个）</label>'+colorRows+'</div>'+
-        '<div class="row2"><div class="field"><label>主图（Unsplash ID 或图片网址）</label><input id="f_img1" value="'+esc(im[0])+'"></div>'+
-          '<div class="field"><label>备用图（可空）</label><input id="f_img2" value="'+esc(im[1])+'"></div></div>'+
-        '<div class="field"><label>描述 (English)</label><textarea id="f_desc">'+esc(p.description)+'</textarea></div>'+
-        '<div class="field"><label>描述 (中文)</label><textarea id="f_desc_zh">'+esc(p.description_zh)+'</textarea></div>'+
-        '<div class="field"><label><input type="checkbox" id="f_active"'+(p.active!==false?' checked':'')+'> 上架（取消=下架）</label></div>'+
-        '<div class="field"><label>库存设置</label>'+
-          '<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-bottom:8px">'+
-            '<label style="font-weight:400"><input type="checkbox" id="f_track"'+(p.track_inventory?' checked':'')+'> 追踪库存（不勾=永远有货）</label>'+
-            '<label style="font-weight:400"><input type="checkbox" id="f_oversell"'+(p.continue_selling?' checked':'')+'> 售罄后仍可购买</label>'+
-            '<label style="font-weight:400">低库存阈值 <input id="f_thr" type="number" min="0" value="'+(p.low_stock_threshold!=null?p.low_stock_threshold:5)+'" style="width:64px"></label>'+
-          '</div>'+
+      if(!document.getElementById('peditCss')){var pst=document.createElement('style');pst.id='peditCss';
+        pst.textContent='.pedit{display:flex;gap:22px;align-items:flex-start}'+
+          '.pedit .pcol-main{flex:1;min-width:0}'+
+          '.pedit .pcol-side{flex:0 0 340px;max-width:360px}'+
+          '.pedit .pside{position:sticky;top:84px;background:var(--white,#fff);border:1px solid var(--line,#ECD9D6);border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(28,28,28,.06),0 8px 24px rgba(28,28,28,.05)}'+
+          '.pedit .pside h3{font-family:"DM Serif Display",Georgia,serif;font-weight:400;font-size:20px;margin:0 0 12px}'+
+          '.pedit .trow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line,#ECD9D6)}'+
+          '.pedit .trow.first{border-top:0}'+
+          '.pedit .trow .lab{font-size:14px}'+
+          '.pedit .trow .lab small{display:block;color:var(--muted,#6F635C);font-size:11.5px;margin-top:1px}'+
+          '.pedit .cgrp{padding:10px 0;border-top:1px solid var(--line,#ECD9D6)}'+
+          '.pedit .cgrp .chead{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;margin-bottom:8px}'+
+          '.pedit .cgrp .cdot{width:15px;height:15px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}'+
+          '.pedit .cells{display:flex;flex-wrap:wrap;gap:9px;padding-top:2px}'+
+          '.pedit .cell{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--cream-2,#FAF6F3);border:1px solid var(--line,#ECD9D6);border-radius:6px;padding:5px 9px}'+
+          '.pedit .cell input{width:48px;border:0;background:transparent;text-align:right;font:inherit}'+
+          '.pedit .cell .sd{width:8px;height:8px;border-radius:50%;flex:none}'+
+          '.pedit .sd.ok{background:var(--green,#2F7D4F)}.pedit .sd.low{background:var(--amber,#9A6B12)}.pedit .sd.out{background:#C0392B}'+
+          '.pedit .pnote{font-size:12px;color:var(--muted,#6F635C);margin-top:8px;line-height:1.5}'+
+          '@media(max-width:880px){.pedit{flex-direction:column}.pedit .pcol-side{flex:1 1 auto;max-width:none;width:100%}.pedit .pside{position:static}}';
+        document.head.appendChild(pst);}
+      document.getElementById('pEditor').innerHTML='<div class="pedit">'+
+        '<div class="pcol-main"><div class="panel"><h2>'+(id?'编辑商品':'上新商品')+'</h2>'+
+          '<div class="row2"><div class="field"><label>商品 ID'+(id?'（不可改）':'（留空自动生成）')+'</label><input id="f_id" '+(id?'readonly':'')+' value="'+esc(p.id)+'"></div>'+
+            '<div class="field"><label>分类</label><select id="f_cat">'+catOpts+'</select></div></div>'+
+          '<div class="row2"><div class="field"><label>商品名 (English) *</label><input id="f_name" value="'+esc(p.name)+'"></div>'+
+            '<div class="field"><label>商品名 (中文)</label><input id="f_name_zh" value="'+esc(p.name_zh)+'"></div></div>'+
+          '<div class="row2"><div class="field"><label>价格 *</label><input id="f_price" type="number" step="0.01" value="'+(p.price!=null?p.price:'')+'"></div>'+
+            '<div class="field"><label>原价（打折用，可空）</label><input id="f_cmp" type="number" step="0.01" value="'+(p.compare_at!=null?p.compare_at:'')+'"></div></div>'+
+          '<div class="row2"><div class="field"><label>标签</label><select id="f_badge">'+badges+'</select></div>'+
+            '<div class="field"><label>排序（越小越前）</label><input id="f_sort" type="number" value="'+(p.sort!=null?p.sort:0)+'"></div></div>'+
+          '<div class="field"><label>尺码</label><div class="chips">'+sizeChips+'</div></div>'+
+          '<div class="field"><label>颜色（最多 4 个）</label>'+colorRows+'</div>'+
+          '<div class="row2"><div class="field"><label>主图（Unsplash ID 或图片网址）</label><input id="f_img1" value="'+esc(im[0])+'"></div>'+
+            '<div class="field"><label>备用图（可空）</label><input id="f_img2" value="'+esc(im[1])+'"></div></div>'+
+          '<div class="field"><label>描述 (English)</label><textarea id="f_desc">'+esc(p.description)+'</textarea></div>'+
+          '<div class="field"><label>描述 (中文)</label><textarea id="f_desc_zh">'+esc(p.description_zh)+'</textarea></div>'+
+        '</div></div>'+
+        '<div class="pcol-side"><div class="pside"><h3>库存 &amp; 上架</h3>'+
+          '<div class="trow first"><div class="lab">上架商品<small>取消=下架，店面不显示</small></div><div class="sw'+(p.active!==false?' on':'')+'" id="f_active" role="switch"></div></div>'+
+          '<div class="trow"><div class="lab">追踪库存<small>不开=永远有货</small></div><div class="sw'+(p.track_inventory?' on':'')+'" id="f_track" role="switch"></div></div>'+
+          '<div class="trow"><div class="lab">售罄后仍可购买<small>Continue selling</small></div><div class="sw'+(p.continue_selling?' on':'')+'" id="f_oversell" role="switch"></div></div>'+
+          '<div class="trow"><div class="lab">低库存阈值<small>低于此数标记低库存</small></div><input id="f_thr" type="number" min="0" value="'+(p.low_stock_threshold!=null?p.low_stock_threshold:5)+'" style="width:72px"></div>'+
           '<div id="invBox"></div>'+
-          '<div style="font-size:12px;color:var(--muted);margin-top:6px">勾尺码、填颜色后，下面按「颜色 × 尺码」填库存；没填颜色就只按尺码。</div>'+
-        '</div>'+
-        '<div style="display:flex;gap:10px"><button class="btn" id="saveP">保存</button><button class="btn btn--ghost" id="cancelP">取消</button><span class="msg" id="pm"></span></div>'+
+          '<div class="pnote">勾尺码、填颜色后，按「颜色 × 尺码」填库存；没填颜色就只按尺码。</div>'+
+          '<div style="display:flex;gap:10px;margin-top:14px"><button class="btn" id="saveP" style="flex:1">保存</button><button class="btn btn--ghost" id="cancelP">取消</button></div>'+
+          '<div class="msg" id="pm" style="display:block;margin-top:8px"></div>'+
+        '</div></div>'+
       '</div>';
       document.getElementById('cancelP').addEventListener('click',function(){document.getElementById('pEditor').innerHTML='';});
       document.getElementById('saveP').addEventListener('click',function(){saveProduct(id);});
+      ['f_active','f_track','f_oversell'].forEach(function(idd){var sw=document.getElementById(idd);if(sw)sw.addEventListener('click',function(){this.classList.toggle('on');});});
       function curSizes(){return [].map.call(document.querySelectorAll('.sz:checked'),function(c){return c.value;});}
-      function curColors(){var o=[];[].forEach.call(document.querySelectorAll('.cname'),function(i){var v2=i.value.trim();if(v2)o.push(v2);});return o;}
+      function curColors(){var o=[],ns=document.querySelectorAll('.cname'),hs=document.querySelectorAll('.chex');for(var i=0;i<ns.length;i++){var v2=ns[i].value.trim();if(v2)o.push({name:v2,hex:(hs[i]&&hs[i].value)||'#cccccc'});}return o;}
       function stockOf(key,szKey){var st=p.stock||{};return (st[key]!=null)?st[key]:(st[szKey]!=null?st[szKey]:0);}
-      function invCell(key,size){return '<label style="display:inline-flex;align-items:center;gap:5px;font-weight:400;font-size:13px">'+esc(size)+' <input class="invqty" data-key="'+esc(key)+'" type="number" min="0" value="'+stockOf(key,size)+'" style="width:60px"></label>';}
+      function stState(q){var thr=parseInt((document.getElementById('f_thr')||{}).value,10)||0;q=parseInt(q,10)||0;return q<=0?'out':(thr>0&&q<=thr?'low':'ok');}
+      function invCell(key,size){var q=stockOf(key,size);return '<span class="cell"><span class="sd '+stState(q)+'"></span>'+esc(size)+' <input class="invqty" data-key="'+esc(key)+'" type="number" min="0" value="'+q+'"></span>';}
       function renderInv(){
         var box=document.getElementById('invBox');if(!box)return;
-        var szs=curSizes();if(!szs.length){box.innerHTML='<div style="color:var(--muted);font-size:13px;padding:6px 0">请先在上面勾选尺码</div>';return;}
+        var szs=curSizes();if(!szs.length){box.innerHTML='<div class="pnote" style="padding-top:8px">请先在左侧勾选尺码</div>';return;}
         var cols=curColors();
         if(cols.length){
-          box.innerHTML=cols.map(function(c){return '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line,#ECD9D6)"><b style="min-width:84px">'+esc(c)+'</b><div style="display:flex;gap:14px;flex-wrap:wrap">'+szs.map(function(s){return invCell(c+'|'+s,s);}).join('')+'</div></div>';}).join('');
+          box.innerHTML=cols.map(function(c){return '<div class="cgrp"><div class="chead"><span class="cdot" style="background:'+esc(c.hex)+'"></span>'+esc(c.name)+'</div><div class="cells">'+szs.map(function(s){return invCell(c.name+'|'+s,s);}).join('')+'</div></div>';}).join('');
         } else {
-          box.innerHTML='<div style="display:flex;gap:14px;flex-wrap:wrap;padding:8px 0">'+szs.map(function(s){return invCell(s,s);}).join('')+'</div>';
+          box.innerHTML='<div class="cells">'+szs.map(function(s){return invCell(s,s);}).join('')+'</div>';
         }
+        [].forEach.call(box.querySelectorAll('.invqty'),function(inp){inp.addEventListener('input',function(){var d=inp.parentNode.querySelector('.sd');if(d)d.className='sd '+stState(inp.value);});});
       }
       [].forEach.call(document.querySelectorAll('.sz'),function(c){c.addEventListener('change',renderInv);});
       [].forEach.call(document.querySelectorAll('.cname'),function(i){i.addEventListener('input',renderInv);});
+      [].forEach.call(document.querySelectorAll('.chex'),function(i){i.addEventListener('input',renderInv);});
+      var thrEl=document.getElementById('f_thr');if(thrEl)thrEl.addEventListener('input',renderInv);
       renderInv();
       document.getElementById('pEditor').scrollIntoView({behavior:'smooth',block:'start'});
     }
@@ -606,8 +633,8 @@
       var row={id:id||(v('f_id')||slug(name)),name:name,name_zh:v('f_name_zh')||null,category:v('f_cat'),price:price,
         compare_at:cmp?parseFloat(cmp):null,badge:v('f_badge')||null,sizes:sizes,colors:colors,
         images:[v('f_img1'),v('f_img2')].filter(Boolean),description:v('f_desc')||null,description_zh:v('f_desc_zh')||null,
-        stock:stock,track_inventory:document.getElementById('f_track').checked,continue_selling:document.getElementById('f_oversell').checked,low_stock_threshold:fThr,
-        active:document.getElementById('f_active').checked,sort:parseInt(v('f_sort'),10)||0};
+        stock:stock,track_inventory:document.getElementById('f_track').classList.contains('on'),continue_selling:document.getElementById('f_oversell').classList.contains('on'),low_stock_threshold:fThr,
+        active:document.getElementById('f_active').classList.contains('on'),sort:parseInt(v('f_sort'),10)||0};
       document.getElementById('saveP').disabled=true;
       DB.upsertProduct(row).then(function(r){
         document.getElementById('saveP').disabled=false;
