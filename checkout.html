@@ -44,7 +44,7 @@
 
       var subtotal = cartSubtotal();
       var shipping = subtotal >= (STORE_CONFIG.freeShippingThreshold || 0) ? 0 : (STORE_CONFIG.shippingFlat || 0);
-      var discount = 0, discountCode = '';
+      var discount = 0, discountCode = '', freeShip = false;
       var total = subtotal + shipping;
 
       var payLink = (STORE_CONFIG.paymentLink || '').trim();
@@ -106,7 +106,7 @@
             '<div class="totals">' +
               '<div><span>' + t('co.subtotal') + '</span><span>' + money(subtotal) + '</span></div>' +
               '<div id="discRow" style="display:none"><span>' + t('co.discount') + ' <b id="discTag" style="color:var(--wine)"></b></span><span id="discAmt"></span></div>' +
-              '<div><span>' + t('co.shippingLbl') + '</span><span>' + (shipping === 0 ? t('co.free') : money(shipping)) + '</span></div>' +
+              '<div><span>' + t('co.shippingLbl') + '</span><span id="shipVal">' + (shipping === 0 ? t('co.free') : money(shipping)) + '</span></div>' +
               '<div class="grand"><span>' + t('co.total') + '</span><b id="grandTotal">' + money(total) + '</b></div>' +
             '</div>' +
           '</aside>' +
@@ -114,12 +114,15 @@
 
       // ---- discount code ----
       function renderTotals() {
-        total = Math.max(0, subtotal - discount) + shipping;
+        var effShip = freeShip ? 0 : shipping;
+        total = Math.max(0, subtotal - discount) + effShip;
+        var sv = document.getElementById('shipVal');
+        if (sv) sv.textContent = (effShip === 0 ? t('co.free') : money(effShip));
         var row = document.getElementById('discRow');
-        if (discount > 0) {
+        if (discount > 0 || (freeShip && shipping > 0)) {
           row.style.display = '';
           document.getElementById('discTag').textContent = discountCode;
-          document.getElementById('discAmt').textContent = '−' + money(discount);
+          document.getElementById('discAmt').textContent = '−' + money(discount > 0 ? discount : shipping);
         } else { row.style.display = 'none'; }
         document.getElementById('grandTotal').textContent = money(total);
         var pb = document.getElementById('placeBtn');
@@ -134,11 +137,17 @@
         DB.validateDiscount(code, subtotal).then(function (r) {
           document.getElementById('discBtn').disabled = false;
           var d = r && r.data;
-          if (!d) { discount = 0; discountCode = ''; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); renderTotals(); return; }
-          discount = Number(d.discount) || 0; discountCode = d.code;
-          msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discOk', { x: money(discount) });
+          if (!d) { discount = 0; discountCode = ''; freeShip = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); renderTotals(); return; }
+          discountCode = d.code;
+          if (d.type === 'free_shipping') {
+            freeShip = true; discount = 0;
+            msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discShip');
+          } else {
+            freeShip = false; discount = Number(d.discount) || 0;
+            msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discOk', { x: money(discount) });
+          }
           renderTotals();
-        }, function () { document.getElementById('discBtn').disabled = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); });
+        }, function () { document.getElementById('discBtn').disabled = false; discount = 0; freeShip = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); renderTotals(); });
       });
 
       // ---- submit ----
@@ -155,6 +164,7 @@
 
         var orderId = 'ME' + String(Date.now()).slice(-7);
         var f = form;
+        var effShip = freeShip ? 0 : shipping;
         var itemRows = lines.map(function (l) {
           return l.b
             ? { b: 1, id: l.id, name: l.name, qty: l.qty, price: l.price, items: l.items }
@@ -166,7 +176,7 @@
         };
         localStorage.setItem('eclat_last_order', JSON.stringify({
           orderId: orderId, email: f.email.value,
-          items: itemRows, subtotal: subtotal, shipping: shipping, total: total,
+          items: itemRows, subtotal: subtotal, shipping: effShip, total: total,
           discount_code: discountCode || null, discount_amount: discount || 0
         }));
 
@@ -179,7 +189,7 @@
           var btn = document.getElementById('placeBtn'); if (btn) btn.disabled = true;
           var orderRow = {
             order_number: orderId, email: f.email.value, customer: customer,
-            items: itemRows, subtotal: subtotal, shipping: shipping, total: total,
+            items: itemRows, subtotal: subtotal, shipping: effShip, total: total,
             discount_code: discountCode || null, discount_amount: discount || 0,
             currency: (STORE_CONFIG.currency || 'MYR')
           };

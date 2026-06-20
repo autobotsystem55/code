@@ -51,3 +51,34 @@ grant execute on function public.redeem_discount(text) to anon, authenticated;
 -- 订单加上折扣字段
 alter table public.orders add column if not exists discount_code   text;
 alter table public.orders add column if not exists discount_amount numeric not null default 0;
+
+-- ============================================================
+--  v2（批次 1：优惠名称 + 开始时间排期 + 免运费类型）
+--  可重复运行。跑过上面的内容后，再跑这一段即可升级。
+-- ============================================================
+
+-- 优惠名称（显示用，例如「新季 9 折」）+ 开始时间（排期：到点才生效）
+alter table public.discount_codes add column if not exists name      text;
+alter table public.discount_codes add column if not exists starts_at timestamptz;
+
+-- 升级校验函数：支持 'free_shipping'(免运费) 类型 + 开始时间检查
+create or replace function public.validate_discount(p_code text, p_subtotal numeric)
+returns table(code text, type text, value numeric, discount numeric)
+language plpgsql security definer set search_path = public as $$
+declare r public.discount_codes; d numeric;
+begin
+  select * into r from public.discount_codes
+    where upper(code) = upper(p_code) and active = true
+      and (starts_at  is null or starts_at  <= now())
+      and (expires_at is null or expires_at >  now())
+      and (usage_limit is null or used_count < usage_limit)
+      and p_subtotal >= min_subtotal
+    limit 1;
+  if not found then return; end if;
+  if r.type = 'percent' then        d := round(p_subtotal * r.value / 100.0, 2);
+  elsif r.type = 'free_shipping' then d := 0;          -- 运费在前端置零
+  else                               d := least(r.value, p_subtotal);
+  end if;
+  return query select r.code, r.type, r.value, d;
+end; $$;
+grant execute on function public.validate_discount(text, numeric) to anon, authenticated;

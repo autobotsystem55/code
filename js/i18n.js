@@ -149,7 +149,7 @@
       'co.summary': 'Order summary', 'co.subtotal': 'Subtotal', 'co.shippingLbl': 'Shipping',
       'co.free': 'Free', 'co.total': 'Total', 'co.fill': 'Please complete the highlighted fields',
       'co.discount': 'Discount', 'co.discPh': 'Discount code', 'co.apply': 'Apply',
-      'co.discOk': '−{x} applied', 'co.discBad': 'Invalid or expired code', 'co.discNa': 'Discounts unavailable right now',
+      'co.discOk': '−{x} applied', 'co.discBad': 'Invalid or expired code', 'co.discNa': 'Discounts unavailable right now', 'co.discShip': 'Free shipping applied',
       'co.empty': 'Your bag is empty.', 'co.continue': 'Continue shopping',
       // success
       'ok.confirmed': 'Order confirmed', 'ok.thanks': 'Thank you.',
@@ -283,7 +283,7 @@
       'co.summary': '订单摘要', 'co.subtotal': '小计', 'co.shippingLbl': '运费',
       'co.free': '免费', 'co.total': '合计', 'co.fill': '请填写高亮的必填项',
       'co.discount': '优惠', 'co.discPh': '优惠码', 'co.apply': '应用',
-      'co.discOk': '已减 {x}', 'co.discBad': '优惠码无效或已过期', 'co.discNa': '暂不可用优惠码',
+      'co.discOk': '已减 {x}', 'co.discBad': '优惠码无效或已过期', 'co.discNa': '暂不可用优惠码', 'co.discShip': '已享免运费',
       'co.empty': '购物袋是空的。', 'co.continue': '继续选购',
       'ok.confirmed': '订单已确认', 'ok.thanks': '感谢你的购买。',
       'ok.line': '订单已提交——确认邮件正发往 <b>{x}</b>。',

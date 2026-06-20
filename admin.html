@@ -468,7 +468,7 @@
     }
 
     // ---------- app shell ----------
-    var NAV=[['dash','概览',ICON.dash],['products','商品',ICON.box],['inventory','库存',ICON.inv],['orders','订单',ICON.bag],['customers','顾客',ICON.user],['discounts','折扣码',ICON.tag],['bundles','套装',ICON.gift],['settings','设置',ICON.gear]];
+    var NAV=[['dash','概览',ICON.dash],['products','商品',ICON.box],['inventory','库存',ICON.inv],['orders','订单',ICON.bag],['customers','顾客',ICON.user],['discounts','优惠券',ICON.tag],['bundles','套装',ICON.gift],['settings','设置',ICON.gear]];
     function renderApp(u){
       root.innerHTML='<div class="shell">'+
         '<aside class="side">'+
@@ -487,7 +487,7 @@
     }
     function show(s){
       document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-s')===s);});
-      var titles={dash:'概览',products:'商品',inventory:'库存',orders:'订单',customers:'顾客',discounts:'折扣码',bundles:'套装',settings:'设置'};
+      var titles={dash:'概览',products:'商品',inventory:'库存',orders:'订单',customers:'顾客',discounts:'优惠券',bundles:'套装',settings:'设置'};
       document.getElementById('title').textContent=titles[s];
       view.innerHTML='<p class="muted">载入中…</p>';
       ({dash:secDash,products:secProducts,inventory:secInventory,orders:secOrders,customers:secCustomers,discounts:secDiscounts,bundles:secBundles,settings:secSettings}[s])();
@@ -754,62 +754,224 @@
       });
     }
 
-    // ---------- 折扣码 ----------
+    // ---------- 优惠券 (design C · 分步向导) ----------
     function secDiscounts(){
+      view.innerHTML='<p class="muted">载入中…</p>';
+      if(!document.getElementById('dwCss')){
+        var st=document.createElement('style');st.id='dwCss';
+        st.textContent='.bw .dtpl-sec{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--wine,#82213E);font-weight:600;margin:16px 0 10px}'+
+          '.bw .dtpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}'+
+          '.bw .dtpl{position:relative;text-align:left;background:var(--cream-2,#FAF6F3);border:1px solid var(--line,#ECD9D6);border-radius:10px;padding:17px 15px;cursor:pointer;transition:.16s;font-family:inherit;color:var(--ink,#1C1C1C)}'+
+          '.bw .dtpl:hover{border-color:var(--wine,#82213E);box-shadow:0 6px 18px rgba(28,28,28,.07);transform:translateY(-1px)}'+
+          '.bw .dtpl.sel{border-color:var(--wine,#82213E);box-shadow:0 0 0 1px var(--wine,#82213E)}'+
+          '.bw .dtpl .big{font-size:17px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.3}'+
+          '.bw .dtpl .chip{display:inline-block;border:1px dashed var(--pink-border,#DAB0B7);border-radius:6px;padding:1px 8px;background:#fff}'+
+          '.bw .dtpl .unit{font-weight:700}'+
+          '.bw .dtpl .sub{color:var(--muted,#6F635C);font-size:12.5px;margin-top:7px}'+
+          '.bw .dtpl .en{color:var(--muted,#6F635C);font-size:10.5px;opacity:.7;margin-top:3px;text-transform:uppercase;letter-spacing:.05em}'+
+          '.bw .dtpl.soon{cursor:not-allowed;opacity:.6}'+
+          '.bw .dtpl.soon:hover{transform:none;box-shadow:none;border-color:var(--line,#ECD9D6)}'+
+          '.bw .dtpl .soon-badge{position:absolute;top:9px;right:9px;font-size:10px;letter-spacing:.03em;color:#9A6B12;background:#FBF0DA;border:1px solid #ecd9ad;border-radius:40px;padding:2px 8px}'+
+          '.bw .dtpl .tick{position:absolute;top:9px;right:9px;width:21px;height:21px;border-radius:50%;background:var(--wine,#82213E);color:#fff;display:none;align-items:center;justify-content:center;font-size:12px}'+
+          '.bw .dtpl.sel .tick{display:flex}'+
+          '.bw .dprev{margin-top:14px;background:#E3F1E8;border:1px solid #cfe6d6;color:#2F7D4F;border-radius:8px;padding:12px 14px;font-size:14px}'+
+          '.bw .dscope{display:inline-block;background:var(--cream-2,#FAF6F3);border:1px solid var(--line,#ECD9D6);border-radius:6px;padding:9px 12px;color:var(--muted,#6F635C);font-size:13px}'+
+          '@media(max-width:920px){.bw .dtpl-grid{grid-template-columns:repeat(2,1fr)}}'+
+          '@media(max-width:560px){.bw .dtpl-grid{grid-template-columns:1fr}}';
+        document.head.appendChild(st);
+      }
       DB.allDiscounts().then(function(r){
         if(r.error){view.innerHTML='<p class="msg">读取失败：'+esc(r.error.message)+'</p>';return;}
-        var rows=r.data||[];var sym=(window.STORE_CONFIG&&window.STORE_CONFIG.currencySymbol)||'RM';
-        view.innerHTML=
-          '<div class="panel"><h2>新建 / 编辑折扣码</h2>'+
-            '<div class="row2"><div class="field"><label>优惠码（如 WELCOME10）</label><input id="d_code" style="text-transform:uppercase"></div>'+
-              '<div class="field"><label>类型</label><select id="d_type"><option value="percent">百分比 %</option><option value="fixed">固定金额</option></select></div></div>'+
-            '<div class="row2"><div class="field"><label>折扣值（% 填 10 = 减 10%；固定填 10 = 减 '+sym+'10）</label><input id="d_value" type="number" step="0.01"></div>'+
-              '<div class="field"><label>满额可用（可空，0=不限）</label><input id="d_min" type="number" step="0.01" value="0"></div></div>'+
-            '<div class="row2"><div class="field"><label>使用次数上限（可空 = 不限）</label><input id="d_limit" type="number"></div>'+
-              '<div class="field"><label>过期日期（可空 = 不过期）</label><input id="d_exp" type="date"></div></div>'+
-            '<div class="field"><label><input type="checkbox" id="d_active" checked> 启用</label></div>'+
-            '<div style="display:flex;gap:10px"><button class="btn" id="saveD">保存折扣码</button><span class="msg" id="dm"></span></div>'+
-          '</div>'+
-          '<div class="panel"><h2>折扣码 ('+rows.length+')</h2>'+
-            (rows.length?'<table><thead><tr><th>码</th><th>优惠</th><th>已用/上限</th><th>满额</th><th>过期</th><th>状态</th><th></th></tr></thead><tbody>'+
-              rows.map(function(c){var val=c.type==='percent'?(c.value+'%'):money(c.value);
-                return '<tr><td><b>'+esc(c.code)+'</b></td><td>'+val+'</td><td class="muted">'+c.used_count+' / '+(c.usage_limit==null?'∞':c.usage_limit)+'</td>'+
-                  '<td class="muted">'+(c.min_subtotal>0?money(c.min_subtotal):'—')+'</td><td class="muted">'+(c.expires_at?fdate(c.expires_at):'—')+'</td>'+
-                  '<td>'+(c.active?'<span class="pill green">启用</span>':'<span class="pill off">停用</span>')+'</td>'+
-                  '<td class="tbl-actions" style="text-align:right;white-space:nowrap"><button data-dedit="'+esc(c.code)+'">编辑</button><button data-ddel="'+esc(c.code)+'">删除</button></td></tr>';
-              }).join('')+'</tbody></table>'
-              :'<div class="empty">还没有折扣码。</div>')+'</div>';
-        var saveD=document.getElementById('saveD');
-        saveD.addEventListener('click',function(){
-          var m=document.getElementById('dm');m.style.color='var(--wine)';
-          var code=document.getElementById('d_code').value.trim().toUpperCase();
-          var value=parseFloat(document.getElementById('d_value').value);
-          if(!code){m.textContent='请填优惠码';return;}
-          if(isNaN(value)){m.textContent='请填折扣值';return;}
-          var exp=document.getElementById('d_exp').value,lim=document.getElementById('d_limit').value;
-          var row={code:code,type:document.getElementById('d_type').value,value:value,
-            min_subtotal:parseFloat(document.getElementById('d_min').value)||0,
-            usage_limit:lim?parseInt(lim,10):null,
-            expires_at:exp?new Date(exp+'T23:59:59').toISOString():null,
-            active:document.getElementById('d_active').checked};
-          saveD.disabled=true;
-          DB.upsertDiscount(row).then(function(r){saveD.disabled=false;
-            if(r&&r.error){m.textContent='保存失败：'+r.error.message;return;}secDiscounts();
-          },function(){saveD.disabled=false;m.textContent='保存失败，请重试';});
-        });
-        view.querySelectorAll('[data-ddel]').forEach(function(b){b.addEventListener('click',function(){
-          if(!confirm('删除折扣码 '+b.getAttribute('data-ddel')+' ？'))return;
-          DB.deleteDiscount(b.getAttribute('data-ddel')).then(function(r){if(r&&r.error){alert('删除失败：'+r.error.message);return;}secDiscounts();});
-        });});
-        view.querySelectorAll('[data-dedit]').forEach(function(b){b.addEventListener('click',function(){
-          var c=rows.filter(function(x){return x.code===b.getAttribute('data-dedit');})[0];if(!c)return;
-          document.getElementById('d_code').value=c.code;document.getElementById('d_type').value=c.type;
-          document.getElementById('d_value').value=c.value;document.getElementById('d_min').value=c.min_subtotal||0;
-          document.getElementById('d_limit').value=c.usage_limit==null?'':c.usage_limit;
-          document.getElementById('d_exp').value=c.expires_at?c.expires_at.slice(0,10):'';
-          document.getElementById('d_active').checked=c.active;
-          window.scrollTo({top:0,behavior:'smooth'});
-        });});
+        var rows=r.data||[];
+        var sym=(window.STORE_CONFIG&&window.STORE_CONFIG.currencySymbol)||'RM';
+        var toastEl=document.getElementById('invToast');if(!toastEl){toastEl=document.createElement('div');toastEl.id='invToast';toastEl.className='itoast';document.body.appendChild(toastEl);}
+        function toast(m){toastEl.innerHTML=m;toastEl.classList.add('show');clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove('show');},2600);}
+
+        var TEMPLATES=[
+          {key:'percent',live:true,big:'10%',unit:'OFF',title:'满额打折',sub:'满额/全场打折扣',en:'percent off'},
+          {key:'fixed',live:true,big:sym+' 5',unit:'OFF',title:'满额立减',sub:'满额减固定金额',en:'amount off'},
+          {key:'free_shipping',live:true,big:'免运费',unit:'',title:'免运费',sub:'满额免运费',en:'free shipping'},
+          {key:'bxgy',live:false,big:'1+1',unit:'',title:'买一送一',sub:'指定商品买一送一',en:'buy 1 free 1'},
+          {key:'nth',live:false,big:'50%',unit:'OFF',title:'第 N 件优惠',sub:'每第 X 件打折',en:'every Xth item'},
+          {key:'setdeal',live:false,big:sym+' 99',unit:'',title:'组合价',sub:'任选 N 件特价',en:'buy N at price'},
+          {key:'gift',live:false,big:'赠品',unit:'',title:'满额送赠品',sub:'满额送礼',en:'free gift'},
+          {key:'addon',live:false,big:'加购',unit:'',title:'加购价',sub:'满件可加购',en:'add-on price'},
+          {key:'credit',live:false,big:'购物金',unit:'',title:'消费送购物金',sub:'每消费回馈',en:'store credit'}
+        ];
+        function tplOf(k){return TEMPLATES.filter(function(t){return t.key===k;})[0];}
+        function typeLabel(t){return ({percent:'满额打折',fixed:'满额立减',free_shipping:'免运费'})[t]||t;}
+
+        var S,editingCode=null;
+        function freshState(){return {type:null,value:10,min:0,name:'',code:'',limit:'',start:'',exp:'',live:true};}
+
+        var now=Date.now();
+        var activeN=rows.filter(function(c){return c.active&&(!c.expires_at||new Date(c.expires_at).getTime()>now);}).length;
+        var usedN=rows.reduce(function(a,c){return a+(c.used_count||0);},0);
+        var soonN=rows.filter(function(c){return c.active&&c.expires_at&&new Date(c.expires_at).getTime()>now&&new Date(c.expires_at).getTime()<now+7*864e5;}).length;
+
+        view.innerHTML='<div class="bw">'+
+          '<section class="land" id="dLanding">'+
+            '<div class="bstats"><div class="bstat"><div class="n">'+activeN+'</div><div class="l">启用中</div></div>'+
+              '<div class="bstat"><div class="n">'+usedN+'</div><div class="l">累计使用</div></div>'+
+              '<div class="bstat"><div class="n">'+soonN+'</div><div class="l">7 天内到期</div></div></div>'+
+            '<div class="land-head"><h2>现有优惠</h2><button class="btn" id="dNew">＋ 新建优惠</button></div>'+
+            '<div class="bpanel"><table><thead><tr><th>名称 / 码</th><th>类型</th><th>已用/上限</th><th>满额</th><th>有效期</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody id="dRows"></tbody></table></div>'+
+          '</section>'+
+          '<section class="wizard" id="dWizard">'+
+            '<div class="steps" id="dSteps">'+
+              '<div class="step active" data-step="1"><div class="num">1</div><div class="txt"><div class="t">选类型</div><div class="d">挑一个模板</div></div></div><div class="step-line" data-line="1"></div>'+
+              '<div class="step" data-step="2"><div class="num">2</div><div class="txt"><div class="t">设置规则</div><div class="d">折扣 / 门槛</div></div></div><div class="step-line" data-line="2"></div>'+
+              '<div class="step" data-step="3"><div class="num">3</div><div class="txt"><div class="t">优惠码 &amp; 排期</div><div class="d">码 / 次数 / 时间</div></div></div><div class="step-line" data-line="3"></div>'+
+              '<div class="step" data-step="4"><div class="num">✓</div><div class="txt"><div class="t">确认</div><div class="d">检查并启用</div></div></div>'+
+            '</div>'+
+            '<div class="stepwrap on" data-pane="1"><div class="wcard"><h2>第一步 · 选择优惠类型</h2><p class="lede">挑一个模板快速开始。标「即将推出」的类型正在开发中，敬请期待。</p>'+
+              '<div class="dtpl-sec">从模板创建</div><div class="dtpl-grid" id="dTplGrid"></div></div>'+
+              '<div class="wfoot"><button type="button" class="btn btn--quiet btn--lg" id="dCancel1">取消</button><div class="right"><button type="button" class="btn btn--lg" id="dGo2" disabled>下一步 · 设置规则 →</button></div></div></div>'+
+            '<div class="stepwrap" data-pane="2"><div class="wcard"><h2 id="dS2title">第二步 · 设置规则</h2><p class="lede">填写折扣条件，下面会实时预览顾客看到的优惠。</p>'+
+              '<div id="dRuleFields"></div>'+
+              '<div class="field" style="margin-top:4px"><label>适用范围</label><div class="dscope">全部商品 <span class="muted">（指定系列 / 指定商品即将推出）</span></div></div>'+
+              '<div class="dprev" id="dPrev2">—</div></div>'+
+              '<div class="wfoot"><button type="button" class="btn btn--quiet btn--lg" data-dback="1">← 上一步</button><div class="right"><button type="button" class="btn btn--lg" data-dgo="3">下一步 · 优惠码 →</button></div></div></div>'+
+            '<div class="stepwrap" data-pane="3"><div class="wcard"><h2>第三步 · 优惠码 &amp; 排期</h2><p class="lede">设置优惠名称、顾客结账输入的优惠码，以及使用次数和有效期。</p>'+
+              '<div class="row2"><div class="field"><label>优惠名称 *</label><input id="dName" type="text" placeholder="例：新季会员 9 折"></div>'+
+                '<div class="field"><label>优惠码 *（顾客结账输入）</label><div style="display:flex;gap:8px"><input id="dCode" type="text" style="flex:1;text-transform:uppercase" placeholder="WELCOME10"><button type="button" class="btn btn--quiet btn--sm" id="dGen">生成</button></div></div></div>'+
+              '<div class="row2"><div class="field"><label>使用次数上限（留空 = 不限）</label><input id="dLimit" type="number" min="0" placeholder="不限"></div>'+
+                '<div class="field"><label>满额门槛</label><div class="dscope" id="dMinEcho">—</div></div></div>'+
+              '<div class="row2"><div class="field"><label>开始日期（留空 = 立即）</label><input id="dStart" type="date"></div>'+
+                '<div class="field"><label>结束日期（留空 = 不过期）</label><input id="dExp" type="date"></div></div>'+
+              '<div class="toggle-row"><div class="lab">立即启用<small>关闭则存为草稿，结账时不可用</small></div><div class="sw on" id="dLiveSw" role="switch"></div></div></div>'+
+              '<div class="wfoot"><button type="button" class="btn btn--quiet btn--lg" data-dback="2">← 上一步</button><div class="right"><button type="button" class="btn btn--lg" data-dgo="4">下一步 · 确认 →</button></div></div></div>'+
+            '<div class="stepwrap" data-pane="4"><div class="wcard"><h2>第四步 · 确认并启用</h2><p class="lede">检查无误后启用。任何一项都可回到对应步骤修改。</p><div class="review" id="dReview"></div></div>'+
+              '<div class="wfoot"><button type="button" class="btn btn--quiet btn--lg" data-dback="3">← 上一步</button><div class="right"><button type="button" class="btn btn--ghost btn--lg" id="dDraft">存为草稿</button><button type="button" class="btn btn--lg" id="dSave">启用优惠 ✓</button></div></div></div>'+
+          '</section></div>';
+
+        var $=function(s){return view.querySelector(s);},$$=function(s){return [].slice.call(view.querySelectorAll(s));};
+
+        function renderRows(){
+          $('#dRows').innerHTML=rows.length?rows.map(function(c){
+            var val=c.type==='percent'?(c.value+'%'):(c.type==='free_shipping'?'免运费':money(c.value));
+            var per=(c.starts_at?fdate(c.starts_at):'即时')+' → '+(c.expires_at?fdate(c.expires_at):'长期');
+            var nm=c.name?('<div class="b-name">'+esc(c.name)+'</div><div class="b-en">'+esc(c.code)+'</div>'):('<div class="b-name">'+esc(c.code)+'</div>');
+            return '<tr><td>'+nm+'</td>'+
+              '<td><span class="bpill '+(c.type==='free_shipping'?'mix':'fixed')+'">'+typeLabel(c.type)+'</span><div class="muted" style="font-size:12px;margin-top:3px">'+val+'</div></td>'+
+              '<td class="muted">'+(c.used_count||0)+' / '+(c.usage_limit==null?'∞':c.usage_limit)+'</td>'+
+              '<td class="muted">'+(c.min_subtotal>0?money(c.min_subtotal):'—')+'</td>'+
+              '<td class="muted" style="font-size:12px">'+per+'</td>'+
+              '<td>'+(c.active?'<span class="bpill green">● 启用</span>':'<span class="bpill off">○ 草稿</span>')+'</td>'+
+              '<td class="tbl-actions"><button data-dedit="'+esc(c.code)+'">编辑</button><button class="del" data-ddel="'+esc(c.code)+'">删除</button></td></tr>';
+          }).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:36px">还没有优惠，点「＋ 新建优惠」开始。</td></tr>';
+          $$('[data-dedit]').forEach(function(b){b.addEventListener('click',function(){openWizard(b.getAttribute('data-dedit'));});});
+          $$('[data-ddel]').forEach(function(b){b.addEventListener('click',function(){var code=b.getAttribute('data-ddel');if(!confirm('确定删除优惠 '+code+' ？'))return;DB.deleteDiscount(code).then(function(r){if(r&&r.error){toast('删除失败：'+r.error.message);return;}toast('优惠已删除');secDiscounts();});});});
+        }
+
+        function renderTpls(){
+          $('#dTplGrid').innerHTML=TEMPLATES.map(function(t){
+            var head=t.unit?('<span class="chip">'+esc(t.big)+'</span> <span class="unit">'+esc(t.unit)+'</span>'):('<span class="chip">'+esc(t.big)+'</span>');
+            return '<button type="button" class="dtpl'+(t.live?'':' soon')+((S&&S.type===t.key)?' sel':'')+'" data-tpl="'+t.key+'"'+(t.live?'':' aria-disabled="true"')+'>'+
+              (t.live?'<span class="tick">✓</span>':'<span class="soon-badge">即将推出</span>')+
+              '<div class="big">'+head+'</div><div class="sub">'+esc(t.title)+' · '+esc(t.sub)+'</div><div class="en">'+esc(t.en)+'</div></button>';
+          }).join('');
+          $$('#dTplGrid .dtpl').forEach(function(el){el.addEventListener('click',function(){
+            var k=el.getAttribute('data-tpl');var t=tplOf(k);
+            if(!t.live){toast('「'+t.title+'」即将推出，敬请期待 ✿');return;}
+            S.type=k;S.value=(k==='percent'?10:(k==='fixed'?5:0));
+            $$('#dTplGrid .dtpl').forEach(function(x){x.classList.toggle('sel',x===el);});
+            $('#dGo2').disabled=false;
+          });});
+        }
+
+        function ruleText(){
+          if(S.type==='percent')return (S.min>0?('满 '+sym+' '+S.min+'，'):'全场 ')+(S.value||0)+'% 折扣';
+          if(S.type==='fixed')return (S.min>0?('满 '+sym+' '+S.min+'，'):'')+'立减 '+sym+' '+(S.value||0);
+          return (S.min>0?('满 '+sym+' '+S.min+'，'):'')+'免运费';
+        }
+        function updatePrev(){var p=$('#dPrev2');if(p)p.innerHTML='顾客看到：<b>'+esc(ruleText())+'</b>';}
+        function renderRule(){
+          var t=S.type;var box=$('#dRuleFields');
+          if(t==='percent'){
+            box.innerHTML='<div class="row2"><div class="field"><label>折扣百分比</label><div class="priceinput pct"><input id="dVal" type="number" min="1" max="99" value="'+(S.value||10)+'"><span class="suf">%</span></div><div class="hint">例：10 = 打 9 折。</div></div>'+
+              '<div class="field"><label>满额门槛（0 = 不限）</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dMin" type="number" min="0" step="0.01" value="'+(S.min||0)+'"></div></div></div>';
+            $('#dS2title').textContent='第二步 · 设置「满额打折」';
+          } else if(t==='fixed'){
+            box.innerHTML='<div class="row2"><div class="field"><label>立减金额</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dVal" type="number" min="1" step="0.01" value="'+(S.value||5)+'"></div><div class="hint">直接从小计中扣除。</div></div>'+
+              '<div class="field"><label>满额门槛（0 = 不限）</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dMin" type="number" min="0" step="0.01" value="'+(S.min||0)+'"></div></div></div>';
+            $('#dS2title').textContent='第二步 · 设置「满额立减」';
+          } else {
+            box.innerHTML='<div class="field"><label>满额门槛（0 = 不限）</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dMin" type="number" min="0" step="0.01" value="'+(S.min||0)+'"></div><div class="hint">订单达到门槛即免运费。</div></div>';
+            $('#dS2title').textContent='第二步 · 设置「免运费」';
+          }
+          var vEl=$('#dVal');if(vEl)vEl.addEventListener('input',function(){S.value=+this.value||0;updatePrev();});
+          $('#dMin').addEventListener('input',function(){S.min=+this.value||0;updatePrev();});
+          updatePrev();
+        }
+
+        function renderReview(){
+          var codeU=(S.code||'').toUpperCase();
+          $('#dReview').innerHTML='<div class="rev-block"><h4>优惠规则 <button data-djump="2">修改</button></h4>'+
+            '<div class="rev-line"><span class="k">类型</span><span class="v">'+typeLabel(S.type)+'</span></div>'+
+            '<div class="rev-line"><span class="k">规则</span><span class="v">'+esc(ruleText())+'</span></div>'+
+            '<div class="rev-line"><span class="k">适用范围</span><span class="v">全部商品</span></div></div>'+
+            '<div class="rev-block"><h4>优惠码 &amp; 排期 <button data-djump="3">修改</button></h4>'+
+            '<div class="rev-line"><span class="k">名称</span><span class="v">'+(esc(S.name)||'—')+'</span></div>'+
+            '<div class="rev-line"><span class="k">优惠码</span><span class="v" style="font-weight:700;letter-spacing:.04em">'+(esc(codeU)||'—')+'</span></div>'+
+            '<div class="rev-line"><span class="k">使用上限</span><span class="v">'+(S.limit?(S.limit+' 次'):'不限')+'</span></div>'+
+            '<div class="rev-line"><span class="k">有效期</span><span class="v">'+(S.start||'即时')+' → '+(S.exp||'长期')+'</span></div>'+
+            '<div class="rev-line"><span class="k">状态</span><span class="v">'+(S.live?'<span class="bpill green">● 立即启用</span>':'<span class="bpill off">○ 草稿</span>')+'</span></div></div>'+
+            '<div class="rev-banner"><div><div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">顾客优惠</div><div class="big">'+esc(ruleText())+'</div></div><div style="font-size:14px;color:var(--green)">凭码 '+(esc(codeU)||'—')+'</div></div>';
+          $$('#dReview [data-djump]').forEach(function(b){b.addEventListener('click',function(){goStep(+b.getAttribute('data-djump'));});});
+        }
+
+        function pullStep3(){if($('#dName')){S.name=$('#dName').value.trim();S.code=$('#dCode').value.trim();S.limit=$('#dLimit').value;S.start=$('#dStart').value;S.exp=$('#dExp').value;}}
+        function goStep(n){
+          var cur3=$('.stepwrap[data-pane="3"]');if(cur3&&cur3.classList.contains('on'))pullStep3();
+          $$('.stepwrap').forEach(function(p){p.classList.toggle('on',+p.getAttribute('data-pane')===n);});
+          $$('#dSteps .step').forEach(function(s){var k=+s.getAttribute('data-step');s.classList.toggle('active',k===n);s.classList.toggle('done',k<n);});
+          $$('#dSteps .step-line').forEach(function(l){l.classList.toggle('fill',+l.getAttribute('data-line')<n);});
+          if(n===2){renderRule();}
+          if(n===3){$('#dName').value=S.name;$('#dCode').value=S.code;$('#dLimit').value=S.limit;$('#dStart').value=S.start;$('#dExp').value=S.exp;$('#dMinEcho').textContent=S.min>0?(sym+' '+S.min):'不限';$('#dLiveSw').classList.toggle('on',S.live);}
+          if(n===4){pullStep3();renderReview();}
+          window.scrollTo(0,0);
+        }
+        function openWizard(code){
+          S=freshState();editingCode=null;
+          if(code){var c=rows.filter(function(x){return x.code===code;})[0];if(c){editingCode=code;
+            S.type=(c.type==='percent'||c.type==='fixed'||c.type==='free_shipping')?c.type:'fixed';
+            S.value=c.value!=null?c.value:0;S.min=c.min_subtotal||0;S.name=c.name||'';S.code=c.code||'';
+            S.limit=c.usage_limit==null?'':c.usage_limit;S.start=c.starts_at?c.starts_at.slice(0,10):'';S.exp=c.expires_at?c.expires_at.slice(0,10):'';S.live=c.active!==false;
+          }}
+          $('#dLanding').classList.add('off');$('#dWizard').classList.add('on');
+          renderTpls();$('#dGo2').disabled=!S.type;goStep(1);window.scrollTo(0,0);
+        }
+        function closeWizard(){$('#dWizard').classList.remove('on');$('#dLanding').classList.remove('off');window.scrollTo(0,0);}
+
+        function commit(live){
+          pullStep3();
+          if(!S.type){toast('请先选择优惠类型');goStep(1);return;}
+          if((S.type==='percent'||S.type==='fixed')&&!(S.value>0)){toast('请填写有效的折扣值');goStep(2);return;}
+          if(!S.name){toast('请填写优惠名称');goStep(3);return;}
+          if(!S.code){toast('请填写优惠码');goStep(3);return;}
+          var row={code:S.code.toUpperCase(),name:S.name,type:S.type,value:(S.type==='free_shipping'?0:(+S.value||0)),
+            min_subtotal:+S.min||0,usage_limit:S.limit?parseInt(S.limit,10):null,
+            starts_at:S.start?new Date(S.start+'T00:00:00').toISOString():null,
+            expires_at:S.exp?new Date(S.exp+'T23:59:59').toISOString():null,active:!!live};
+          $('#dSave').disabled=true;$('#dDraft').disabled=true;
+          DB.upsertDiscount(row).then(function(rr){
+            if(rr&&rr.error){toast('保存失败：'+rr.error.message);$('#dSave').disabled=false;$('#dDraft').disabled=false;return;}
+            toast(live?('优惠「'+esc(S.name)+'」已启用 ✿'):('草稿「'+esc(S.name)+'」已保存'));secDiscounts();
+          },function(){toast('保存失败，请重试');$('#dSave').disabled=false;$('#dDraft').disabled=false;});
+        }
+
+        $('#dNew').addEventListener('click',function(){openWizard(null);});
+        $('#dCancel1').addEventListener('click',closeWizard);
+        $('#dGo2').addEventListener('click',function(){if(S.type)goStep(2);});
+        $$('[data-dgo]').forEach(function(b){b.addEventListener('click',function(){goStep(+b.getAttribute('data-dgo'));});});
+        $$('[data-dback]').forEach(function(b){b.addEventListener('click',function(){goStep(+b.getAttribute('data-dback'));});});
+        $('#dGen').addEventListener('click',function(){var base=(S.type==='free_shipping'?'SHIP':(S.type==='fixed'?'SAVE':'OFF'));var code=base+(100+(+String(Date.now()).slice(-3))%900);$('#dCode').value=code;S.code=code;});
+        $('#dLiveSw').addEventListener('click',function(){S.live=!S.live;this.classList.toggle('on',S.live);});
+        $('#dDraft').addEventListener('click',function(){commit(false);});
+        $('#dSave').addEventListener('click',function(){commit(true);});
+
+        renderRows();
       });
     }
 
