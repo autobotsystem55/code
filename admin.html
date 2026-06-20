@@ -336,7 +336,10 @@
     @media(max-width:760px){.bw .bstats{grid-template-columns:1fr}.bw .choices,.bw .pmode,.bw .review{grid-template-columns:1fr}.bw .step .d{display:none}}
 
     /* ===== settings page (design A · grouped cards) ===== */
-    .setpage{max-width:980px}
+    .setpage{max-width:1760px;display:grid;grid-template-columns:1fr 1fr;gap:18px 20px;align-items:start}
+    .setpage>.page-head,.setpage>.savebar{grid-column:1/-1}
+    .setpage>.card{margin-bottom:0}
+    @media(max-width:1024px){.setpage{grid-template-columns:1fr}}
     .setpage .page-head{margin-bottom:24px}
     .setpage .page-head h1{font-family:var(--serif);font-size:clamp(24px,3vw,30px);color:var(--ink);line-height:1.1}
     .setpage .page-head p{color:var(--muted);font-size:14px;margin-top:7px}
