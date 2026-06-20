@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上新商品 + 库存 · 分区表单 (Demo A) · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFFAF1; --cream2:#FAF6F3; --white:#fff; --blush:#F2E4D9; --pink:#E9C9CC;
+  --pink-soft:#F3E2E4; --pink-border:#DAB0B7; --wine:#82213E; --wine-deep:#6A1A32;
+  --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C; --line:#ECD9D6; --line2:#E2DCD8;
+  --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6B12; --amber-bg:#FBF0DA;
+  --radius:8px; --radius-sm:6px;
+  --shadow:0 1px 3px rgba(28,28,28,.06),0 8px 28px rgba(28,28,28,.05);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:"DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--cream); color:var(--ink); line-height:1.5;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  padding-bottom:96px;
+}
+h1,h2,h3{font-family:"DM Serif Display",Georgia,serif;font-weight:400;margin:0;}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  position:sticky; top:0; z-index:50; background:var(--white);
+  border-bottom:1px solid var(--pink-soft);
+  display:flex; align-items:center; gap:18px;
+  padding:13px 22px;
+}
+.brand{display:flex; align-items:baseline; gap:6px;}
+.brand .wordmark{font-family:"DM Serif Display",Georgia,serif;font-size:22px;color:var(--ink);line-height:1;}
+.brand .flower{color:var(--wine);font-size:16px;}
+.crumb{font-size:12.5px;color:var(--muted);white-space:nowrap;}
+.crumb .sep{margin:0 5px;color:var(--pink-border);}
+.topbar .spacer{flex:1;}
+.demo-pill{
+  border-radius:40px; font-size:11.5px; color:var(--wine);
+  border:1px solid var(--pink); background:var(--pink-soft);
+  padding:5px 13px; white-space:nowrap; font-weight:500;
+}
+
+/* ===== LAYOUT ===== */
+main{max-width:900px; margin:0 auto; padding:0 22px;}
+.page-head{padding:28px 0 8px;}
+.page-head h1{font-size:32px;line-height:1.15;}
+.page-head .sub{color:var(--muted);font-size:14px;margin-top:6px;}
+.demo-note{
+  margin-top:14px; font-size:12.5px; color:var(--muted);
+  background:var(--cream2); border:1px dashed var(--line);
+  border-radius:var(--radius-sm); padding:8px 12px; display:inline-block;
+}
+
+/* ===== SECTION CARD ===== */
+.section{
+  background:var(--white); border:1px solid var(--line);
+  border-radius:var(--radius); box-shadow:var(--shadow);
+  margin-top:18px; overflow:hidden;
+}
+.section-head{
+  display:flex; align-items:center; gap:10px;
+  padding:16px 20px 14px; border-bottom:1px solid var(--line);
+}
+.section-head .idx{
+  width:24px; height:24px; border-radius:50%;
+  background:var(--pink-soft); color:var(--wine);
+  font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center;
+  font-family:"DM Sans",sans-serif;
+}
+.section-head h2{font-size:18px;}
+.section-head .hint{font-size:12.5px;color:var(--muted);margin-left:auto;}
+.section-body{padding:18px 20px 20px;}
+
+/* highlight stock section */
+.section.stock{border-color:var(--pink-border);}
+.section.stock .section-head{background:var(--pink-soft);border-bottom-color:var(--pink-border);}
+.section.stock .section-head .idx{background:var(--wine);color:#fff;}
+
+/* ===== FORM ===== */
+.row{display:flex; gap:16px; margin-bottom:16px;}
+.row:last-child{margin-bottom:0;}
+.field{flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;}
+label.lbl{font-size:13px; color:var(--ink2); font-weight:500;}
+label.lbl .req{color:var(--wine);}
+label.lbl .opt{color:var(--muted); font-weight:400;}
+input[type=text], input[type=number], input[type=url], select, textarea{
+  width:100%; background:var(--white); border:1px solid var(--line);
+  border-radius:var(--radius-sm); padding:10px 12px; font-size:14px;
+  color:var(--ink); font-family:inherit; transition:border-color .15s, box-shadow .15s;
+}
+input:focus, select:focus, textarea:focus{
+  outline:none; border-color:var(--pink-border);
+  box-shadow:0 0 0 3px var(--pink-soft);
+}
+textarea{resize:vertical; min-height:78px;}
+.field-hint{font-size:12px; color:var(--muted);}
+
+/* size chips */
+.chips{display:flex; flex-wrap:wrap; gap:9px;}
+.chip{
+  user-select:none; cursor:pointer; border:1px solid var(--line);
+  background:var(--white); color:var(--ink2);
+  border-radius:40px; padding:7px 16px; font-size:13.5px; font-weight:500;
+  transition:all .14s;
+}
+.chip:hover{border-color:var(--pink-border);}
+.chip.on{
+  background:var(--wine); color:#fff; border-color:var(--wine);
+}
+
+/* color rows */
+.color-row{display:flex; gap:10px; align-items:center; margin-bottom:10px;}
+.color-row:last-child{margin-bottom:0;}
+.color-row input[type=text]{flex:1;}
+.color-row input[type=color]{
+  width:42px; height:40px; padding:3px; border:1px solid var(--line);
+  border-radius:var(--radius-sm); background:var(--white); cursor:pointer;
+}
+.color-row .num{width:22px; text-align:center; color:var(--muted); font-size:13px;}
+
+/* toggle switch */
+.toggle-line{display:flex; align-items:center; gap:12px;}
+.toggle-line .tl-text{display:flex; flex-direction:column; gap:2px;}
+.toggle-line .tl-text .t{font-size:14px; font-weight:500; color:var(--ink);}
+.toggle-line .tl-text .d{font-size:12.5px; color:var(--muted);}
+.switch{position:relative; flex:none; width:46px; height:25px; cursor:pointer;}
+.switch input{opacity:0; width:0; height:0; position:absolute;}
+.switch .track{
+  position:absolute; inset:0; background:#cdc4be; border-radius:40px; transition:background .18s;
+}
+.switch .knob{
+  position:absolute; top:2px; left:2px; width:21px; height:21px;
+  background:#fff; border-radius:50%; transition:transform .18s;
+  box-shadow:0 1px 2px rgba(0,0,0,.25);
+}
+.switch input:checked + .track{background:var(--green);}
+.switch input:checked + .track + .knob{transform:translateX(21px);}
+.switch.wine input:checked + .track{background:var(--wine);}
+
+/* divider inside stock */
+.inner-divider{height:1px; background:var(--line); margin:18px 0;}
+
+/* stock grid */
+.stock-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
+  gap:12px; margin-top:4px;
+}
+.stock-cell{
+  display:flex; flex-direction:column; gap:5px;
+}
+.stock-cell label{font-size:13px; font-weight:600; color:var(--wine); display:flex; align-items:center; gap:6px;}
+.stock-cell .sz-tag{
+  background:var(--pink-soft); color:var(--wine); border:1px solid var(--pink-border);
+  border-radius:5px; padding:1px 7px; font-size:11.5px; font-weight:600;
+}
+.stock-cell.low input{border-color:var(--amber); background:var(--amber-bg);}
+.stock-cell .low-flag{font-size:11px; color:var(--amber); font-weight:600;}
+.stock-cell .oos-flag{font-size:11px; color:var(--wine); font-weight:600;}
+.empty-hint{
+  font-size:13px; color:var(--muted); background:var(--cream2);
+  border:1px dashed var(--line); border-radius:var(--radius-sm);
+  padding:14px 16px; text-align:center;
+}
+.stock-note{
+  font-size:12.5px; color:var(--ink2); background:var(--green-bg);
+  border:1px solid #cbe4d4; border-radius:var(--radius-sm);
+  padding:9px 13px; margin-top:14px; display:flex; gap:8px; align-items:flex-start;
+}
+.stock-note .ic{color:var(--green); flex:none;}
+#stockOff{
+  font-size:13px; color:var(--muted); background:var(--cream2);
+  border:1px dashed var(--line); border-radius:var(--radius-sm);
+  padding:16px; text-align:center;
+}
+.sub-rows{margin-top:18px; display:flex; flex-direction:column; gap:16px;}
+.thresh-field{max-width:200px;}
+
+/* ===== STICKY ACTION BAR ===== */
+.actionbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:60;
+  background:rgba(255,255,255,.92); backdrop-filter:blur(8px);
+  border-top:1px solid var(--pink-soft);
+  display:flex; align-items:center; gap:12px;
+  padding:13px 22px;
+}
+.actionbar .ab-inner{
+  max-width:900px; margin:0 auto; width:100%;
+  display:flex; align-items:center; gap:12px;
+}
+.actionbar .ab-status{font-size:12.5px;color:var(--muted);}
+.actionbar .spacer{flex:1;}
+.btn{
+  font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;
+  border-radius:var(--radius-sm); padding:11px 22px; transition:all .15s;
+  border:1px solid transparent;
+}
+.btn-primary{background:var(--wine); color:#fff;}
+.btn-primary:hover{background:var(--wine-deep);}
+.btn-ghost{background:transparent; border-color:var(--pink-border); color:var(--wine);}
+.btn-ghost:hover{background:var(--pink-soft);}
+
+/* toast */
+.toast{
+  position:fixed; bottom:84px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:#fff; padding:12px 22px; border-radius:40px;
+  font-size:14px; font-weight:500; box-shadow:var(--shadow);
+  opacity:0; pointer-events:none; transition:all .28s; z-index:80;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* responsive */
+@media (max-width:720px){
+  .row{flex-direction:column; gap:14px;}
+  .page-head h1{font-size:26px;}
+  .crumb{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <span class="wordmark">Code Official</span>
+    <span class="flower">✿</span>
+  </div>
+  <span class="crumb">后台 <span class="sep">·</span> 商品 <span class="sep">·</span> 上新商品</span>
+  <span class="spacer"></span>
+  <span class="demo-pill">Demo A · 分区表单</span>
+</div>
+
+<main>
+  <div class="page-head">
+    <h1>上新商品</h1>
+    <div class="sub">填好商品信息和库存，保存后即可上架。库存就在同一页填写，不会再忘记。</div>
+    <div class="demo-note">这是设计 Demo，未连接真实后台。</div>
+  </div>
+
+  <!-- 1. 基本信息 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">1</span>
+      <h2>基本信息</h2>
+    </div>
+    <div class="section-body">
+      <div class="row">
+        <div class="field">
+          <label class="lbl">商品 ID <span class="opt">（留空自动生成）</span></label>
+          <input type="text" placeholder="例如 CO-1042">
+        </div>
+        <div class="field">
+          <label class="lbl">分类</label>
+          <select>
+            <option>Outerwear</option>
+            <option selected>Knitwear</option>
+            <option>Shirts</option>
+            <option>Tops</option>
+            <option>Trousers</option>
+            <option>Dresses</option>
+            <option>Accessories</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl">商品名 (English) <span class="req">*</span></label>
+          <input type="text" placeholder="Cashmere Crewneck Sweater" value="Soft Wool Cardigan">
+        </div>
+        <div class="field">
+          <label class="lbl">商品名 (中文)</label>
+          <input type="text" placeholder="羊绒圆领针织衫" value="柔软羊毛开衫">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 价格 & 标签 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">2</span>
+      <h2>价格 &amp; 标签</h2>
+    </div>
+    <div class="section-body">
+      <div class="row">
+        <div class="field">
+          <label class="lbl">价格 (RM) <span class="req">*</span></label>
+          <input type="number" min="0" step="0.01" placeholder="0.00" value="189.00">
+        </div>
+        <div class="field">
+          <label class="lbl">原价 <span class="opt">（打折用，可空）</span></label>
+          <input type="number" min="0" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl">标签</label>
+          <select>
+            <option>无</option>
+            <option selected>New</option>
+            <option>Sale</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">排序 <span class="opt">（越小越前）</span></label>
+          <input type="number" min="0" step="1" value="10">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 尺码 & 颜色 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">3</span>
+      <h2>尺码 &amp; 颜色</h2>
+      <span class="hint">勾选尺码会同步到下方库存</span>
+    </div>
+    <div class="section-body">
+      <div class="row">
+        <div class="field">
+          <label class="lbl">尺码 <span class="opt">（可多选）</span></label>
+          <div class="chips" id="sizeChips">
+            <span class="chip" data-size="XS">XS</span>
+            <span class="chip on" data-size="S">S</span>
+            <span class="chip on" data-size="M">M</span>
+            <span class="chip on" data-size="L">L</span>
+            <span class="chip" data-size="XL">XL</span>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl">颜色 <span class="opt">（最多 4 个）</span></label>
+          <div id="colorRows">
+            <div class="color-row">
+              <span class="num">1</span>
+              <input type="text" placeholder="颜色名（如 Cream）" value="Cream">
+              <input type="color" value="#F2E4D9">
+            </div>
+            <div class="color-row">
+              <span class="num">2</span>
+              <input type="text" placeholder="颜色名（如 Wine）" value="Wine">
+              <input type="color" value="#82213E">
+            </div>
+            <div class="color-row">
+              <span class="num">3</span>
+              <input type="text" placeholder="颜色名（可空）">
+              <input type="color" value="#1C1C1C">
+            </div>
+            <div class="color-row">
+              <span class="num">4</span>
+              <input type="text" placeholder="颜色名（可空）">
+              <input type="color" value="#6F635C">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 图片 & 描述 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">4</span>
+      <h2>图片 &amp; 描述</h2>
+    </div>
+    <div class="section-body">
+      <div class="row">
+        <div class="field">
+          <label class="lbl">主图（图片网址）</label>
+          <input type="url" placeholder="https://...">
+        </div>
+        <div class="field">
+          <label class="lbl">备用图 <span class="opt">（可空）</span></label>
+          <input type="url" placeholder="https://...">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl">描述 (English)</label>
+          <textarea placeholder="Product description in English..."></textarea>
+        </div>
+        <div class="field">
+          <label class="lbl">描述 (中文)</label>
+          <textarea placeholder="商品中文描述..."></textarea>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 库存 (THE POINT) -->
+  <section class="section stock">
+    <div class="section-head">
+      <span class="idx">5</span>
+      <h2>库存</h2>
+      <span class="hint">就在这页填，别再漏掉</span>
+    </div>
+    <div class="section-body">
+
+      <!-- 追踪库存 toggle -->
+      <div class="toggle-line">
+        <label class="switch wine">
+          <input type="checkbox" id="trackStock" checked>
+          <span class="track"></span><span class="knob"></span>
+        </label>
+        <div class="tl-text">
+          <span class="t">追踪库存</span>
+          <span class="d">关 = 永远有货；开 = 按尺码记库存</span>
+        </div>
+      </div>
+
+      <!-- when ON -->
+      <div id="stockOn">
+        <div class="inner-divider"></div>
+        <label class="lbl" style="margin-bottom:8px;display:block;">各尺码库存数量</label>
+        <div class="stock-grid" id="stockGrid"></div>
+        <div class="empty-hint" id="stockEmpty" style="display:none;">请先在上面勾选尺码</div>
+
+        <div class="sub-rows">
+          <div class="toggle-line">
+            <label class="switch">
+              <input type="checkbox" id="continueSelling">
+              <span class="track"></span><span class="knob"></span>
+            </label>
+            <div class="tl-text">
+              <span class="t">售罄后仍可购买</span>
+              <span class="d">Continue selling when out of stock</span>
+            </div>
+          </div>
+
+          <div class="field thresh-field">
+            <label class="lbl">低库存阈值</label>
+            <input type="number" id="threshold" min="0" step="1" value="5">
+            <span class="field-hint">低于此数标记为低库存</span>
+          </div>
+        </div>
+
+        <div class="stock-note">
+          <span class="ic">✓</span>
+          <span>填了库存，这件商品才会在没货时自动显示「售罄」。</span>
+        </div>
+      </div>
+
+      <!-- when OFF -->
+      <div id="stockOff" style="display:none;">
+        此商品不追踪库存，将永远可购买。
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 6. 上架 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">6</span>
+      <h2>上架</h2>
+    </div>
+    <div class="section-body">
+      <div class="toggle-line">
+        <label class="switch">
+          <input type="checkbox" id="publish" checked>
+          <span class="track"></span><span class="knob"></span>
+        </label>
+        <div class="tl-text">
+          <span class="t">上架到商店</span>
+          <span class="d">开启后顾客即可在前台看到这件商品</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- STICKY ACTION BAR -->
+<div class="actionbar">
+  <div class="ab-inner">
+    <span class="ab-status">未保存的更改</span>
+    <span class="spacer"></span>
+    <button class="btn btn-ghost" id="cancelBtn">取消</button>
+    <button class="btn btn-primary" id="saveBtn">保存</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">（Demo）已保存</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // initial stock values for pre-filled sizes
+  var initialStock = { XS:'', S:'10', M:'8', L:'0', XL:'' };
+
+  var sizeChips = document.getElementById('sizeChips');
+  var stockGrid = document.getElementById('stockGrid');
+  var stockEmpty = document.getElementById('stockEmpty');
+  var trackStock = document.getElementById('trackStock');
+  var stockOn = document.getElementById('stockOn');
+  var stockOff = document.getElementById('stockOff');
+  var thresholdInput = document.getElementById('threshold');
+
+  // keep entered quantities so toggling a size off/on doesn't lose data within session
+  var qtyMemory = Object.assign({}, initialStock);
+
+  function selectedSizes(){
+    return Array.prototype.slice.call(sizeChips.querySelectorAll('.chip.on'))
+      .map(function(c){ return c.getAttribute('data-size'); });
+  }
+
+  function buildStockGrid(){
+    var sizes = selectedSizes();
+    // save current values into memory before rebuild
+    Array.prototype.forEach.call(stockGrid.querySelectorAll('input'), function(inp){
+      qtyMemory[inp.getAttribute('data-size')] = inp.value;
+    });
+
+    stockGrid.innerHTML = '';
+    if(sizes.length === 0){
+      stockGrid.style.display = 'none';
+      stockEmpty.style.display = 'block';
+      return;
+    }
+    stockGrid.style.display = 'grid';
+    stockEmpty.style.display = 'none';
+
+    sizes.forEach(function(sz){
+      var val = (qtyMemory[sz] !== undefined && qtyMemory[sz] !== '') ? qtyMemory[sz] : '';
+      var cell = document.createElement('div');
+      cell.className = 'stock-cell';
+      cell.setAttribute('data-cell', sz);
+      cell.innerHTML =
+        '<label><span class="sz-tag">'+sz+'</span> 数量</label>' +
+        '<input type="number" min="0" step="1" data-size="'+sz+'" value="'+val+'" placeholder="0">' +
+        '<span class="flag"></span>';
+      stockGrid.appendChild(cell);
+
+      var inp = cell.querySelector('input');
+      inp.addEventListener('input', function(){ updateFlag(cell, inp); });
+      updateFlag(cell, inp);
+    });
+  }
+
+  function updateFlag(cell, inp){
+    var flag = cell.querySelector('.flag');
+    var thresh = parseInt(thresholdInput.value, 10);
+    if(isNaN(thresh)) thresh = 0;
+    var raw = inp.value;
+    cell.classList.remove('low');
+    flag.className = 'flag';
+    flag.textContent = '';
+    if(raw === '' ) return;
+    var n = parseInt(raw, 10);
+    if(isNaN(n)) return;
+    if(n <= 0){
+      flag.className = 'flag oos-flag';
+      flag.textContent = '已售罄';
+      cell.classList.add('low');
+    } else if(n <= thresh){
+      flag.className = 'flag low-flag';
+      flag.textContent = '低库存';
+      cell.classList.add('low');
+    }
+  }
+
+  function refreshAllFlags(){
+    Array.prototype.forEach.call(stockGrid.querySelectorAll('.stock-cell'), function(cell){
+      updateFlag(cell, cell.querySelector('input'));
+    });
+  }
+
+  // chip toggle
+  sizeChips.addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if(!chip) return;
+    chip.classList.toggle('on');
+    buildStockGrid();
+  });
+
+  // track stock toggle
+  trackStock.addEventListener('change', function(){
+    if(trackStock.checked){
+      stockOn.style.display = '';
+      stockOff.style.display = 'none';
+      buildStockGrid();
+    } else {
+      stockOn.style.display = 'none';
+      stockOff.style.display = 'block';
+    }
+  });
+
+  thresholdInput.addEventListener('input', refreshAllFlags);
+
+  // colors: limit selectable but harmless here
+  // save / cancel
+  var toast = document.getElementById('toast');
+  var toastTimer;
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2200);
+  }
+  document.getElementById('saveBtn').addEventListener('click', function(){
+    showToast('（Demo）已保存');
+  });
+  document.getElementById('cancelBtn').addEventListener('click', function(){
+    showToast('（Demo）已取消');
+  });
+
+  // init
+  buildStockGrid();
+})();
+</script>
+</body>
+</html>

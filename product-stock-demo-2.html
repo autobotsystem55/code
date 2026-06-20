@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上新商品 + 库存 · 尺码即库存 (Demo B) · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFFAF1; --cream2:#FAF6F3; --white:#fff; --blush:#F2E4D9; --pink:#E9C9CC;
+  --pink-soft:#F3E2E4; --pink-border:#DAB0B7; --wine:#82213E; --wine-deep:#6A1A32;
+  --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C; --line:#ECD9D6; --line2:#E2DCD8;
+  --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6B12; --amber-bg:#FBF0DA;
+  --red:#B23A48; --red-bg:#F8E3E5;
+  --radius:8px; --radius-sm:6px;
+  --shadow:0 1px 3px rgba(28,28,28,.06),0 8px 28px rgba(28,28,28,.05);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:"DM Sans",system-ui,sans-serif;
+  background:var(--cream); color:var(--ink); line-height:1.5;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+}
+h1,h2,h3,h4{font-family:"DM Serif Display",Georgia,serif;font-weight:400;margin:0;}
+
+/* ---------- TOP BAR ---------- */
+.topbar{
+  position:sticky;top:0;z-index:50;background:var(--white);
+  border-bottom:1px solid var(--pink-soft);
+  padding:14px 22px;display:flex;align-items:center;gap:18px;
+}
+.wordmark{font-family:"DM Serif Display",Georgia,serif;font-size:22px;color:var(--ink);white-space:nowrap;}
+.wordmark .flower{color:var(--wine);margin-left:3px;}
+.breadcrumb{font-size:13px;color:var(--muted);white-space:nowrap;}
+.topbar-spacer{flex:1;}
+.demo-pill{
+  border-radius:40px;font-size:11.5px;color:var(--wine);
+  border:1px solid var(--pink);background:var(--pink-soft);
+  padding:5px 13px;white-space:nowrap;
+}
+
+/* ---------- MAIN ---------- */
+main{max-width:900px;margin:0 auto;padding:0 22px 120px;}
+.page-head{padding:30px 0 8px;}
+.page-head h1{font-size:30px;}
+.page-head p{color:var(--muted);font-size:14px;margin:6px 0 0;}
+.demo-note{
+  margin:16px 0 0;font-size:12.5px;color:var(--muted);
+  background:var(--cream2);border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:8px 12px;display:inline-block;
+}
+
+.card{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:22px;margin-top:20px;
+}
+.card-title{font-size:18px;margin-bottom:4px;}
+.card-sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
+.card-title-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.card-title-row .card-title{margin-bottom:0;}
+.card-title-row .card-sub{margin-bottom:0;}
+
+/* ---------- FORM ---------- */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field.full{grid-column:1 / -1;}
+label{font-size:13px;font-weight:500;color:var(--ink2);}
+label .opt{color:var(--muted);font-weight:400;font-size:12px;}
+.req{color:var(--wine);}
+input[type=text],input[type=number],select,textarea{
+  width:100%;font-family:inherit;font-size:14px;color:var(--ink);
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:9px 11px;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--pink-border);box-shadow:0 0 0 3px var(--pink-soft);
+}
+textarea{resize:vertical;min-height:74px;}
+.hint{font-size:12px;color:var(--muted);}
+
+/* color rows */
+.color-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.color-row input[type=text]{flex:1;}
+.color-row input[type=color]{
+  width:40px;height:38px;padding:2px;border:1px solid var(--line);
+  border-radius:var(--radius-sm);background:var(--white);cursor:pointer;
+}
+
+/* ---------- TOGGLE SWITCH ---------- */
+.switch{position:relative;display:inline-block;width:46px;height:25px;flex:none;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{
+  position:absolute;cursor:pointer;inset:0;background:#D8CFC9;
+  border-radius:25px;transition:.2s;
+}
+.slider:before{
+  content:"";position:absolute;height:19px;width:19px;left:3px;top:3px;
+  background:var(--white);border-radius:50%;transition:.2s;
+  box-shadow:0 1px 2px rgba(0,0,0,.25);
+}
+.switch input:checked + .slider{background:var(--green);}
+.switch input:checked + .slider:before{transform:translateX(21px);}
+.switch.wine input:checked + .slider{background:var(--wine);}
+.switch input:disabled + .slider{opacity:.45;cursor:not-allowed;}
+
+.toggle-line{display:flex;align-items:center;gap:12px;}
+.toggle-line .tl-text{display:flex;flex-direction:column;gap:2px;}
+.toggle-line .tl-text strong{font-size:14px;font-weight:600;color:var(--ink);}
+.toggle-line .tl-text span{font-size:12.5px;color:var(--muted);}
+
+/* ---------- SIZE-STOCK TABLE (centerpiece) ---------- */
+.track-bar{
+  display:flex;align-items:center;gap:12px;justify-content:space-between;
+  background:var(--cream2);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:12px 14px;margin-bottom:6px;flex-wrap:wrap;
+}
+.track-note{
+  font-size:12.5px;color:var(--amber);background:var(--amber-bg);
+  border:1px solid #EBD7A8;border-radius:var(--radius-sm);
+  padding:8px 12px;margin:10px 0 0;display:none;
+}
+.size-table{width:100%;border-collapse:collapse;margin-top:14px;}
+.size-table th{
+  text-align:left;font-size:12px;font-weight:600;color:var(--muted);
+  padding:0 10px 8px;border-bottom:1px solid var(--line);text-transform:none;
+}
+.size-table th.center{text-align:center;}
+.size-table td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+.size-table tr:last-child td{border-bottom:none;}
+.size-table tr.row-off{opacity:.55;}
+.size-cell{font-weight:600;font-size:15px;color:var(--ink);}
+.size-cell .sub{display:block;font-size:11.5px;font-weight:400;color:var(--muted);}
+.sell-cell{width:64px;}
+.qty-cell{width:150px;}
+.qty-cell input{max-width:130px;}
+.chip-cell{width:120px;}
+
+.chip{
+  display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;
+  padding:4px 10px;border-radius:40px;white-space:nowrap;
+}
+.chip .dot{width:7px;height:7px;border-radius:50%;}
+.chip.ok{color:var(--green);background:var(--green-bg);}
+.chip.ok .dot{background:var(--green);}
+.chip.low{color:var(--amber);background:var(--amber-bg);}
+.chip.low .dot{background:var(--amber);}
+.chip.out{color:var(--red);background:var(--red-bg);}
+.chip.out .dot{background:var(--red);}
+.chip.muted{color:var(--muted);background:var(--cream2);}
+.chip.muted .dot{background:#C7BCB4;}
+
+.table-when-off .qty-cell,.table-when-off .chip-cell{opacity:.4;pointer-events:none;}
+
+.below-table{
+  margin-top:18px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;
+  padding-top:16px;border-top:1px solid var(--line);
+}
+.thresh-field{display:flex;align-items:center;gap:10px;}
+.thresh-field label{white-space:nowrap;}
+.thresh-field input{width:90px;}
+.helper-callout{
+  margin-top:16px;font-size:13px;color:var(--wine-deep);
+  background:var(--pink-soft);border:1px solid var(--pink);
+  border-radius:var(--radius-sm);padding:11px 14px;
+  display:flex;gap:9px;align-items:flex-start;
+}
+.helper-callout .ic{flex:none;}
+
+/* ---------- ACTION BAR ---------- */
+.action-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;background:var(--white);
+  border-top:1px solid var(--pink-soft);box-shadow:0 -4px 20px rgba(28,28,28,.05);
+  padding:14px 22px;
+}
+.action-inner{
+  max-width:900px;margin:0 auto;display:flex;align-items:center;
+  justify-content:space-between;gap:14px;
+}
+.action-inner .ab-note{font-size:12.5px;color:var(--muted);}
+.btns{display:flex;gap:10px;}
+.btn{
+  font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;
+  border-radius:var(--radius-sm);padding:10px 22px;border:1px solid transparent;
+  transition:background .15s,opacity .15s;
+}
+.btn-primary{background:var(--wine);color:#fff;}
+.btn-primary:hover{background:var(--wine-deep);}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--line2);}
+.btn-ghost:hover{background:var(--cream2);}
+
+/* ---------- TOAST ---------- */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;font-size:14px;padding:12px 22px;border-radius:40px;
+  box-shadow:0 8px 28px rgba(0,0,0,.25);opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;z-index:80;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:680px){
+  .grid{grid-template-columns:1fr;}
+  .page-head h1{font-size:25px;}
+  .breadcrumb{display:none;}
+  .below-table{grid-template-columns:1fr;}
+  .size-table th.h-size .sub{display:none;}
+  .action-inner .ab-note{display:none;}
+  .btns{flex:1;}
+  .btn{flex:1;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="wordmark">Code Official<span class="flower">✿</span></div>
+  <div class="breadcrumb">后台 · 商品 · 上新商品</div>
+  <div class="topbar-spacer"></div>
+  <div class="demo-pill">Demo B · 尺码即库存</div>
+</div>
+
+<main>
+  <div class="page-head">
+    <h1>上新商品</h1>
+    <p>填写商品资料，并在「尺码 · 库存」表里勾选尺码、顺手填好库存。</p>
+    <div class="demo-note">这是设计 Demo，未连接真实后台。</div>
+  </div>
+
+  <!-- BASIC INFO -->
+  <section class="card">
+    <h2 class="card-title">基本资料</h2>
+    <p class="card-sub">商品的编号、分类与名称。</p>
+    <div class="grid">
+      <div class="field">
+        <label>商品 ID <span class="opt">（留空自动生成）</span></label>
+        <input type="text" placeholder="例如：CO-2406-001">
+      </div>
+      <div class="field">
+        <label>分类</label>
+        <select>
+          <option>Outerwear</option>
+          <option>Knitwear</option>
+          <option>Shirts</option>
+          <option selected>Tops</option>
+          <option>Trousers</option>
+          <option>Dresses</option>
+          <option>Accessories</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>商品名（English） <span class="req">*</span></label>
+        <input type="text" placeholder="e.g. Linen Camp Shirt" value="Soft Cotton Tee">
+      </div>
+      <div class="field">
+        <label>商品名（中文）</label>
+        <input type="text" placeholder="例如：亚麻衬衫" value="柔棉短袖">
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="card">
+    <h2 class="card-title">价格与展示</h2>
+    <p class="card-sub">售价、标签与排序。</p>
+    <div class="grid">
+      <div class="field">
+        <label>价格（RM） <span class="req">*</span></label>
+        <input type="number" min="0" step="0.01" placeholder="0.00" value="79.00">
+      </div>
+      <div class="field">
+        <label>原价（RM） <span class="opt">（可空）</span></label>
+        <input type="number" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div class="field">
+        <label>标签</label>
+        <select>
+          <option selected>无</option>
+          <option>New</option>
+          <option>Sale</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>排序</label>
+        <input type="number" min="0" step="1" placeholder="0" value="10">
+      </div>
+    </div>
+  </section>
+
+  <!-- COLORS -->
+  <section class="card">
+    <h2 class="card-title">颜色 <span class="opt" style="font-size:12px;color:var(--muted);font-weight:400;">（最多 4 个）</span></h2>
+    <p class="card-sub">为每个颜色填写名称并选择色块。</p>
+    <div id="colorList">
+      <div class="color-row">
+        <input type="color" value="#F2E4D9">
+        <input type="text" placeholder="颜色名（如 Cream）" value="Cream">
+      </div>
+      <div class="color-row">
+        <input type="color" value="#82213E">
+        <input type="text" placeholder="颜色名（如 Wine）" value="Wine">
+      </div>
+      <div class="color-row">
+        <input type="color" value="#1C1C1C">
+        <input type="text" placeholder="颜色名（如 Black）">
+      </div>
+      <div class="color-row">
+        <input type="color" value="#ffffff">
+        <input type="text" placeholder="颜色名（可空）">
+      </div>
+    </div>
+  </section>
+
+  <!-- IMAGES -->
+  <section class="card">
+    <h2 class="card-title">图片</h2>
+    <p class="card-sub">填写图片网址。</p>
+    <div class="grid">
+      <div class="field full">
+        <label>主图（网址）</label>
+        <input type="text" placeholder="https://…/main.jpg">
+      </div>
+      <div class="field full">
+        <label>备用图（网址）</label>
+        <input type="text" placeholder="https://…/alt.jpg">
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SIZE + STOCK TABLE (CENTERPIECE) ===== -->
+  <section class="card">
+    <div class="card-title-row">
+      <div>
+        <h2 class="card-title">尺码 · 库存</h2>
+        <p class="card-sub" style="margin-top:4px;">勾选要售卖的尺码，并在右侧直接填库存数量。</p>
+      </div>
+    </div>
+
+    <!-- 追踪库存 toggle -->
+    <div class="track-bar">
+      <div class="toggle-line">
+        <label class="switch">
+          <input type="checkbox" id="trackToggle" checked>
+          <span class="slider"></span>
+        </label>
+        <div class="tl-text">
+          <strong>追踪库存</strong>
+          <span>关闭后此商品永远有货，无需填数量。</span>
+        </div>
+      </div>
+    </div>
+    <div class="track-note" id="trackNote">不追踪库存：永远可购买。</div>
+
+    <table class="size-table" id="sizeTable">
+      <thead>
+        <tr>
+          <th class="sell-cell center">售卖</th>
+          <th class="h-size">尺码</th>
+          <th class="qty-cell">库存数量</th>
+          <th class="chip-cell">状态</th>
+        </tr>
+      </thead>
+      <tbody><!-- rows injected by JS --></tbody>
+    </table>
+
+    <!-- below-table options -->
+    <div class="below-table">
+      <div class="toggle-line">
+        <label class="switch wine">
+          <input type="checkbox" id="oversellToggle">
+          <span class="slider"></span>
+        </label>
+        <div class="tl-text">
+          <strong>售罄后仍可购买</strong>
+          <span>允许顾客在库存为 0 时继续下单（接受预订）。</span>
+        </div>
+      </div>
+      <div class="thresh-field">
+        <label for="threshInput">低库存阈值</label>
+        <input type="number" id="threshInput" min="0" step="1" value="5">
+      </div>
+    </div>
+
+    <div class="helper-callout">
+      <span class="ic">✿</span>
+      <span>在这里勾尺码、顺手填库存，上新就不会漏。</span>
+    </div>
+  </section>
+
+  <!-- DESCRIPTION -->
+  <section class="card">
+    <h2 class="card-title">描述</h2>
+    <p class="card-sub">面料、版型与穿搭说明。</p>
+    <div class="grid">
+      <div class="field full">
+        <label>描述（English）</label>
+        <textarea placeholder="Describe the fabric, fit, styling…">A breathable everyday tee in soft combed cotton.</textarea>
+      </div>
+      <div class="field full">
+        <label>描述（中文）</label>
+        <textarea placeholder="描述面料、版型、搭配…">透气精梳棉，日常百搭基础款。</textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- PUBLISH -->
+  <section class="card">
+    <div class="toggle-line">
+      <label class="switch">
+        <input type="checkbox" id="publishToggle" checked>
+        <span class="slider"></span>
+      </label>
+      <div class="tl-text">
+        <strong>上架</strong>
+        <span>开启后顾客可在前台看到此商品。</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ACTION BAR -->
+<div class="action-bar">
+  <div class="action-inner">
+    <div class="ab-note">尺码与库存一起保存 · 不会再漏填。</div>
+    <div class="btns">
+      <button class="btn btn-ghost" id="cancelBtn">取消</button>
+      <button class="btn btn-primary" id="saveBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">（Demo）已保存</div>
+
+<script>
+(function(){
+  "use strict";
+  var SIZES = [
+    {key:"XS", desc:"特小码", sell:false, qty:0},
+    {key:"S",  desc:"小码",   sell:true,  qty:10},
+    {key:"M",  desc:"中码",   sell:true,  qty:8},
+    {key:"L",  desc:"大码",   sell:true,  qty:0},
+    {key:"XL", desc:"加大码", sell:false, qty:0}
+  ];
+
+  var tbody = document.querySelector("#sizeTable tbody");
+  var trackToggle = document.getElementById("trackToggle");
+  var trackNote = document.getElementById("trackNote");
+  var threshInput = document.getElementById("threshInput");
+  var sizeTable = document.getElementById("sizeTable");
+
+  // build rows
+  SIZES.forEach(function(s, i){
+    var tr = document.createElement("tr");
+    tr.dataset.size = s.key;
+
+    // sell toggle
+    var tdSell = document.createElement("td");
+    tdSell.className = "sell-cell";
+    var sw = document.createElement("label");
+    sw.className = "switch";
+    sw.innerHTML = '<input type="checkbox" class="sell-cb"' + (s.sell ? " checked" : "") +
+      ' aria-label="售卖此尺码 ' + s.key + '"><span class="slider"></span>';
+    tdSell.appendChild(sw);
+
+    // size label
+    var tdSize = document.createElement("td");
+    tdSize.innerHTML = '<span class="size-cell">' + s.key + '<span class="sub">' + s.desc + '</span></span>';
+
+    // qty
+    var tdQty = document.createElement("td");
+    tdQty.className = "qty-cell";
+    var qty = document.createElement("input");
+    qty.type = "number"; qty.min = "0"; qty.step = "1";
+    qty.className = "qty-input"; qty.value = s.qty;
+    qty.setAttribute("aria-label", "库存数量 " + s.key);
+    tdQty.appendChild(qty);
+
+    // chip
+    var tdChip = document.createElement("td");
+    tdChip.className = "chip-cell";
+
+    tr.appendChild(tdSell);
+    tr.appendChild(tdSize);
+    tr.appendChild(tdQty);
+    tr.appendChild(tdChip);
+    tbody.appendChild(tr);
+  });
+
+  function getThresh(){
+    var v = parseInt(threshInput.value, 10);
+    if(isNaN(v) || v < 0) v = 0;
+    return v;
+  }
+
+  function chipHTML(cls, label){
+    return '<span class="chip ' + cls + '"><span class="dot"></span>' + label + '</span>';
+  }
+
+  function updateRow(tr){
+    var tracking = trackToggle.checked;
+    var sellCb = tr.querySelector(".sell-cb");
+    var qty = tr.querySelector(".qty-input");
+    var chipCell = tr.querySelector(".chip-cell");
+    var sell = sellCb.checked;
+
+    tr.classList.toggle("row-off", !sell);
+
+    // qty enabled only when tracking AND selling
+    qty.disabled = !sell || !tracking;
+
+    if(!tracking){
+      chipCell.innerHTML = sell ? chipHTML("muted", "不追踪") : "";
+      return;
+    }
+    if(!sell){
+      chipCell.innerHTML = "";
+      return;
+    }
+    var n = parseInt(qty.value, 10);
+    if(isNaN(n) || n < 0) n = 0;
+    var t = getThresh();
+    if(n === 0){
+      chipCell.innerHTML = chipHTML("out", "售罄");
+    } else if(n <= t){
+      chipCell.innerHTML = chipHTML("low", "低库存");
+    } else {
+      chipCell.innerHTML = chipHTML("ok", "充足");
+    }
+  }
+
+  function updateAll(){
+    var tracking = trackToggle.checked;
+    sizeTable.classList.toggle("table-when-off", !tracking);
+    trackNote.style.display = tracking ? "none" : "block";
+    Array.prototype.forEach.call(tbody.querySelectorAll("tr"), updateRow);
+  }
+
+  // events
+  tbody.addEventListener("change", function(e){
+    if(e.target.classList.contains("sell-cb")){
+      var tr = e.target.closest("tr");
+      var qty = tr.querySelector(".qty-input");
+      if(e.target.checked && (qty.value === "" || parseInt(qty.value,10) < 0)) qty.value = 0;
+      updateRow(tr);
+    }
+  });
+  tbody.addEventListener("input", function(e){
+    if(e.target.classList.contains("qty-input")){
+      updateRow(e.target.closest("tr"));
+    }
+  });
+  trackToggle.addEventListener("change", updateAll);
+  threshInput.addEventListener("input", updateAll);
+
+  // toast on save
+  var toast = document.getElementById("toast");
+  var toastTimer = null;
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove("show"); }, 2200);
+  }
+  document.getElementById("saveBtn").addEventListener("click", function(){
+    showToast("（Demo）已保存");
+  });
+  document.getElementById("cancelBtn").addEventListener("click", function(){
+    showToast("（Demo）已取消");
+  });
+
+  updateAll();
+})();
+</script>
+</body>
+</html>

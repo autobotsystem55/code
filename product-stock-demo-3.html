@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上新商品 + 库存 · 两栏 (Demo C) · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFFAF1; --cream2:#FAF6F3; --white:#fff; --blush:#F2E4D9; --pink:#E9C9CC;
+  --pink-soft:#F3E2E4; --pink-border:#DAB0B7; --wine:#82213E; --wine-deep:#6A1A32;
+  --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C; --line:#ECD9D6; --line2:#E2DCD8;
+  --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6B12; --amber-bg:#FBF0DA;
+  --radius:8px; --radius-sm:6px;
+  --shadow:0 1px 3px rgba(28,28,28,.06),0 8px 28px rgba(28,28,28,.05);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{font-family:"DM Sans",system-ui,sans-serif;background:var(--cream);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:"DM Serif Display",Georgia,serif;font-weight:400;margin:0;}
+
+/* TOP BAR */
+.topbar{position:sticky;top:0;z-index:50;background:var(--white);border-bottom:1px solid var(--pink-soft);}
+.topbar-inner{max-width:1080px;margin:0 auto;padding:0 22px;height:62px;display:flex;align-items:center;gap:18px;}
+.wordmark{font-family:"DM Serif Display",Georgia,serif;font-size:22px;color:var(--ink);display:flex;align-items:center;gap:6px;}
+.wordmark .flower{color:var(--wine);font-size:18px;}
+.crumb{color:var(--muted);font-size:13px;}
+.crumb b{color:var(--ink2);font-weight:500;}
+.spacer{flex:1;}
+.demo-pill{border-radius:40px;font-size:11.5px;color:var(--wine);border:1px solid var(--pink);background:var(--pink-soft);padding:6px 14px;white-space:nowrap;}
+
+/* PAGE */
+.page{max-width:1080px;margin:0 auto;padding:26px 22px 80px;}
+.page-head{margin-bottom:20px;}
+.page-head h1{font-size:30px;line-height:1.15;}
+.page-head p{color:var(--muted);margin:6px 0 0;font-size:13.5px;}
+.demo-note{display:inline-block;margin-top:10px;font-size:12px;color:var(--amber);background:var(--amber-bg);border:1px solid #EAD3A0;border-radius:40px;padding:4px 12px;}
+
+/* LAYOUT */
+.cols{display:flex;gap:22px;align-items:flex-start;}
+.col-left{flex:1.6;min-width:0;}
+.col-right{flex:1;min-width:300px;}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:20px;}
+.card-title{display:flex;align-items:center;gap:9px;margin-bottom:18px;}
+.card-title h2{font-size:19px;}
+.card-title .ic{width:26px;height:26px;border-radius:7px;background:var(--pink-soft);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--wine);}
+.card-sub{color:var(--muted);font-size:12.5px;margin:-12px 0 16px;}
+
+/* FORM */
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+.row{display:flex;gap:14px;}
+.row .field{flex:1;}
+label.lbl{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-bottom:6px;}
+label.lbl .opt{font-weight:400;color:var(--muted);}
+label.lbl .req{color:var(--wine);}
+input[type=text],input[type=number],select,textarea{
+  width:100%;background:var(--white);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:9px 11px;font-family:inherit;font-size:13.5px;color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--pink-border);box-shadow:0 0 0 3px var(--pink-soft);}
+textarea{resize:vertical;min-height:70px;line-height:1.55;}
+.hint{font-size:11.5px;color:var(--muted);margin-top:5px;}
+.prefix-wrap{position:relative;}
+.prefix-wrap .pfx{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none;}
+.prefix-wrap input{padding-left:38px;}
+
+/* SIZE CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:9px;}
+.chip{position:relative;cursor:pointer;user-select:none;}
+.chip input{position:absolute;opacity:0;pointer-events:none;}
+.chip span{display:flex;align-items:center;justify-content:center;min-width:46px;padding:9px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--white);font-size:13px;font-weight:600;color:var(--ink2);transition:.15s;}
+.chip input:checked + span{background:var(--wine);border-color:var(--wine);color:#fff;}
+.chip:hover span{border-color:var(--pink-border);}
+
+/* COLOR ROWS */
+.color-row{display:flex;gap:10px;align-items:center;margin-bottom:9px;}
+.color-row input[type=text]{flex:1;}
+.color-row input[type=color]{width:42px;height:38px;padding:3px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;cursor:pointer;}
+
+/* TOGGLE */
+.switch{position:relative;display:inline-block;width:46px;height:25px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;inset:0;background:#D8CBC4;border-radius:25px;transition:.2s;cursor:pointer;}
+.slider:before{content:"";position:absolute;height:19px;width:19px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.switch input:checked + .slider{background:var(--green);}
+.switch input:checked + .slider:before{transform:translateX(21px);}
+.switch.wine input:checked + .slider{background:var(--wine);}
+
+.toggle-line{display:flex;align-items:center;gap:12px;justify-content:space-between;}
+.toggle-line .tl-text{min-width:0;}
+.toggle-line .tl-text strong{display:block;font-size:13.5px;font-weight:600;color:var(--ink);}
+.toggle-line .tl-text small{display:block;color:var(--muted);font-size:11.5px;margin-top:1px;}
+
+.divider{height:1px;background:var(--line);margin:18px 0;border:0;}
+
+/* RIGHT STICKY CARD */
+.sticky-card{position:sticky;top:90px;}
+.stock-status{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:4px 11px;border-radius:40px;}
+.stock-status.on{background:var(--green-bg);color:var(--green);}
+.stock-status.off{background:var(--pink-soft);color:var(--wine);}
+.stock-status .dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+
+/* QTY LIST */
+.qty-list{display:flex;flex-direction:column;gap:9px;margin-top:6px;}
+.qty-row{display:flex;align-items:center;gap:12px;background:var(--cream2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px 10px;}
+.qty-row .qsize{width:42px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--wine);color:#fff;border-radius:5px;font-weight:600;font-size:13px;flex-shrink:0;}
+.qty-row .qlabel{flex:1;font-size:12.5px;color:var(--ink2);}
+.qty-row input[type=number]{width:74px;text-align:center;padding:6px 8px;}
+.qty-row.zero .qsize{background:var(--muted);}
+.qty-empty{font-size:12.5px;color:var(--muted);background:var(--cream2);border:1px dashed var(--line);border-radius:var(--radius-sm);padding:14px;text-align:center;}
+.subhead{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.note{font-size:11.5px;color:var(--muted);background:var(--cream2);border-radius:var(--radius-sm);padding:9px 11px;margin-top:12px;line-height:1.5;}
+.note b{color:var(--ink2);font-weight:600;}
+.notrack{font-size:12.5px;color:var(--muted);background:var(--cream2);border:1px dashed var(--line);border-radius:var(--radius-sm);padding:14px;text-align:center;}
+
+.field-mini{margin-top:14px;}
+.field-mini .lbl{margin-bottom:6px;}
+.field-mini input[type=number]{width:100px;}
+
+/* BUTTONS */
+.btn{font-family:inherit;font-size:13.5px;font-weight:600;border-radius:var(--radius-sm);padding:11px 18px;cursor:pointer;border:1px solid transparent;transition:.15s;}
+.btn-primary{background:var(--wine);color:#fff;border-color:var(--wine);width:100%;}
+.btn-primary:hover{background:var(--wine-deep);}
+.btn-ghost{background:transparent;color:var(--ink2);border-color:var(--line);width:100%;margin-top:9px;}
+.btn-ghost:hover{border-color:var(--pink-border);background:var(--cream2);}
+.card-actions{margin-top:18px;}
+
+/* TOAST */
+.toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:40px;font-size:13.5px;box-shadow:0 8px 28px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.3s;z-index:100;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:860px){
+  .cols{flex-direction:column;}
+  .col-left,.col-right{width:100%;flex:none;min-width:0;}
+  .sticky-card{position:static;}
+  .row{flex-direction:column;gap:0;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="wordmark">Code Official <span class="flower">✿</span></div>
+    <div class="crumb">后台 · 商品 · <b>上新商品</b></div>
+    <div class="spacer"></div>
+    <div class="demo-pill">Demo C · 两栏</div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="page-head">
+    <h1>上新商品</h1>
+    <p>填写商品资料，右侧直接设定库存与上架 —— 一个页面搞定。</p>
+    <div class="demo-note">这是设计 Demo，未连接真实后台。</div>
+  </div>
+
+  <div class="cols">
+    <!-- LEFT COLUMN -->
+    <div class="col-left">
+
+      <div class="card">
+        <div class="card-title"><span class="ic">✎</span><h2>基本信息</h2></div>
+
+        <div class="row">
+          <div class="field">
+            <label class="lbl">商品 ID <span class="opt">（留空自动生成）</span></label>
+            <input type="text" placeholder="例如 CO-2026-001">
+          </div>
+          <div class="field">
+            <label class="lbl">分类</label>
+            <select>
+              <option>Outerwear</option>
+              <option>Knitwear</option>
+              <option>Shirts</option>
+              <option>Tops</option>
+              <option>Trousers</option>
+              <option>Dresses</option>
+              <option>Accessories</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="lbl">商品名 (English) <span class="req">*</span></label>
+            <input type="text" placeholder="Wool Blend Coat">
+          </div>
+          <div class="field">
+            <label class="lbl">商品名 (中文)</label>
+            <input type="text" placeholder="羊毛混纺大衣">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="lbl">价格 (RM) <span class="req">*</span></label>
+            <div class="prefix-wrap"><span class="pfx">RM</span><input type="number" placeholder="0.00"></div>
+          </div>
+          <div class="field">
+            <label class="lbl">原价 <span class="opt">（可空）</span></label>
+            <div class="prefix-wrap"><span class="pfx">RM</span><input type="number" placeholder="0.00"></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="lbl">标签</label>
+            <select>
+              <option>无</option>
+              <option>New</option>
+              <option>Sale</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl">排序</label>
+            <input type="number" placeholder="0" value="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="lbl">尺码 <span class="opt">（可多选）</span></label>
+          <div class="chips" id="sizeChips">
+            <label class="chip"><input type="checkbox" value="XS"><span>XS</span></label>
+            <label class="chip"><input type="checkbox" value="S" checked><span>S</span></label>
+            <label class="chip"><input type="checkbox" value="M" checked><span>M</span></label>
+            <label class="chip"><input type="checkbox" value="L" checked><span>L</span></label>
+            <label class="chip"><input type="checkbox" value="XL"><span>XL</span></label>
+          </div>
+          <div class="hint">勾选的尺码会自动出现在右侧库存清单。</div>
+        </div>
+
+        <div class="field">
+          <label class="lbl">颜色 <span class="opt">（最多 4 个）</span></label>
+          <div class="color-row"><input type="text" placeholder="颜色名，例如 Cream"><input type="color" value="#FFFAF1"></div>
+          <div class="color-row"><input type="text" placeholder="颜色名，例如 Wine"><input type="color" value="#82213E"></div>
+          <div class="color-row"><input type="text" placeholder="颜色名（可空）"><input type="color" value="#F2E4D9"></div>
+          <div class="color-row"><input type="text" placeholder="颜色名（可空）"><input type="color" value="#E9C9CC"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="ic">▦</span><h2>媒体 &amp; 描述</h2></div>
+
+        <div class="row">
+          <div class="field">
+            <label class="lbl">主图（网址）</label>
+            <input type="text" placeholder="https://…">
+          </div>
+          <div class="field">
+            <label class="lbl">备用图（网址）</label>
+            <input type="text" placeholder="https://…">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="lbl">描述 (English)</label>
+          <textarea placeholder="A timeless wool blend coat…"></textarea>
+        </div>
+        <div class="field">
+          <label class="lbl">描述 (中文)</label>
+          <textarea placeholder="经典羊毛混纺大衣…"></textarea>
+        </div>
+      </div>
+
+    </div><!-- /col-left -->
+
+    <!-- RIGHT STICKY COLUMN -->
+    <div class="col-right">
+      <div class="card sticky-card">
+        <div class="card-title" style="margin-bottom:14px;">
+          <span class="ic">⛁</span><h2>库存 &amp; 上架</h2>
+        </div>
+
+        <!-- 上架 -->
+        <div class="toggle-line">
+          <div class="tl-text">
+            <strong>上架商品</strong>
+            <small id="publishHint">已上架，顾客可见</small>
+          </div>
+          <label class="switch"><input type="checkbox" id="publishToggle" checked><span class="slider"></span></label>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 库存 -->
+        <div class="subhead">库存</div>
+
+        <div class="toggle-line">
+          <div class="tl-text">
+            <strong>追踪库存</strong>
+            <small>关闭 = 永远有货</small>
+          </div>
+          <label class="switch"><input type="checkbox" id="trackToggle" checked><span class="slider"></span></label>
+        </div>
+
+        <!-- tracked block -->
+        <div id="trackedBlock">
+          <div class="qty-list" id="qtyList" style="margin-top:14px;"></div>
+          <div class="qty-empty" id="qtyEmpty" style="display:none;">请先在左侧勾选尺码</div>
+
+          <hr class="divider">
+
+          <div class="toggle-line">
+            <div class="tl-text">
+              <strong>售罄后仍可购买</strong>
+              <small>允许超卖 / 预购</small>
+            </div>
+            <label class="switch wine"><input type="checkbox" id="oversellToggle"><span class="slider"></span></label>
+          </div>
+
+          <div class="field-mini">
+            <label class="lbl">低库存阈值</label>
+            <input type="number" id="threshold" value="5" min="0">
+            <div class="hint">库存低于此数会在后台标黄提醒。</div>
+          </div>
+
+          <div class="note"><b>提示：</b>填了库存，没货时店面自动显示售罄。</div>
+        </div>
+
+        <!-- untracked block -->
+        <div id="untrackedBlock" style="display:none;">
+          <div class="notrack" style="margin-top:14px;">不追踪库存：永远可购买</div>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn btn-primary" id="saveBtn">保存</button>
+          <button class="btn btn-ghost" id="cancelBtn">取消</button>
+        </div>
+      </div>
+    </div><!-- /col-right -->
+
+  </div>
+</div>
+
+<div class="toast" id="toast">（Demo）已保存</div>
+
+<script>
+(function(){
+  var prefill = {S:10, M:8, L:0}; // 预填库存
+  var chips = document.getElementById('sizeChips');
+  var qtyList = document.getElementById('qtyList');
+  var qtyEmpty = document.getElementById('qtyEmpty');
+  var trackToggle = document.getElementById('trackToggle');
+  var trackedBlock = document.getElementById('trackedBlock');
+  var untrackedBlock = document.getElementById('untrackedBlock');
+  var publishToggle = document.getElementById('publishToggle');
+  var publishHint = document.getElementById('publishHint');
+
+  // remember entered quantities so toggling sizes doesn't lose them
+  var qtyStore = Object.assign({}, prefill);
+
+  function getCheckedSizes(){
+    return Array.prototype.slice.call(chips.querySelectorAll('input:checked')).map(function(i){return i.value;});
+  }
+
+  function renderQty(){
+    // save current visible values into store first
+    qtyList.querySelectorAll('input[data-size]').forEach(function(inp){
+      qtyStore[inp.getAttribute('data-size')] = inp.value;
+    });
+
+    var sizes = getCheckedSizes();
+    qtyList.innerHTML = '';
+    if(sizes.length === 0){
+      qtyEmpty.style.display = 'block';
+      qtyList.style.display = 'none';
+      return;
+    }
+    qtyEmpty.style.display = 'none';
+    qtyList.style.display = 'flex';
+
+    sizes.forEach(function(sz){
+      var val = (qtyStore[sz] !== undefined) ? qtyStore[sz] : 0;
+      var row = document.createElement('div');
+      row.className = 'qty-row' + (Number(val) === 0 ? ' zero' : '');
+      row.innerHTML =
+        '<div class="qsize">'+sz+'</div>' +
+        '<div class="qlabel">尺码 '+sz+' 库存</div>' +
+        '<input type="number" min="0" data-size="'+sz+'" value="'+val+'">';
+      var inp = row.querySelector('input');
+      inp.addEventListener('input', function(){
+        qtyStore[sz] = inp.value;
+        row.classList.toggle('zero', Number(inp.value) === 0);
+      });
+      qtyList.appendChild(row);
+    });
+  }
+
+  chips.addEventListener('change', renderQty);
+
+  trackToggle.addEventListener('change', function(){
+    if(trackToggle.checked){
+      trackedBlock.style.display = '';
+      untrackedBlock.style.display = 'none';
+      renderQty();
+    } else {
+      trackedBlock.style.display = 'none';
+      untrackedBlock.style.display = 'block';
+    }
+  });
+
+  publishToggle.addEventListener('change', function(){
+    publishHint.textContent = publishToggle.checked ? '已上架，顾客可见' : '已下架，顾客不可见';
+  });
+
+  // toast
+  var toast = document.getElementById('toast');
+  var toastTimer;
+  function showToast(){
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 1800);
+  }
+  document.getElementById('saveBtn').addEventListener('click', showToast);
+  document.getElementById('cancelBtn').addEventListener('click', function(){
+    toast.textContent = '（Demo）已取消';
+    showToast();
+    setTimeout(function(){ toast.textContent = '（Demo）已保存'; }, 2200);
+  });
+
+  // init
+  renderQty();
+})();
+</script>
+
+</body>
+</html>
