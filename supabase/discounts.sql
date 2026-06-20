@@ -112,7 +112,7 @@ begin
     limit 1;
   if not found then return; end if;
   if    r.type = 'free_shipping'  then d := 0;
-  elsif r.type in ('bxgy','nth','percent','gift') then d := 0;   -- 由结账页按购物车明细/条件计算
+  elsif r.type in ('bxgy','nth','percent','gift','addon') then d := 0;   -- 由结账页按购物车明细/条件计算
   else                                 d := least(r.value, p_subtotal);
   end if;
   return query select r.code, r.type, r.value, d, r.config, r.scope_type, r.scope_ids;

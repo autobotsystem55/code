@@ -105,6 +105,7 @@
             '<h3>' + t('co.summary') + '</h3>' +
             '<div id="sumLines">' + summaryLines + '</div>' +
             '<div id="giftLines"></div>' +
+            '<div id="addonBox"></div>' +
             '<p id="promoHint" style="display:none;font-size:12.5px;line-height:1.5;margin:10px 0 0;color:#6A1A32;background:#FBF0DA;border-radius:8px;padding:9px 12px"></p>' +
             '<div style="display:flex;gap:8px;margin:16px 0 2px">' +
               '<input id="discInput" placeholder="' + t('co.discPh') + '" style="flex:1;padding:11px 13px;background:var(--white);border:1px solid var(--pink-border);border-radius:var(--radius);outline:none;text-transform:uppercase">' +
@@ -115,6 +116,7 @@
               '<div><span>' + t('co.subtotal') + '</span><span>' + money(subtotal) + '</span></div>' +
               '<div id="discRow" style="display:none"><span>' + t('co.discount') + ' <b id="discTag" style="color:var(--wine)"></b></span><span id="discAmt"></span></div>' +
               '<div><span>' + t('co.shippingLbl') + '</span><span id="shipVal">' + (shipping === 0 ? t('co.free') : money(shipping)) + '</span></div>' +
+              '<div id="addonRow" style="display:none"><span>' + t('co.addon') + ' <b id="addonTag" style="color:var(--wine)"></b></span><span id="addonAmt"></span></div>' +
               '<div class="grand"><span>' + t('co.total') + '</span><b id="grandTotal">' + money(total) + '</b></div>' +
             '</div>' +
           '</aside>' +
@@ -123,9 +125,10 @@
       // ---- discount: flat codes + cart-aware promos (买一送一 / 第N件半价) ----
       var discountLabel = '';
       var gifts = [], giftNudge = null;
+      var addonOffer = null, addonAdded = false, addonTotal = 0, addonNudge = null;
       function renderTotals() {
         var effShip = freeShip ? 0 : shipping;
-        total = Math.max(0, subtotal - discount) + effShip;
+        total = Math.max(0, subtotal - discount) + effShip + (addonAdded ? addonTotal : 0);
         var sv = document.getElementById('shipVal');
         if (sv) sv.textContent = (effShip === 0 ? t('co.free') : money(effShip));
         var row = document.getElementById('discRow');
@@ -134,6 +137,8 @@
           document.getElementById('discTag').textContent = discountLabel || discountCode;
           document.getElementById('discAmt').textContent = '−' + money(discount > 0 ? discount : shipping);
         } else { row.style.display = 'none'; }
+        var arow = document.getElementById('addonRow');
+        if (arow) { if (addonAdded && addonOffer) { arow.style.display = ''; document.getElementById('addonTag').textContent = addonOffer.name; document.getElementById('addonAmt').textContent = '+' + money(addonTotal); } else { arow.style.display = 'none'; } }
         document.getElementById('grandTotal').textContent = money(total);
         var pb = document.getElementById('placeBtn');
         if (pb) pb.textContent = demo ? t('co.place', { x: money(total) }) : t('co.proceed', { x: money(total) });
@@ -156,6 +161,23 @@
           box.innerHTML = '<p style="font-size:12.5px;line-height:1.5;margin:10px 0 0;color:#6A1A32;background:#FBF0DA;border-radius:8px;padding:9px 12px">🎁 ' +
             (giftNudge.amt > 0 ? t('co.giftNudgeAmt', { x: money(giftNudge.amt), name: giftNudge.label }) : t('co.giftNudgeQty', { n: giftNudge.need, name: giftNudge.label })) + '</p>';
         } else { box.innerHTML = ''; }
+      }
+      function addonOfferFrom(promo, ao) {
+        var p = window.findProduct ? window.findProduct(ao.id) : null;
+        var nm = p ? ((window.LANG === 'zh' && p.name_zh) ? p.name_zh : p.name) : ao.id;
+        return { code: promo.code, id: ao.id, name: nm, price: ao.price, normalPrice: p ? (p.price || 0) : 0, qty: ao.qty };
+      }
+      function renderAddon() {
+        var box = document.getElementById('addonBox'); if (!box) return;
+        if (addonOffer && addonAdded) {
+          box.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;background:#E3F1E8;border:1px solid #cfe6d6;border-radius:8px;padding:10px 12px;font-size:13px">🛒 <b>' + addonOffer.name + ' × ' + addonOffer.qty + '</b> ' + money(addonOffer.price * addonOffer.qty) + '<button type="button" id="addonRemove" class="btn btn--ghost" style="margin-left:auto;padding:5px 12px;font-size:11px">' + t('co.addonRemove') + '</button></div>';
+        } else if (addonOffer) {
+          box.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-top:10px;background:#FBF0DA;border:1px solid #ecd9ad;border-radius:8px;padding:10px 12px;font-size:13px;color:#6A1A32">🛒 <span style="flex:1">' + t('co.addonOffer', { name: addonOffer.name, price: money(addonOffer.price), normal: money(addonOffer.normalPrice) }) + '</span><button type="button" id="addonAdd" class="btn" style="padding:6px 14px;font-size:11px;white-space:nowrap">' + t('co.addonAdd') + '</button></div>';
+        } else if (addonNudge && (addonNudge.need > 0 || addonNudge.amt > 0)) {
+          box.innerHTML = '<p style="font-size:12.5px;line-height:1.5;margin:10px 0 0;color:#6A1A32;background:#FBF0DA;border-radius:8px;padding:9px 12px">🛒 ' + (addonNudge.amt > 0 ? t('co.addonNudgeAmt', { x: money(addonNudge.amt), name: addonNudge.label }) : t('co.addonNudgeQty', { n: addonNudge.need, name: addonNudge.label })) + '</p>';
+        } else { box.innerHTML = ''; }
+        var add = document.getElementById('addonAdd'); if (add) add.addEventListener('click', function () { addonAdded = true; addonTotal = addonOffer.price * addonOffer.qty; renderTotals(); renderAddon(); });
+        var rmv = document.getElementById('addonRemove'); if (rmv) rmv.addEventListener('click', function () { addonAdded = false; addonTotal = 0; renderTotals(); renderAddon(); });
       }
       function showHint(nudge) {
         var h = document.getElementById('promoHint'); if (!h) return;
@@ -223,6 +245,12 @@
           var gmet = greq === 'qty' ? (n >= gmin) : (gsum >= gmin);
           if (gmet && cfg.gift_id) { res.gift = { id: cfg.gift_id, qty: Math.max(1, parseInt(cfg.gift_qty, 10) || 1) }; }
           else { res.need = (greq === 'qty') ? Math.max(0, gmin - n) : 0; res.needAmt = (greq === 'amount') ? Math.max(0, gmin - gsum) : 0; }
+        } else if (promo.type === 'addon') {
+          var areq = cfg.req || 'amount', amin = +cfg.req_min || 0, asum = 0;
+          for (i = 0; i < n; i++) asum += units[i].price;
+          var amet = areq === 'qty' ? (n >= amin) : (asum >= amin);
+          if (amet && cfg.addon_id) { res.addon = { id: cfg.addon_id, price: +cfg.addon_price || 0, qty: Math.max(1, parseInt(cfg.addon_qty, 10) || 1) }; }
+          else { res.need = (areq === 'qty') ? Math.max(0, amin - n) : 0; res.needAmt = (areq === 'amount') ? Math.max(0, amin - asum) : 0; }
         }
         res.amount = Math.round(res.amount * 100) / 100;
         return res;
@@ -236,15 +264,21 @@
       function applyAuto() {
         if (!(window.DB && DB.autoDiscounts)) return;
         DB.autoDiscounts(subtotal).then(function (r) {
-          var promos = (r && r.data) || []; if (!promos.length) { renderGifts(); return; }
+          var promos = (r && r.data) || []; if (!promos.length) { renderGifts(); renderAddon(); return; }
           var best = null, nudge = null;   // pick the single most valuable auto promo (one per order)
-          gifts = []; giftNudge = null;    // gifts are separate from the one discount
+          gifts = []; giftNudge = null; addonOffer = null; addonAdded = false; addonTotal = 0; addonNudge = null;  // gifts/add-ons separate from the one discount
           promos.forEach(function (p) {
             var cand = null;
             if (p.type === 'gift') {
               var gr = computeCartDiscount(p);
               if (gr.gift) { gifts.push(giftLine(p, gr.gift)); }
               else if (!giftNudge && (gr.need > 0 || gr.needAmt > 0)) giftNudge = { need: gr.need, amt: gr.needAmt, label: p.name || p.code };
+              return;
+            }
+            if (p.type === 'addon') {
+              var ar = computeCartDiscount(p);
+              if (ar.addon) { if (!addonOffer) addonOffer = addonOfferFrom(p, ar.addon); }
+              else if (!addonNudge && (ar.need > 0 || ar.needAmt > 0)) addonNudge = { need: ar.need, amt: ar.needAmt, label: p.name || p.code };
               return;
             }
             if (p.type === 'bxgy' || p.type === 'nth' || p.type === 'percent') {
@@ -262,7 +296,7 @@
             if (best.kind === 'cart') { applyPromo(best.promo, best.res); }
             else { renderSummary({}); freeShip = (best.kind === 'ship'); discount = (best.kind === 'ship') ? 0 : best.amount; discountCode = best.promo.code; discountLabel = best.promo.name || best.promo.code; renderTotals(); showHint(null); }
           } else if (nudge) showHint(nudge);
-          renderGifts();
+          renderGifts(); renderAddon();
         }, function () {});
       }
       document.getElementById('discBtn').addEventListener('click', function () {
@@ -274,6 +308,12 @@
         DB.validateDiscount(code, subtotal).then(function (r) {
           btn.disabled = false; var d = r && r.data;
           if (!d) { msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); return; }
+          if (d.type === 'addon') {
+            var ares = computeCartDiscount(d);
+            if (ares.addon) { addonOffer = addonOfferFrom(d, ares.addon); addonNudge = null; renderAddon(); msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.addonGot'); }
+            else { msg.style.color = 'var(--wine)'; msg.textContent = t('co.discNoQual'); }
+            return;
+          }
           if (d.type === 'gift') {
             var gres = computeCartDiscount(d);
             if (gres.gift) {
@@ -319,6 +359,7 @@
             : { id: l.id, name: l.name, qty: l.qty, price: l.price, size: l.size, color: l.color };
         });
         gifts.forEach(function (g) { itemRows.push({ id: g.id, name: g.name, qty: g.qty, price: 0, gift: 1 }); });
+        if (addonAdded && addonOffer) itemRows.push({ id: addonOffer.id, name: addonOffer.name, qty: addonOffer.qty, price: addonOffer.price, addon: 1 });
         var customer = {
           first: f.first.value, last: f.last.value, address: f.address.value, apt: f.apt.value,
           city: f.city.value, zip: f.zip.value, country: f.country.value, phone: f.phone.value
@@ -350,6 +391,7 @@
             else {
               if (discountCode && DB.redeemDiscount) { try { DB.redeemDiscount(discountCode); } catch (e) {} }
               gifts.forEach(function (g) { if (DB.redeemDiscount) { try { DB.redeemDiscount(g.code); } catch (e) {} } });
+              if (addonAdded && addonOffer && DB.redeemDiscount) { try { DB.redeemDiscount(addonOffer.code); } catch (e) {} }
               if (DB.decrementStock) { try {
                 var stockRows = [];
                 lines.forEach(function (l) {
