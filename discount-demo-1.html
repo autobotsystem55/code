@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>优惠券 · 模板墙 (Demo A) · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFFAF1; --cream2:#FAF6F3; --panel:#FAF6F3; --white:#fff;
+  --blush:#F2E4D9; --pink:#E9C9CC; --pink-soft:#F3E2E4; --pink-border:#DAB0B7;
+  --wine:#82213E; --wine-deep:#6A1A32; --mauve:#6B4B4F;
+  --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C;
+  --line:#ECD9D6; --line2:#E2DCD8;
+  --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6B12; --amber-bg:#FBF0DA;
+  --radius:8px; --radius-sm:6px;
+  --shadow:0 1px 3px rgba(28,28,28,.06), 0 8px 28px rgba(28,28,28,.05);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:"DM Sans",system-ui,-apple-system,sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:"DM Serif Display",Georgia,serif;font-weight:400;margin:0;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:var(--white);
+  border-bottom:1px solid var(--pink-soft);
+}
+.topbar-inner{
+  max-width:1180px;margin:0 auto;padding:13px 22px;
+  display:flex;align-items:center;gap:18px;
+}
+.wordmark{font-family:"DM Serif Display",Georgia,serif;font-size:22px;color:var(--ink);white-space:nowrap;}
+.wordmark .flower{color:var(--wine);margin-left:3px;}
+.crumb{font-size:12.5px;color:var(--muted);white-space:nowrap;letter-spacing:.01em;}
+.crumb .sep{opacity:.5;margin:0 6px;}
+.topbar-spacer{flex:1;}
+.demo-pill{
+  border-radius:40px;font-size:11.5px;color:var(--wine);
+  border:1px solid var(--pink);background:var(--pink-soft);
+  padding:6px 14px;white-space:nowrap;font-weight:500;letter-spacing:.02em;
+}
+
+/* ===== MAIN ===== */
+.main{max-width:1180px;margin:0 auto;padding:0 22px 80px;}
+
+/* page header */
+.page-head{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:24px;flex-wrap:wrap;margin-top:34px;
+}
+.page-head h1{font-size:34px;letter-spacing:.005em;}
+.page-head .sub{color:var(--muted);font-size:14.5px;margin-top:6px;}
+
+/* buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  border-radius:var(--radius-sm);font-size:14px;font-weight:500;
+  padding:10px 18px;border:1px solid transparent;
+  transition:background .18s ease,border-color .18s ease,color .18s ease,transform .06s ease;
+  white-space:nowrap;
+}
+.btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--wine);color:#fff;}
+.btn-primary:hover{background:var(--wine-deep);}
+.btn-ghost{background:transparent;border:1px solid var(--pink-border);color:var(--wine);}
+.btn-ghost:hover{background:var(--pink-soft);}
+.btn-sm{padding:7px 13px;font-size:13px;}
+.btn .plus{font-size:16px;line-height:1;font-weight:600;}
+
+/* demo note */
+.demo-note{
+  display:flex;align-items:center;gap:10px;
+  margin-top:18px;background:var(--cream2);
+  border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:9px 14px;font-size:12.5px;color:var(--mauve);
+}
+.demo-note .dot{width:7px;height:7px;border-radius:50%;background:var(--pink-border);flex:none;}
+.demo-note button{margin-left:auto;background:none;border:none;color:var(--muted);font-size:16px;line-height:1;padding:2px 4px;border-radius:4px;}
+.demo-note button:hover{color:var(--wine);background:var(--pink-soft);}
+
+/* stats strip */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px;}
+.stat{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 18px;box-shadow:var(--shadow);
+}
+.stat .label{font-size:12.5px;color:var(--muted);letter-spacing:.02em;}
+.stat .value{font-family:"DM Serif Display",Georgia,serif;font-size:27px;margin-top:4px;display:flex;align-items:baseline;gap:7px;}
+.stat .value .unit{font-family:"DM Sans",sans-serif;font-size:13px;color:var(--muted);font-weight:500;}
+.stat .value .ic{font-size:18px;}
+
+/* section label */
+.section-label{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:38px;margin-bottom:14px;gap:16px;
+}
+.section-label h2{font-size:20px;}
+.section-label .hint{font-size:12.5px;color:var(--muted);}
+
+/* ===== EXISTING LIST (table-card) ===== */
+.list-card{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.list-head,.list-row{
+  display:grid;
+  grid-template-columns:2.4fr 1.2fr 1fr .9fr 1.3fr 48px;
+  align-items:center;gap:14px;
+  padding:0 20px;
+}
+.list-head{
+  height:44px;background:var(--cream2);
+  border-bottom:1px solid var(--line);
+  font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;
+}
+.list-row{
+  min-height:66px;border-bottom:1px solid var(--line);
+  transition:background .15s ease;position:relative;
+}
+.list-row:last-child{border-bottom:none;}
+.list-row:hover{background:var(--cream2);}
+.cell-name .nm{font-size:14.5px;font-weight:600;color:var(--ink);}
+.cell-name .codeline{margin-top:5px;display:flex;align-items:center;gap:8px;}
+.code-chip{
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:11.5px;letter-spacing:.04em;
+  background:var(--cream);border:1px dashed var(--pink-border);color:var(--wine);
+  padding:2px 8px;border-radius:5px;
+}
+.tag{
+  display:inline-flex;align-items:center;font-size:12px;font-weight:500;
+  padding:4px 11px;border-radius:40px;white-space:nowrap;
+}
+.tag-wine{background:var(--pink-soft);color:var(--wine);border:1px solid var(--pink);}
+.tag-blush{background:var(--blush);color:var(--mauve);border:1px solid #E6D2C5;}
+.tag-plain{background:var(--cream2);color:var(--mauve);border:1px solid var(--line2);}
+.use-bar{font-size:13px;color:var(--ink2);}
+.use-bar .track{height:5px;border-radius:4px;background:var(--blush);margin-top:6px;overflow:hidden;max-width:120px;}
+.use-bar .fill{height:100%;background:var(--wine);border-radius:4px;}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;
+  padding:4px 11px;border-radius:40px;white-space:nowrap;
+}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85;}
+.pill-on{background:var(--green-bg);color:var(--green);}
+.pill-off{background:#EFEAE6;color:#7A6F68;}
+.pill-sch{background:var(--amber-bg);color:var(--amber);}
+.cell-date{font-size:13px;color:var(--ink2);}
+.cell-date .small{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.row-act{
+  width:34px;height:34px;border-radius:50%;border:1px solid transparent;
+  background:transparent;color:var(--muted);font-size:18px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.list-row:hover .row-act{border-color:var(--line2);}
+.row-act:hover{background:var(--pink-soft);color:var(--wine);border-color:var(--pink-border);}
+
+/* ===== OVERLAY / PICKER ===== */
+.overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(40,24,28,.42);
+  backdrop-filter:blur(2px);
+  display:none;align-items:flex-start;justify-content:center;
+  padding:40px 20px;overflow-y:auto;
+}
+.overlay.open{display:flex;animation:fade .2s ease;}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet{
+  width:100%;max-width:1020px;background:var(--cream);
+  border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 24px 70px rgba(28,28,28,.28);
+  animation:rise .24s cubic-bezier(.2,.7,.3,1);
+  margin:auto 0;
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.sheet-head{
+  display:flex;align-items:center;gap:14px;
+  padding:20px 26px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:var(--cream);border-radius:14px 14px 0 0;z-index:2;
+}
+.sheet-head .back{
+  width:36px;height:36px;border-radius:8px;border:1px solid var(--pink-border);
+  background:var(--white);color:var(--wine);font-size:17px;display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.sheet-head .back:hover{background:var(--pink-soft);}
+.sheet-head .titles h2{font-size:21px;}
+.sheet-head .titles .en{font-size:12.5px;color:var(--muted);margin-top:1px;letter-spacing:.02em;}
+.sheet-head .x{
+  margin-left:auto;width:36px;height:36px;border-radius:8px;border:1px solid transparent;
+  background:transparent;color:var(--muted);font-size:20px;display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.sheet-head .x:hover{background:var(--pink-soft);color:var(--wine);}
+.sheet-body{padding:24px 26px 30px;}
+
+/* template grid */
+.tpl-eyebrow{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--wine);font-weight:600;margin-bottom:3px;}
+.tpl-sec-title{font-size:18px;margin-bottom:2px;}
+.tpl-sec-en{font-size:12.5px;color:var(--muted);margin-bottom:16px;}
+.tpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.tpl-card{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 18px 16px;text-align:left;cursor:pointer;
+  transition:border-color .16s ease,box-shadow .16s ease,transform .08s ease;
+  display:flex;flex-direction:column;min-height:118px;
+}
+.tpl-card:hover{border-color:var(--pink-border);box-shadow:var(--shadow);transform:translateY(-2px);}
+.tpl-card:active{transform:translateY(0);}
+.tpl-headline{font-size:18px;font-weight:600;color:var(--ink);line-height:1.35;display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+.num-chip{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:14px;font-weight:600;color:var(--wine);
+  background:var(--pink-soft);border:1px dashed var(--pink-border);
+  border-radius:6px;padding:2px 9px;min-width:34px;
+}
+.tpl-zh{font-size:13.5px;color:var(--ink2);font-weight:600;margin-top:auto;padding-top:12px;}
+.tpl-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+
+.sheet-divider{height:1px;background:var(--line);margin:28px 0 24px;}
+
+/* custom (wider) cards */
+.tpl-grid.wide{grid-template-columns:repeat(3,1fr);}
+.tpl-card.custom{min-height:96px;}
+.tpl-card.custom .tpl-headline{font-size:16px;}
+.tpl-card.custom .ic{
+  width:38px;height:38px;border-radius:9px;background:var(--cream2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px;
+}
+
+/* ===== CONFIG FORM ===== */
+.cfg-body{padding:0;}
+.cfg-scroll{padding:24px 26px 24px;}
+.cfg-banner{
+  display:flex;align-items:center;gap:12px;
+  background:var(--pink-soft);border:1px solid var(--pink);border-radius:var(--radius);
+  padding:13px 16px;margin-bottom:22px;
+}
+.cfg-banner .badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:ui-monospace,monospace;font-size:13px;font-weight:600;color:#fff;background:var(--wine);
+  border-radius:6px;padding:4px 10px;
+}
+.cfg-banner .txt{font-size:13px;color:var(--wine);font-weight:500;}
+.cfg-banner .txt .en{color:var(--mauve);font-weight:400;}
+
+.field{margin-bottom:18px;}
+.field > label{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:7px;}
+.field .req{color:var(--wine);}
+.inp{
+  width:100%;font-family:inherit;font-size:14px;color:var(--ink);
+  background:var(--white);border:1px solid var(--line2);border-radius:var(--radius-sm);
+  padding:10px 13px;transition:border-color .15s ease,box-shadow .15s ease;
+}
+.inp:focus{outline:none;border-color:var(--pink-border);box-shadow:0 0 0 3px var(--pink-soft);}
+.field-row{display:flex;gap:10px;}
+.field-row .inp{flex:1;}
+.code-wrap{display:flex;gap:8px;}
+.code-wrap .inp{flex:1;font-family:ui-monospace,monospace;letter-spacing:.05em;}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+/* segmented control */
+.seg{display:inline-flex;background:var(--cream2);border:1px solid var(--line2);border-radius:8px;padding:3px;gap:2px;flex-wrap:wrap;}
+.seg button{
+  border:none;background:transparent;font-size:13px;color:var(--mauve);font-weight:500;
+  padding:7px 14px;border-radius:6px;transition:.15s;
+}
+.seg button.active{background:var(--white);color:var(--wine);box-shadow:0 1px 3px rgba(28,28,28,.1);}
+
+/* rule box */
+.rule-box{
+  background:var(--cream2);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px;margin-bottom:18px;
+}
+.rule-box .rb-title{font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.rule-box .rb-title .ic{color:var(--wine);}
+.rule-inline{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:14px;color:var(--ink2);}
+.rule-inline .inp-mini{
+  width:92px;font-family:ui-monospace,monospace;font-size:14px;font-weight:600;color:var(--wine);
+  background:var(--white);border:1px solid var(--pink-border);border-radius:6px;padding:8px 10px;text-align:center;
+}
+.rule-inline .inp-mini:focus{outline:none;box-shadow:0 0 0 3px var(--pink-soft);}
+
+/* preview */
+.preview{
+  display:flex;align-items:flex-start;gap:12px;
+  background:linear-gradient(180deg,#fff,var(--cream2));
+  border:1px solid var(--pink);border-radius:var(--radius);padding:16px 18px;margin-bottom:6px;
+}
+.preview .pv-ic{
+  width:34px;height:34px;border-radius:8px;background:var(--pink-soft);border:1px solid var(--pink);
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;
+}
+.preview .pv-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+.preview .pv-text{font-size:15px;color:var(--wine);font-weight:600;margin-top:3px;font-family:"DM Serif Display",Georgia,serif;}
+
+/* sticky footer */
+.cfg-foot{
+  position:sticky;bottom:0;background:var(--cream);
+  border-top:1px solid var(--line);border-radius:0 0 14px 14px;
+  padding:16px 26px;display:flex;align-items:center;gap:12px;justify-content:flex-end;
+}
+.cfg-foot .left{margin-right:auto;font-size:12.5px;color:var(--muted);}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);
+  background:var(--wine);color:#fff;font-size:14px;font-weight:500;
+  padding:13px 22px;border-radius:40px;box-shadow:0 14px 40px rgba(130,33,62,.4);
+  z-index:200;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;
+  display:flex;align-items:center;gap:10px;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast .check{display:inline-flex;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.2);align-items:center;justify-content:center;font-size:12px;}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:860px){
+  .crumb{display:none;}
+  .stats{grid-template-columns:1fr;}
+  .tpl-grid,.tpl-grid.wide{grid-template-columns:1fr 1fr;}
+  .list-head{display:none;}
+  .list-row{
+    grid-template-columns:1fr auto;
+    grid-auto-flow:row;gap:8px 14px;padding:16px 18px;align-items:start;
+  }
+  .list-row .cell-type{grid-column:1;}
+  .list-row .cell-use{grid-column:1;}
+  .list-row .cell-status{grid-row:1;grid-column:2;justify-self:end;}
+  .list-row .cell-date{grid-column:1;}
+  .list-row .cell-act{grid-row:1;grid-column:2;justify-self:end;display:none;}
+  .grid-2{grid-template-columns:1fr;}
+}
+@media(max-width:540px){
+  .tpl-grid,.tpl-grid.wide{grid-template-columns:1fr;}
+  .page-head h1{font-size:28px;}
+  .sheet-body{padding:18px 16px 24px;}
+  .cfg-scroll{padding:18px 16px;}
+  .cfg-foot{padding:14px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="wordmark">Code Official<span class="flower">✿</span></div>
+    <div class="crumb">后台<span class="sep">·</span>营销<span class="sep">·</span>优惠券</div>
+    <div class="topbar-spacer"></div>
+    <div class="demo-pill">Demo A · 模板墙</div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- page header -->
+  <div class="page-head">
+    <div>
+      <h1>优惠券</h1>
+      <div class="sub">创建并管理你的折扣活动 · Discounts</div>
+    </div>
+    <button class="btn btn-primary" id="openPicker"><span class="plus">+</span> 新建优惠</button>
+  </div>
+
+  <!-- demo note -->
+  <div class="demo-note" id="demoNote">
+    <span class="dot"></span>
+    这是设计 Demo，数据为示例，未连接真实后台。
+    <button title="关闭" onclick="document.getElementById('demoNote').style.display='none'">×</button>
+  </div>
+
+  <!-- stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="label">启用中 · Active</div>
+      <div class="value"><span class="ic">🎟️</span>4</div>
+    </div>
+    <div class="stat">
+      <div class="label">本月使用 · Redeemed this month</div>
+      <div class="value">128 <span class="unit">次</span></div>
+    </div>
+    <div class="stat">
+      <div class="label">即将到期 · Expiring soon</div>
+      <div class="value">1 <span class="unit">个活动</span></div>
+    </div>
+  </div>
+
+  <!-- existing list -->
+  <div class="section-label">
+    <h2>现有优惠</h2>
+    <span class="hint">共 5 个 · Existing discounts</span>
+  </div>
+
+  <div class="list-card">
+    <div class="list-head">
+      <div>优惠名称 / 代码</div>
+      <div>类型</div>
+      <div>使用</div>
+      <div>状态</div>
+      <div>有效期</div>
+      <div></div>
+    </div>
+
+    <!-- row 1 -->
+    <div class="list-row">
+      <div class="cell-name">
+        <div class="nm">新季首单立减</div>
+        <div class="codeline"><span class="code-chip">NEWSEASON15</span></div>
+      </div>
+      <div class="cell-type"><span class="tag tag-wine">满额打折</span></div>
+      <div class="cell-use use-bar">142 / 500
+        <div class="track"><div class="fill" style="width:28%"></div></div>
+      </div>
+      <div class="cell-status"><span class="pill pill-on">启用</span></div>
+      <div class="cell-date">长期有效<div class="small">无截止</div></div>
+      <div class="cell-act"><button class="row-act" title="编辑">···</button></div>
+    </div>
+
+    <!-- row 2 -->
+    <div class="list-row">
+      <div class="cell-name">
+        <div class="nm">全场免运费</div>
+        <div class="codeline"><span class="code-chip">FREESHIP</span></div>
+      </div>
+      <div class="cell-type"><span class="tag tag-blush">免运费</span></div>
+      <div class="cell-use use-bar">86 / 200
+        <div class="track"><div class="fill" style="width:43%"></div></div>
+      </div>
+      <div class="cell-status"><span class="pill pill-on">启用</span></div>
+      <div class="cell-date">至 2026-07-31<div class="small">剩 41 天</div></div>
+      <div class="cell-act"><button class="row-act" title="编辑">···</button></div>
+    </div>
+
+    <!-- row 3 -->
+    <div class="list-row">
+      <div class="cell-name">
+        <div class="nm">买二送一 · 上衣系列</div>
+        <div class="codeline"><span class="code-chip">BUY2GET1</span></div>
+      </div>
+      <div class="cell-type"><span class="tag tag-wine">买一送一</span></div>
+      <div class="cell-use use-bar">37 / 150
+        <div class="track"><div class="fill" style="width:25%"></div></div>
+      </div>
+      <div class="cell-status"><span class="pill pill-sch">排期中</span></div>
+      <div class="cell-date">2026-07-01 起<div class="small">尚未开始</div></div>
+      <div class="cell-act"><button class="row-act" title="编辑">···</button></div>
+    </div>
+
+    <!-- row 4 -->
+    <div class="list-row">
+      <div class="cell-name">
+        <div class="nm">会员专属 9 折</div>
+        <div class="codeline"><span class="code-chip">MEMBER10</span></div>
+      </div>
+      <div class="cell-type"><span class="tag tag-wine">满额打折</span></div>
+      <div class="cell-use use-bar">200 / 200
+        <div class="track"><div class="fill" style="width:100%"></div></div>
+      </div>
+      <div class="cell-status"><span class="pill pill-on">启用</span></div>
+      <div class="cell-date">长期有效<div class="small">仅限会员</div></div>
+      <div class="cell-act"><button class="row-act" title="编辑">···</button></div>
+    </div>
+
+    <!-- row 5 -->
+    <div class="list-row">
+      <div class="cell-name">
+        <div class="nm">开斋节大促 · 满 RM200 减 RM50</div>
+        <div class="codeline"><span class="code-chip">RAYA50</span></div>
+      </div>
+      <div class="cell-type"><span class="tag tag-plain">满额立减</span></div>
+      <div class="cell-use use-bar">512 / 512
+        <div class="track"><div class="fill" style="width:100%"></div></div>
+      </div>
+      <div class="cell-status"><span class="pill pill-off">已停用</span></div>
+      <div class="cell-date">已结束<div class="small">2026-04-12</div></div>
+      <div class="cell-act"><button class="row-act" title="编辑">···</button></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ===== PICKER OVERLAY ===== -->
+<div class="overlay" id="pickerOverlay">
+  <div class="sheet" role="dialog" aria-label="选择优惠模板">
+    <div class="sheet-head">
+      <div class="titles">
+        <h2>新建优惠</h2>
+        <div class="en">Choose how to start · 选择一种方式创建</div>
+      </div>
+      <button class="x" id="closePicker" title="关闭">×</button>
+    </div>
+    <div class="sheet-body">
+
+      <div class="tpl-eyebrow">Start from templates</div>
+      <div class="tpl-sec-title">从模板创建</div>
+      <div class="tpl-sec-en">最常用的折扣玩法，一键套用并微调</div>
+
+      <div class="tpl-grid" id="tplGrid">
+        <!-- 1 --><button class="tpl-card" data-tpl="pct-qty">
+          <div class="tpl-headline"><span class="num-chip">10%</span> OFF</div>
+          <div class="tpl-zh">满件打折</div>
+          <div class="tpl-sub">with min. purchased · 满 N 件享折扣</div>
+        </button>
+        <!-- 2 --><button class="tpl-card" data-tpl="amt-off">
+          <div class="tpl-headline"><span class="num-chip">RM5</span> OFF</div>
+          <div class="tpl-zh">满额立减</div>
+          <div class="tpl-sub">with min. amount spent · 消费满 RM N</div>
+        </button>
+        <!-- 3 --><button class="tpl-card" data-tpl="combo">
+          <div class="tpl-headline">Buy <span class="num-chip">3</span> at <span class="num-chip">RM99</span></div>
+          <div class="tpl-zh">组合价</div>
+          <div class="tpl-sub">for selected collection · 指定系列任选</div>
+        </button>
+        <!-- 4 --><button class="tpl-card" data-tpl="credit">
+          <div class="tpl-headline"><span class="num-chip">RM10</span> 购物金</div>
+          <div class="tpl-zh">消费回馈</div>
+          <div class="tpl-sub">for every amount spent · 每消费 RM N 送购物金</div>
+        </button>
+        <!-- 5 --><button class="tpl-card" data-tpl="bogo">
+          <div class="tpl-headline">Buy <span class="num-chip">1</span> Free <span class="num-chip">1</span></div>
+          <div class="tpl-zh">买一送一</div>
+          <div class="tpl-sub">for selected items · 指定商品</div>
+        </button>
+        <!-- 6 --><button class="tpl-card" data-tpl="nth">
+          <div class="tpl-headline"><span class="num-chip">50%</span> OFF</div>
+          <div class="tpl-zh">第 N 件优惠</div>
+          <div class="tpl-sub">for every Xth item · 每第 X 件</div>
+        </button>
+        <!-- 7 --><button class="tpl-card" data-tpl="gift">
+          <div class="tpl-headline">Free <span class="num-chip">赠品</span></div>
+          <div class="tpl-zh">满额送礼</div>
+          <div class="tpl-sub">with any purchase · 任意订单送赠品</div>
+        </button>
+        <!-- 8 --><button class="tpl-card" data-tpl="addon">
+          <div class="tpl-headline"><span class="num-chip">RM10</span> 加购</div>
+          <div class="tpl-zh">加购价</div>
+          <div class="tpl-sub">with min. purchased · 满件可加购</div>
+        </button>
+      </div>
+
+      <div class="sheet-divider"></div>
+
+      <div class="tpl-eyebrow">Create your own</div>
+      <div class="tpl-sec-title">自定义优惠</div>
+      <div class="tpl-sec-en">从零开始，自行设定条件与奖励</div>
+
+      <div class="tpl-grid wide">
+        <button class="tpl-card custom" data-tpl="custom-amount">
+          <div class="ic">💳</div>
+          <div class="tpl-sub" style="margin-top:0">based on</div>
+          <div class="tpl-headline">按 消费金额</div>
+          <div class="tpl-zh" style="padding-top:8px">Amount spent</div>
+        </button>
+        <button class="tpl-card custom" data-tpl="custom-qty">
+          <div class="ic">🧺</div>
+          <div class="tpl-sub" style="margin-top:0">based on</div>
+          <div class="tpl-headline">按 购买数量</div>
+          <div class="tpl-zh" style="padding-top:8px">Quantity purchased</div>
+        </button>
+        <button class="tpl-card custom" data-tpl="custom-ship">
+          <div class="ic">🚚</div>
+          <div class="tpl-sub" style="margin-top:0">for</div>
+          <div class="tpl-headline">运费优惠</div>
+          <div class="tpl-zh" style="padding-top:8px">Shipping fee</div>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONFIG OVERLAY ===== -->
+<div class="overlay" id="cfgOverlay">
+  <div class="sheet" role="dialog" aria-label="配置优惠">
+    <div class="sheet-head">
+      <button class="back" id="cfgBack" title="返回模板">←</button>
+      <div class="titles">
+        <h2 id="cfgTitle">配置优惠</h2>
+        <div class="en" id="cfgEn">Configure your discount</div>
+      </div>
+      <button class="x" id="cfgClose" title="关闭">×</button>
+    </div>
+
+    <div class="cfg-body">
+      <div class="cfg-scroll">
+
+        <div class="cfg-banner">
+          <span class="badge" id="cfgBadge">模板</span>
+          <span class="txt" id="cfgBannerTxt">已套用模板 <span class="en"></span></span>
+        </div>
+
+        <!-- live preview -->
+        <div class="preview">
+          <div class="pv-ic">✨</div>
+          <div>
+            <div class="pv-label">预览 · Preview</div>
+            <div class="pv-text" id="pvText">消费满 RM150，立减 RM5</div>
+          </div>
+        </div>
+
+        <div style="height:22px"></div>
+
+        <div class="field">
+          <label>优惠名称 <span class="req">*</span></label>
+          <input class="inp" id="fName" type="text" placeholder="例如：新季首单立减" value="新季首单立减">
+        </div>
+
+        <div class="field">
+          <label>优惠码 · Discount code</label>
+          <div class="code-wrap">
+            <input class="inp" id="fCode" type="text" placeholder="WELCOME10" value="NEWSEASON15">
+            <button class="btn btn-ghost btn-sm" id="genCode" type="button">⟳ 生成</button>
+          </div>
+        </div>
+
+        <!-- rule box (dynamic) -->
+        <div class="rule-box">
+          <div class="rb-title"><span class="ic">⚙</span> 优惠规则 · Rule</div>
+          <div class="rule-inline" id="ruleArea">
+            <!-- injected by JS -->
+          </div>
+        </div>
+
+        <div class="field">
+          <label>适用范围 · Applies to</label>
+          <div class="seg" id="segScope">
+            <button class="active" data-v="全部商品">全部商品</button>
+            <button data-v="指定系列">指定系列</button>
+            <button data-v="指定商品">指定商品</button>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field" style="margin-bottom:0">
+            <label>使用上限 · Usage limit</label>
+            <input class="inp" id="fLimit" type="number" placeholder="不限" value="500">
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>每位顾客上限</label>
+            <input class="inp" type="number" placeholder="不限" value="1">
+          </div>
+        </div>
+
+        <div style="height:18px"></div>
+
+        <div class="grid-2">
+          <div class="field" style="margin-bottom:0">
+            <label>有效期 · 开始</label>
+            <input class="inp" type="date" value="2026-06-20">
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>有效期 · 结束</label>
+            <input class="inp" type="date" value="2026-12-31">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cfg-foot">
+        <span class="left">规则会随输入实时更新预览</span>
+        <button class="btn btn-ghost" id="cfgCancel" type="button">取消</button>
+        <button class="btn btn-primary" id="cfgCreate" type="button">创建优惠</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"><span class="check">✓</span><span id="toastMsg">已创建</span></div>
+
+<script>
+(function(){
+  "use strict";
+  var pickerOverlay = document.getElementById('pickerOverlay');
+  var cfgOverlay = document.getElementById('cfgOverlay');
+
+  function open(el){ el.classList.add('open'); document.body.style.overflow='hidden'; }
+  function close(el){ el.classList.remove('open'); if(!pickerOverlay.classList.contains('open') && !cfgOverlay.classList.contains('open')) document.body.style.overflow=''; }
+
+  // open / close picker
+  document.getElementById('openPicker').addEventListener('click', function(){ open(pickerOverlay); });
+  document.getElementById('closePicker').addEventListener('click', function(){ close(pickerOverlay); });
+  pickerOverlay.addEventListener('click', function(e){ if(e.target===pickerOverlay) close(pickerOverlay); });
+
+  // ---- template definitions ----
+  // builder() returns HTML for the rule inputs; preview() builds the plain-Chinese line from current input values
+  var TEMPLATES = {
+    'pct-qty':{title:'满件打折',en:'X% OFF with min. purchased',badge:'10%',
+      fields:[{id:'qty',v:'2',w:'72px'},{id:'pct',v:'10',w:'72px'}],
+      build:function(){return '购买满 '+chip('qty')+' 件，享 '+chip('pct')+' % 折扣';},
+      preview:function(v){return '购买满 '+(v.qty||'?')+' 件，全单 '+(v.pct||'?')+' 折优惠';}},
+
+    'amt-off':{title:'满额立减',en:'RM X OFF with min. spent',badge:'RM5',
+      fields:[{id:'min',v:'150',w:'92px'},{id:'off',v:'5',w:'72px'}],
+      build:function(){return '消费满 RM '+chip('min')+'，立减 RM '+chip('off');},
+      preview:function(v){return '消费满 RM'+(v.min||'?')+'，立减 RM'+(v.off||'?');}},
+
+    'combo':{title:'组合价',en:'Buy N at RM X (collection)',badge:'组合',
+      fields:[{id:'qty',v:'3',w:'72px'},{id:'price',v:'99',w:'92px'}],
+      build:function(){return '指定系列任选 '+chip('qty')+' 件，仅需 RM '+chip('price');},
+      preview:function(v){return '指定系列任选 '+(v.qty||'?')+' 件，组合价 RM'+(v.price||'?');}},
+
+    'credit':{title:'消费回馈',en:'RM X store credit per spend',badge:'购物金',
+      fields:[{id:'per',v:'100',w:'92px'},{id:'credit',v:'10',w:'72px'}],
+      build:function(){return '每消费 RM '+chip('per')+'，赠送 RM '+chip('credit')+' 购物金';},
+      preview:function(v){return '每消费 RM'+(v.per||'?')+'，回馈 RM'+(v.credit||'?')+' 购物金';}},
+
+    'bogo':{title:'买一送一',en:'Buy 1 Free 1 (selected items)',badge:'B1F1',
+      fields:[{id:'buy',v:'1',w:'72px'},{id:'free',v:'1',w:'72px'}],
+      build:function(){return '购买 '+chip('buy')+' 件，免费获得 '+chip('free')+' 件';},
+      preview:function(v){return '指定商品买 '+(v.buy||'?')+' 送 '+(v.free||'?');}},
+
+    'nth':{title:'第 N 件优惠',en:'X% OFF every Nth item',badge:'50%',
+      fields:[{id:'nth',v:'2',w:'72px'},{id:'pct',v:'50',w:'72px'}],
+      build:function(){return '每购买的第 '+chip('nth')+' 件，享 '+chip('pct')+' % 折扣';},
+      preview:function(v){return '每第 '+(v.nth||'?')+' 件享 '+(v.pct||'?')+' 折';}},
+
+    'gift':{title:'满额送礼',en:'Free gift with any purchase',badge:'赠品',
+      fields:[{id:'min',v:'120',w:'92px'}],
+      build:function(){return '消费满 RM '+chip('min')+'，赠送指定赠品 1 份';},
+      preview:function(v){return '消费满 RM'+(v.min||'?')+'，送精选赠品';}},
+
+    'addon':{title:'加购价',en:'Add-on at RM X with min. purchased',badge:'加购',
+      fields:[{id:'qty',v:'2',w:'72px'},{id:'price',v:'10',w:'72px'}],
+      build:function(){return '满 '+chip('qty')+' 件，可 RM '+chip('price')+' 加购指定商品';},
+      preview:function(v){return '满 '+(v.qty||'?')+' 件，RM'+(v.price||'?')+' 加购精选单品';}},
+
+    'custom-amount':{title:'按 消费金额',en:'Custom · based on amount spent',badge:'自定义',
+      fields:[{id:'min',v:'200',w:'92px'},{id:'off',v:'20',w:'72px'}],
+      build:function(){return '消费满 RM '+chip('min')+'，立减 RM '+chip('off');},
+      preview:function(v){return '消费满 RM'+(v.min||'?')+'，立减 RM'+(v.off||'?');}},
+
+    'custom-qty':{title:'按 购买数量',en:'Custom · based on quantity',badge:'自定义',
+      fields:[{id:'qty',v:'3',w:'72px'},{id:'pct',v:'15',w:'72px'}],
+      build:function(){return '购买满 '+chip('qty')+' 件，享 '+chip('pct')+' % 折扣';},
+      preview:function(v){return '购买满 '+(v.qty||'?')+' 件，享 '+(v.pct||'?')+' 折';}},
+
+    'custom-ship':{title:'运费优惠',en:'Custom · shipping fee',badge:'运费',
+      fields:[{id:'min',v:'80',w:'92px'}],
+      build:function(){return '消费满 RM '+chip('min')+'，享全场免运费';},
+      preview:function(v){return '消费满 RM'+(v.min||'?')+'，免运费';}}
+  };
+
+  var current = null;
+
+  function chip(id){
+    return '<input class="inp-mini" data-fid="'+id+'" type="text">';
+  }
+
+  function readVals(){
+    var v = {};
+    var inputs = document.querySelectorAll('#ruleArea .inp-mini');
+    for(var i=0;i<inputs.length;i++){ v[inputs[i].getAttribute('data-fid')] = inputs[i].value.trim(); }
+    return v;
+  }
+
+  function refreshPreview(){
+    if(!current) return;
+    document.getElementById('pvText').textContent = current.preview(readVals());
+  }
+
+  function openConfig(key){
+    var t = TEMPLATES[key];
+    if(!t) return;
+    current = t;
+    document.getElementById('cfgTitle').textContent = t.title;
+    document.getElementById('cfgEn').textContent = t.en;
+    document.getElementById('cfgBadge').textContent = t.badge;
+    document.getElementById('cfgBannerTxt').innerHTML = '已套用模板：<strong>'+t.title+'</strong> · <span class="en">'+t.en+'</span>';
+
+    // build rule area
+    var html = t.build();
+    document.getElementById('ruleArea').innerHTML = html;
+
+    // set values + bind live update
+    var fmap = {};
+    for(var i=0;i<t.fields.length;i++){ fmap[t.fields[i].id]=t.fields[i]; }
+    var inputs = document.querySelectorAll('#ruleArea .inp-mini');
+    for(var j=0;j<inputs.length;j++){
+      var fid = inputs[j].getAttribute('data-fid');
+      if(fmap[fid]){
+        inputs[j].value = fmap[fid].v;
+        if(fmap[fid].w) inputs[j].style.width = fmap[fid].w;
+      }
+      inputs[j].addEventListener('input', refreshPreview);
+    }
+
+    refreshPreview();
+    close(pickerOverlay);
+    open(cfgOverlay);
+  }
+
+  // wire all template cards
+  var cards = document.querySelectorAll('.tpl-card');
+  for(var i=0;i<cards.length;i++){
+    cards[i].addEventListener('click', function(){ openConfig(this.getAttribute('data-tpl')); });
+  }
+
+  // config nav
+  document.getElementById('cfgClose').addEventListener('click', function(){ close(cfgOverlay); });
+  document.getElementById('cfgCancel').addEventListener('click', function(){ close(cfgOverlay); });
+  document.getElementById('cfgBack').addEventListener('click', function(){ close(cfgOverlay); open(pickerOverlay); });
+  cfgOverlay.addEventListener('click', function(e){ if(e.target===cfgOverlay) close(cfgOverlay); });
+
+  // segmented control
+  document.getElementById('segScope').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    var btns = this.querySelectorAll('button');
+    for(var i=0;i<btns.length;i++) btns[i].classList.remove('active');
+    b.classList.add('active');
+  });
+
+  // generate code
+  document.getElementById('genCode').addEventListener('click', function(){
+    var pool='ABCDEFGHJKLMNPQRSTUVWXYZ', s='';
+    for(var i=0;i<4;i++) s+=pool.charAt(Math.floor(Math.random()*pool.length));
+    document.getElementById('fCode').value = s + Math.floor(10+Math.random()*89);
+  });
+
+  // toast + create
+  var toast = document.getElementById('toast'), toastTimer;
+  function showToast(msg){
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
+  }
+  document.getElementById('cfgCreate').addEventListener('click', function(){
+    var name = document.getElementById('fName').value.trim() || '未命名优惠';
+    close(cfgOverlay);
+    showToast('（Demo）已创建：' + name);
+  });
+
+  // esc closes
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){
+      if(cfgOverlay.classList.contains('open')) close(cfgOverlay);
+      else if(pickerOverlay.classList.contains('open')) close(pickerOverlay);
+    }
+  });
+})();
+</script>
+</body>
+</html>

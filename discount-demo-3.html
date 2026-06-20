@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>优惠券 · 创建向导 (Demo C) · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFFAF1; --cream2:#FAF6F3; --panel:#FAF6F3; --white:#fff;
+  --blush:#F2E4D9; --pink:#E9C9CC; --pink-soft:#F3E2E4; --pink-border:#DAB0B7;
+  --wine:#82213E; --wine-deep:#6A1A32; --mauve:#6B4B4F;
+  --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C;
+  --line:#ECD9D6; --line2:#E2DCD8;
+  --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6B12; --amber-bg:#FBF0DA;
+  --radius:8px; --radius-sm:6px;
+  --shadow:0 1px 3px rgba(28,28,28,.06), 0 8px 28px rgba(28,28,28,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{margin:0;padding:0}
+body{
+  font-family:"DM Sans",system-ui,sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:40px;
+}
+h1,h2,h3,h4,.serif{font-family:"DM Serif Display",Georgia,serif;font-weight:400;line-height:1.12}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit;font-size:14px;color:var(--ink)}
+a{color:inherit;text-decoration:none}
+
+/* ---------- top bar ---------- */
+.topbar{background:var(--white);border-bottom:1px solid var(--pink-soft);position:sticky;top:0;z-index:60}
+.topbar__in{max-width:1080px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:16px}
+.wordmark{font-family:"DM Serif Display",serif;font-size:22px;letter-spacing:.3px;color:var(--ink);white-space:nowrap}
+.wordmark .flower{color:var(--wine);margin-left:1px}
+.crumb{font-size:13px;color:var(--muted);margin-left:8px;white-space:nowrap}
+.crumb .sep{opacity:.5;margin:0 6px}
+.demo-pill{
+  margin-left:auto;font-size:11.5px;letter-spacing:.4px;color:var(--wine);
+  border:1px solid var(--pink);background:var(--pink-soft);
+  padding:4px 12px;border-radius:40px;white-space:nowrap;
+}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+.view{display:none;animation:fade .32s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--wine);color:#fff;
+  padding:11px 20px;font-size:13.5px;font-weight:600;letter-spacing:.02em;border:1px solid var(--wine);
+  border-radius:var(--radius-sm);transition:.2s;white-space:nowrap}
+.btn:hover:not(:disabled){background:var(--wine-deep);border-color:var(--wine-deep)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn--ghost{background:transparent;color:var(--wine);border:1px solid var(--pink-border)}
+.btn--ghost:hover{background:var(--pink-soft)}
+.btn--sm{padding:8px 14px;font-size:12.5px}
+.btn--lg{padding:13px 26px;font-size:14.5px}
+
+/* ============ DASHBOARD ============ */
+.dash-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px;padding:38px 0 22px}
+.dash-head .eyebrow{font-size:12px;letter-spacing:2.4px;text-transform:uppercase;color:var(--wine);font-weight:600}
+.dash-head h1{font-size:40px;margin:11px 0 8px}
+.dash-head p{color:var(--muted);font-size:15px;max-width:520px}
+.dash-head .spacer{flex:1}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.stat{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden}
+.stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pink)}
+.stat.s-green::before{background:var(--green)}
+.stat.s-amber::before{background:var(--amber)}
+.stat .n{font-family:"DM Serif Display",serif;font-size:33px;line-height:1}
+.stat .n small{font-size:15px;color:var(--muted);font-family:"DM Sans";margin-left:3px}
+.stat .l{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:9px}
+
+.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.panel-head h2{font-size:21px}
+.panel-head .sub{font-size:12.5px;color:var(--muted)}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--cream2)}
+tbody tr:last-child td{border-bottom:none}
+.d-name{font-weight:600;color:var(--ink)}
+.d-name .dsub{font-weight:400;font-size:12px;color:var(--muted);margin-top:2px}
+.code-chip{display:inline-block;font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;letter-spacing:.06em;
+  background:var(--cream2);border:1px dashed var(--pink-border);color:var(--wine);padding:3px 9px;border-radius:5px}
+.tag{display:inline-block;font-size:11.5px;letter-spacing:.03em;padding:3px 10px;border-radius:40px;background:var(--blush);color:var(--ink2);white-space:nowrap}
+.usage{font-variant-numeric:tabular-nums;color:var(--ink2)}
+.usage b{color:var(--ink);font-weight:600}
+.utrack{height:5px;width:78px;background:var(--pink-soft);border-radius:40px;overflow:hidden;margin-top:6px}
+.ufill{height:100%;background:var(--wine);border-radius:40px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;letter-spacing:.03em;padding:4px 11px;border-radius:40px;font-weight:500;white-space:nowrap}
+.pill .pdot{width:6px;height:6px;border-radius:50%}
+.pill.green{background:var(--green-bg);color:var(--green)}
+.pill.green .pdot{background:var(--green)}
+.pill.grey{background:var(--line2);color:var(--muted)}
+.pill.grey .pdot{background:var(--muted)}
+.pill.amber{background:var(--amber-bg);color:var(--amber)}
+.pill.amber .pdot{background:var(--amber)}
+.date-cell{font-size:13px;color:var(--muted);white-space:nowrap}
+.edit-link{font-size:12.5px;color:var(--muted);border:1px solid var(--line2);border-radius:5px;padding:7px 12px;background:transparent;transition:.18s}
+.edit-link:hover{border-color:var(--wine);color:var(--wine)}
+
+/* ============ WIZARD ============ */
+.wiz-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;padding:34px 0 20px}
+.wiz-head h1{font-size:34px;margin:6px 0 6px}
+.wiz-head p{color:var(--muted);font-size:14px}
+.back-link{font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;transition:.18s}
+.back-link:hover{color:var(--wine)}
+.back-link .ar{font-size:15px}
+
+/* step rail */
+.rail{display:flex;align-items:flex-start;gap:0;margin:0 0 26px;padding:18px 22px;background:var(--white);
+  border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow-x:auto}
+.rstep{display:flex;align-items:center;gap:11px;flex:1;min-width:160px}
+.rstep .rnum{flex-shrink:0;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:600;background:var(--cream2);color:var(--muted);border:1.5px solid var(--line2);transition:.2s}
+.rstep .rlbl{line-height:1.25}
+.rstep .rlbl .rt{font-size:13.5px;font-weight:600;color:var(--muted);transition:.2s}
+.rstep .rlbl .rs{font-size:11px;color:var(--muted);opacity:.85}
+.rline{flex:1;height:1.5px;background:var(--line2);margin:0 12px;min-width:18px;align-self:center;position:relative;top:-9px}
+.rstep.active .rnum{background:var(--wine);color:#fff;border-color:var(--wine);box-shadow:0 2px 8px rgba(130,33,62,.28)}
+.rstep.active .rlbl .rt{color:var(--ink)}
+.rstep.done .rnum{background:var(--pink-soft);color:var(--wine);border-color:var(--pink-border)}
+.rstep.done .rlbl .rt{color:var(--ink2)}
+.rstep.clickable{cursor:pointer}
+
+.progress-mini{height:4px;background:var(--pink-soft);border-radius:40px;overflow:hidden;margin:-14px 2px 26px}
+.progress-mini .pf{height:100%;width:25%;background:linear-gradient(90deg,var(--wine),#a83b5b);border-radius:40px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+
+/* step panels */
+.step{display:none}
+.step.on{display:block;animation:fade .3s ease}
+.step-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px 28px}
+.step-card .step-title{font-size:23px;margin-bottom:4px}
+.step-card .step-desc{color:var(--muted);font-size:14px;margin-bottom:22px}
+
+/* template grid (Step 1) */
+.tpl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tpl{position:relative;text-align:left;background:var(--cream2);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 16px 16px;transition:.2s;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-height:128px}
+.tpl:hover{border-color:var(--pink-border);background:var(--white);box-shadow:var(--shadow);transform:translateY(-2px)}
+.tpl.sel{border-color:var(--wine);background:var(--white);box-shadow:0 0 0 1.5px var(--wine), var(--shadow)}
+.tpl .thead{font-family:"DM Serif Display",serif;font-size:18px;color:var(--ink);line-height:1.25;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.chip{display:inline-flex;align-items:center;font-family:"DM Mono",ui-monospace,monospace;font-size:13.5px;font-weight:500;
+  background:var(--pink-soft);border:1px solid var(--pink-border);color:var(--wine);padding:1px 7px;border-radius:5px;line-height:1.5}
+.tpl .tsub{font-size:12.5px;color:var(--muted);margin-top:auto;line-height:1.4}
+.tpl .tick{position:absolute;top:11px;right:11px;width:22px;height:22px;border-radius:50%;background:var(--wine);color:#fff;
+  display:none;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.tpl.sel .tick{display:flex}
+
+.tpl-custom{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.tpl-custom .cl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.custom-row{display:flex;gap:10px;flex-wrap:wrap}
+.custom-btn{background:var(--white);border:1px solid var(--line2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--ink2);transition:.18s}
+.custom-btn:hover{border-color:var(--wine);color:var(--wine);background:var(--pink-soft)}
+
+/* form fields (Step 2 & 3) */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.frow.one{grid-template-columns:1fr}
+.frow.three{grid-template-columns:1fr 1fr 1fr}
+.field label{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;font-weight:600}
+.field .hint{font-size:12px;color:var(--muted);margin-top:6px}
+.field input[type=text],.field input[type=number],.field input[type=date],.field select{
+  width:100%;padding:11px 13px;background:var(--white);border:1px solid var(--line2);border-radius:var(--radius-sm);outline:none;transition:.2s}
+.field input:focus,.field select:focus{border-color:var(--wine);box-shadow:0 0 0 3px rgba(130,33,62,.08)}
+.inpgroup{display:flex;align-items:stretch}
+.inpgroup .pre,.inpgroup .suf{display:flex;align-items:center;padding:0 13px;background:var(--cream2);border:1px solid var(--line2);color:var(--muted);font-size:13.5px}
+.inpgroup .pre{border-right:0;border-radius:var(--radius-sm) 0 0 var(--radius-sm)}
+.inpgroup .suf{border-left:0;border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.inpgroup input{border-radius:0!important;flex:1}
+.inpgroup input:first-child{border-radius:var(--radius-sm) 0 0 var(--radius-sm)!important}
+.inpgroup .pre + input{border-radius:0 var(--radius-sm) var(--radius-sm) 0!important}
+.codegen{display:flex;gap:8px}
+.codegen input{text-transform:uppercase;letter-spacing:.06em;font-family:"DM Mono",ui-monospace,monospace}
+
+/* segmented control */
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:var(--radius-sm);overflow:hidden;flex-wrap:wrap}
+.seg button{padding:9px 16px;font-size:13px;background:var(--white);color:var(--ink2);border:0;transition:.16s}
+.seg button + button{border-left:1px solid var(--line2)}
+.seg button.on{background:var(--wine);color:#fff}
+
+/* toggle switch */
+.toggle-card{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--cream2);
+  border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+.toggle-card .tinfo .tt{font-weight:600;font-size:14.5px}
+.toggle-card .tinfo .td{font-size:12.5px;color:var(--muted);margin-top:3px}
+.switch{position:relative;width:50px;height:28px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--line2);border-radius:40px;transition:.25s;cursor:pointer}
+.slider::before{content:"";position:absolute;height:22px;width:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch input:checked + .slider{background:var(--wine)}
+.switch input:checked + .slider::before{transform:translateX(22px)}
+
+/* live preview box */
+.preview{margin-top:6px;background:linear-gradient(135deg,#f9eef0,#fbf6f3);border:1px solid var(--pink-soft);border-radius:var(--radius);padding:18px 20px}
+.preview .pl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--wine);font-weight:600;margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.preview .pl .dot{width:7px;height:7px;border-radius:50%;background:var(--wine)}
+.preview .ptext{font-family:"DM Serif Display",serif;font-size:19px;color:var(--ink);line-height:1.4}
+.preview .ptext em{font-style:normal;color:var(--wine)}
+
+.sec-label{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:24px 0 12px}
+.sec-label:first-child{margin-top:0}
+
+/* review (Step 4) */
+.rev-card{background:var(--cream2);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.rev-banner{background:linear-gradient(135deg,var(--wine),#9c3050);color:#fff;padding:22px 24px}
+.rev-banner .rtype{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.85;margin-bottom:7px}
+.rev-banner .rname{font-family:"DM Serif Display",serif;font-size:26px;line-height:1.2}
+.rev-banner .rcode{display:inline-block;margin-top:11px;font-family:"DM Mono",ui-monospace,monospace;font-size:13px;letter-spacing:.08em;
+  background:rgba(255,255,255,.16);border:1px dashed rgba(255,255,255,.5);padding:4px 12px;border-radius:5px}
+.rev-rows{padding:8px 24px 16px}
+.rev-row{display:flex;justify-content:space-between;gap:18px;padding:13px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rev-row:last-child{border-bottom:none}
+.rev-row .rk{color:var(--muted);flex-shrink:0}
+.rev-row .rv{color:var(--ink);text-align:right;font-weight:500}
+.rev-note{display:flex;gap:10px;align-items:flex-start;margin-top:16px;background:var(--amber-bg);border:1px solid #ecd7a8;border-radius:var(--radius);padding:13px 16px;font-size:13px;color:#7a5410}
+.rev-note .ri{flex-shrink:0;font-size:15px}
+
+/* footer nav */
+.wiz-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:22px}
+.wiz-nav .lft{display:flex;gap:10px}
+.wiz-nav .gate-hint{font-size:12.5px;color:var(--muted)}
+
+.demo-note{display:flex;align-items:center;gap:8px;justify-content:center;margin:34px auto 6px;font-size:12.5px;color:var(--muted);text-align:center}
+.demo-note .nf{color:var(--wine)}
+.foot{padding:26px 0 8px;text-align:center;color:var(--muted);font-size:12.5px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:14px 24px;border-radius:40px;font-size:14px;
+  opacity:0;pointer-events:none;transition:.3s;z-index:90;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast b{color:#f3c6cf}
+
+@media(max-width:860px){
+  .stats{grid-template-columns:1fr}
+  .tpl-grid{grid-template-columns:repeat(2,1fr)}
+  .dash-head h1{font-size:32px}
+  .rail{gap:0}
+  .rstep{min-width:62px;flex-direction:column;text-align:center;gap:7px}
+  .rstep .rlbl .rs{display:none}
+  .rstep .rlbl .rt{font-size:12px}
+  .rline{margin:0 4px;top:-26px}
+  .frow,.frow.three{grid-template-columns:1fr}
+  /* hide non-essential dashboard columns on small screens */
+  .col-date{display:none}
+}
+@media(max-width:560px){
+  .step-card{padding:20px 16px}
+  .col-usage{display:none}
+  .demo-pill{display:none}
+  .crumb{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="topbar__in">
+    <div class="wordmark">Code Official <span class="flower">✿</span></div>
+    <span class="crumb">后台<span class="sep">·</span>营销<span class="sep">·</span>优惠券</span>
+    <span class="demo-pill">Demo C · 创建向导</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ====================================================== -->
+  <!-- ============ VIEW A — DASHBOARD ===================== -->
+  <!-- ====================================================== -->
+  <section class="view on" id="viewDash">
+    <div class="dash-head">
+      <div>
+        <span class="eyebrow">Discounts</span>
+        <h1>优惠券</h1>
+        <p>创建并管理店铺优惠 — 打折、立减、买赠、运费优惠等。点击「新建优惠」用向导一步步完成设置。</p>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn btn--lg" id="newBtn">＋ 新建优惠</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat s-green">
+        <div class="n">4</div>
+        <div class="l">启用中 · Active</div>
+      </div>
+      <div class="stat">
+        <div class="n">128 <small>次</small></div>
+        <div class="l">本月使用 · Redeemed</div>
+      </div>
+      <div class="stat s-amber">
+        <div class="n">1</div>
+        <div class="l">即将到期 · Expiring</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>现有优惠</h2>
+        <span class="sub">共 5 个</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>名称 / 优惠码</th>
+              <th>类型</th>
+              <th class="col-usage">使用量</th>
+              <th>状态</th>
+              <th class="col-date">有效期</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="dashRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="demo-note"><span class="nf">✿</span> 这是设计 Demo，数据为示例，未连接真实后台。</div>
+    <div class="foot">Code Official · 后台优惠券 · 向导式版式样稿</div>
+  </section>
+
+  <!-- ====================================================== -->
+  <!-- ============ VIEW B — WIZARD ======================== -->
+  <!-- ====================================================== -->
+  <section class="view" id="viewWiz">
+    <div class="wiz-head">
+      <div>
+        <a class="back-link" id="backLink"><span class="ar">←</span> 返回列表</a>
+        <h1>新建优惠</h1>
+        <p>跟随 4 个步骤完成设置 · Create a discount in 4 steps</p>
+      </div>
+    </div>
+
+    <!-- step rail -->
+    <div class="rail" id="rail">
+      <div class="rstep active" data-step="1">
+        <span class="rnum">1</span>
+        <span class="rlbl"><span class="rt">选择类型</span><span class="rs">Pick template</span></span>
+      </div>
+      <div class="rline"></div>
+      <div class="rstep" data-step="2">
+        <span class="rnum">2</span>
+        <span class="rlbl"><span class="rt">设置规则</span><span class="rs">Configure</span></span>
+      </div>
+      <div class="rline"></div>
+      <div class="rstep" data-step="3">
+        <span class="rnum">3</span>
+        <span class="rlbl"><span class="rt">优惠码 & 排期</span><span class="rs">Code & schedule</span></span>
+      </div>
+      <div class="rline"></div>
+      <div class="rstep" data-step="4">
+        <span class="rnum">4</span>
+        <span class="rlbl"><span class="rt">检查并启用</span><span class="rs">Review</span></span>
+      </div>
+    </div>
+    <div class="progress-mini"><div class="pf" id="progFill"></div></div>
+
+    <!-- ===== STEP 1 — template grid ===== -->
+    <div class="step on" id="step1">
+      <div class="step-card">
+        <h2 class="step-title">选择优惠类型</h2>
+        <p class="step-desc">挑一个模板快速开始，方框里的数字之后都能改。Choose a template to start.</p>
+
+        <div class="tpl-grid" id="tplGrid"></div>
+
+        <div class="tpl-custom">
+          <div class="cl">自定义 · Custom</div>
+          <div class="custom-row">
+            <button class="custom-btn" data-custom="按消费金额">按消费金额</button>
+            <button class="custom-btn" data-custom="按购买数量">按购买数量</button>
+            <button class="custom-btn" data-custom="运费优惠">运费优惠</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="wiz-nav">
+        <div class="lft"></div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span class="gate-hint" id="gate1">请先选择一个类型</span>
+          <button class="btn" id="next1" disabled>下一步 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STEP 2 — rule config ===== -->
+    <div class="step" id="step2">
+      <div class="step-card">
+        <h2 class="step-title">设置规则</h2>
+        <p class="step-desc" id="step2desc">填写优惠的核心条件。下方会实时显示这条优惠的说明。</p>
+
+        <div id="ruleFields"></div>
+
+        <div class="sec-label">适用范围 · Applies to</div>
+        <div class="seg" id="scopeSeg">
+          <button class="on" data-scope="全部商品">全部商品</button>
+          <button data-scope="指定系列">指定系列</button>
+          <button data-scope="指定商品">指定商品</button>
+        </div>
+
+        <div class="sec-label">规则预览 · Preview</div>
+        <div class="preview">
+          <div class="pl"><span class="dot"></span>顾客将看到</div>
+          <div class="ptext" id="rulePreview">—</div>
+        </div>
+      </div>
+
+      <div class="wiz-nav">
+        <div class="lft"><button class="btn btn--ghost" data-prev>← 上一步</button></div>
+        <button class="btn" data-next>下一步 →</button>
+      </div>
+    </div>
+
+    <!-- ===== STEP 3 — code / limits / schedule ===== -->
+    <div class="step" id="step3">
+      <div class="step-card">
+        <h2 class="step-title">优惠码 & 排期</h2>
+        <p class="step-desc">设置名称、优惠码、使用上限与有效期。Name, code, limits and schedule.</p>
+
+        <div class="frow one">
+          <div class="field">
+            <label>优惠名称 · Name</label>
+            <input type="text" id="f_name" placeholder="例如：新季会员礼遇">
+            <div class="hint">仅后台显示，方便你识别这条优惠。</div>
+          </div>
+        </div>
+
+        <div class="frow">
+          <div class="field">
+            <label>优惠码 · Code</label>
+            <div class="codegen">
+              <input type="text" id="f_code" placeholder="SAVE10">
+              <button class="btn btn--ghost btn--sm" id="genCode" type="button">✦ 生成</button>
+            </div>
+            <div class="hint">顾客结账时输入此码（若开启需输入码）。</div>
+          </div>
+          <div class="field">
+            <label>有效期 · Valid period</label>
+            <div class="frow" style="margin:0;gap:10px">
+              <input type="date" id="f_start" value="2026-06-20">
+              <input type="date" id="f_end" value="2026-07-20">
+            </div>
+            <div class="hint">起始日 至 结束日。</div>
+          </div>
+        </div>
+
+        <div class="frow">
+          <div class="field">
+            <label>使用上限 · 总量</label>
+            <div class="inpgroup">
+              <input type="number" id="f_total" min="0" placeholder="200">
+              <span class="suf">次</span>
+            </div>
+            <div class="hint">留空表示不限总量。</div>
+          </div>
+          <div class="field">
+            <label>每人限用</label>
+            <div class="inpgroup">
+              <input type="number" id="f_per" min="0" value="1">
+              <span class="suf">次 / 人</span>
+            </div>
+            <div class="hint">每位顾客可使用次数。</div>
+          </div>
+        </div>
+
+        <div class="sec-label">是否需要优惠码 · Code required</div>
+        <div class="toggle-card">
+          <div class="tinfo">
+            <div class="tt" id="codeReqTitle">需顾客输入优惠码</div>
+            <div class="td" id="codeReqDesc">顾客需在结账页填写上面的优惠码才能享受优惠。</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="f_codereq" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="wiz-nav">
+        <div class="lft"><button class="btn btn--ghost" data-prev>← 上一步</button></div>
+        <button class="btn" data-next>下一步 →</button>
+      </div>
+    </div>
+
+    <!-- ===== STEP 4 — review ===== -->
+    <div class="step" id="step4">
+      <div class="step-card">
+        <h2 class="step-title">检查并启用</h2>
+        <p class="step-desc">确认以下设置无误后即可启用这条优惠。Review and activate.</p>
+
+        <div class="rev-card">
+          <div class="rev-banner">
+            <div class="rtype" id="rv_type">优惠类型</div>
+            <div class="rname" id="rv_name">未命名优惠</div>
+            <span class="rcode" id="rv_code">无需优惠码</span>
+          </div>
+          <div class="rev-rows" id="revRows"></div>
+        </div>
+
+        <div class="rev-note">
+          <span class="ri">✿</span>
+          <span>启用后优惠将立即按有效期生效。这是设计 Demo，点击「启用优惠」不会真正保存。</span>
+        </div>
+      </div>
+
+      <div class="wiz-nav">
+        <div class="lft"><button class="btn btn--ghost" data-prev>← 上一步</button></div>
+        <button class="btn btn--lg" id="activateBtn">✓ 启用优惠</button>
+      </div>
+    </div>
+
+    <div class="demo-note"><span class="nf">✿</span> 这是设计 Demo，数据为示例，未连接真实后台。</div>
+    <div class="foot">Code Official · 后台优惠券 · 向导式版式样稿</div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   样本数据 (mock) — 无后端
+   ========================================================= */
+var rm = function(n){ return "RM " + n; };
+
+/* 现有优惠（仪表盘列表） */
+var DISCOUNTS = [
+  {name:"新季会员礼遇", sub:"全场上衣 · 新品", code:"NEWSEASON15", type:"满件打折", used:142, cap:300, status:"green",  statusTxt:"启用",   period:"06/01 – 07/31"},
+  {name:"全场免运费",   sub:"满 RM 150 包邮", code:"FREESHIP",    type:"运费优惠", used:88,  cap:0,   status:"green",  statusTxt:"启用",   period:"长期有效"},
+  {name:"买二送一",     sub:"指定基础款",     code:"BUY2GET1",    type:"买一送一", used:37,  cap:200, status:"green",  statusTxt:"启用",   period:"06/10 – 06/30"},
+  {name:"会员专属 9 折", sub:"仅限会员",       code:"MEMBER10",    type:"满额立减", used:54,  cap:500, status:"grey",   statusTxt:"已停用", period:"已结束"},
+  {name:"开斋节大促",   sub:"指定系列 5 折",  code:"RAYA50",      type:"第 N 件优惠", used:0, cap:400, status:"amber",  statusTxt:"排期中", period:"07/15 起"}
+];
+
+/* EasyStore 模板映射（Step 1） — 8 张卡 + 各自的 Step2 规则配置 */
+var TEMPLATES = [
+  {
+    id:"t1", chip:"10%", headAfter:"OFF", sub:"满件打折（满 N 件）",
+    type:"满件打折",
+    fields:[
+      {key:"val", label:"折扣值", val:"10", suf:"%"},
+      {key:"qty", label:"满件门槛（件）", val:"2", suf:"件"}
+    ],
+    preview:function(v){ return '满 <em>'+v.qty+'</em> 件，整单立享 <em>'+v.val+'% OFF</em>'; }
+  },
+  {
+    id:"t2", chip:"RM5", headAfter:"OFF", sub:"满额立减（消费满 RM N）",
+    type:"满额立减",
+    fields:[
+      {key:"val", label:"立减金额", pre:"RM", val:"5"},
+      {key:"thr", label:"消费门槛", pre:"RM", val:"60"}
+    ],
+    preview:function(v){ return '消费满 <em>RM '+v.thr+'</em>，立减 <em>RM '+v.val+'</em>'; }
+  },
+  {
+    id:"t3", chipBefore:"Buy", chip:"3", chipMid:"at", chip2:"RM99", sub:"组合价（指定系列）",
+    type:"组合价",
+    fields:[
+      {key:"qty", label:"组合件数", val:"3", suf:"件"},
+      {key:"price", label:"组合价", pre:"RM", val:"99"}
+    ],
+    preview:function(v){ return '任选 <em>'+v.qty+'</em> 件，打包价仅 <em>RM '+v.price+'</em>'; }
+  },
+  {
+    id:"t4", chip:"RM10", headAfter:"购物金", sub:"消费回馈（每消费 RM N）",
+    type:"消费回馈",
+    fields:[
+      {key:"reward", label:"赠送购物金", pre:"RM", val:"10"},
+      {key:"per", label:"每消费", pre:"RM", val:"100"}
+    ],
+    preview:function(v){ return '每消费 <em>RM '+v.per+'</em>，回馈 <em>RM '+v.reward+'</em> 购物金'; }
+  },
+  {
+    id:"t5", chipBefore:"Buy", chip:"1", chipMid:"Free", chip2:"1", sub:"买一送一（指定商品）",
+    type:"买一送一",
+    fields:[
+      {key:"buy", label:"购买件数", val:"1", suf:"件"},
+      {key:"free", label:"赠送件数", val:"1", suf:"件"}
+    ],
+    preview:function(v){ return '购买 <em>'+v.buy+'</em> 件，赠送 <em>'+v.free+'</em> 件（取同款较低价）'; }
+  },
+  {
+    id:"t6", chip:"50%", headAfter:"OFF", sub:"第 N 件优惠（每第 X 件）",
+    type:"第 N 件优惠",
+    fields:[
+      {key:"val", label:"折扣值", val:"50", suf:"%"},
+      {key:"nth", label:"第 N 件", val:"2", suf:"件"}
+    ],
+    preview:function(v){ return '每购买第 <em>'+v.nth+'</em> 件，该件 <em>'+v.val+'% OFF</em>'; }
+  },
+  {
+    id:"t7", chipBefore:"Free", chip:"赠品", chipPlain:true, sub:"满额送礼（任意订单）",
+    type:"满额送礼",
+    fields:[
+      {key:"gift", label:"赠品名称", val:"帆布袋", text:true},
+      {key:"thr", label:"消费门槛", pre:"RM", val:"120"}
+    ],
+    preview:function(v){ return '消费满 <em>RM '+v.thr+'</em>，赠送 <em>'+v.gift+'</em> 一份'; }
+  },
+  {
+    id:"t8", chip:"RM10", headAfter:"加购", sub:"加购价（满件可加购）",
+    type:"加购价",
+    fields:[
+      {key:"price", label:"加购价", pre:"RM", val:"10"},
+      {key:"thr", label:"满件门槛（件）", val:"2", suf:"件"}
+    ],
+    preview:function(v){ return '满 <em>'+v.thr+'</em> 件，可用 <em>RM '+v.price+'</em> 加购指定商品'; }
+  }
+];
+
+/* =========================================================
+   仪表盘渲染
+   ========================================================= */
+(function renderDash(){
+  var html = DISCOUNTS.map(function(d){
+    var usageHtml;
+    if(d.cap > 0){
+      var pct = Math.min(100, Math.round(d.used/d.cap*100));
+      usageHtml = '<div class="usage"><b>'+d.used+'</b> / '+d.cap+'</div>'+
+                  '<div class="utrack"><div class="ufill" style="width:'+pct+'%"></div></div>';
+    } else {
+      usageHtml = '<div class="usage"><b>'+d.used+'</b> <span class="muted" style="color:var(--muted)">/ 不限</span></div>';
+    }
+    return '<tr>'+
+      '<td><div class="d-name">'+d.name+'<div class="dsub">'+d.sub+'</div></div>'+
+          '<span class="code-chip" style="margin-top:7px">'+d.code+'</span></td>'+
+      '<td><span class="tag">'+d.type+'</span></td>'+
+      '<td class="col-usage">'+usageHtml+'</td>'+
+      '<td><span class="pill '+d.status+'"><span class="pdot"></span>'+d.statusTxt+'</span></td>'+
+      '<td class="date-cell col-date">'+d.period+'</td>'+
+      '<td style="text-align:right"><button class="edit-link" data-edit="'+d.code+'">编辑</button></td>'+
+    '</tr>';
+  }).join("");
+  document.getElementById("dashRows").innerHTML = html;
+})();
+
+document.getElementById("dashRows").addEventListener("click", function(e){
+  var b = e.target.closest("[data-edit]");
+  if(b) toast("（Demo）编辑「"+b.getAttribute("data-edit")+"」— 此样稿仅演示新建向导 ✿");
+});
+
+/* =========================================================
+   视图切换：仪表盘 <-> 向导
+   ========================================================= */
+var viewDash = document.getElementById("viewDash");
+var viewWiz  = document.getElementById("viewWiz");
+
+function showDash(){
+  viewWiz.classList.remove("on");
+  viewDash.classList.add("on");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function showWiz(){
+  viewDash.classList.remove("on");
+  viewWiz.classList.add("on");
+  gotoStep(1);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.getElementById("newBtn").addEventListener("click", showWiz);
+document.getElementById("backLink").addEventListener("click", showDash);
+
+/* =========================================================
+   向导状态
+   ========================================================= */
+var STATE = {
+  step:1,
+  tplId:null,
+  tpl:null,
+  ruleVals:{},     // key -> value
+  scope:"全部商品",
+  name:"",
+  code:"",
+  start:"2026-06-20",
+  end:"2026-07-20",
+  total:"",
+  per:"1",
+  codeReq:true
+};
+var MAX_DONE = 1; // furthest step reached (for rail clickability)
+
+/* =========================================================
+   STEP 1 — 渲染模板网格
+   ========================================================= */
+(function renderTemplates(){
+  var grid = document.getElementById("tplGrid");
+  grid.innerHTML = TEMPLATES.map(function(t){
+    var head = "";
+    if(t.chipBefore) head += '<span>'+t.chipBefore+'</span>';
+    head += '<span class="chip">'+t.chip+'</span>';
+    if(t.chipMid)   head += '<span>'+t.chipMid+'</span>';
+    if(t.chip2)     head += '<span class="chip">'+t.chip2+'</span>';
+    if(t.headAfter) head += '<span>'+t.headAfter+'</span>';
+    return '<button class="tpl" data-tpl="'+t.id+'">'+
+        '<span class="tick">✓</span>'+
+        '<span class="thead">'+head+'</span>'+
+        '<span class="tsub">'+t.sub+'</span>'+
+      '</button>';
+  }).join("");
+
+  grid.querySelectorAll("[data-tpl]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      grid.querySelectorAll(".tpl").forEach(function(x){ x.classList.remove("sel"); });
+      btn.classList.add("sel");
+      selectTemplate(btn.getAttribute("data-tpl"));
+    });
+  });
+})();
+
+document.querySelectorAll("[data-custom]").forEach(function(b){
+  b.addEventListener("click", function(){
+    toast("（Demo）自定义类型「"+b.getAttribute("data-custom")+"」可在此进入高级设置 ✿");
+  });
+});
+
+function selectTemplate(id){
+  var t = TEMPLATES.find(function(x){ return x.id === id; });
+  STATE.tplId = id;
+  STATE.tpl = t;
+  STATE.ruleVals = {};
+  t.fields.forEach(function(f){ STATE.ruleVals[f.key] = f.val; });
+  // suggest a name based on type
+  if(!STATE.name){ document.getElementById("f_name").placeholder = "例如：" + t.type; }
+  document.getElementById("next1").disabled = false;
+  document.getElementById("gate1").textContent = "已选：" + t.type;
+  buildRuleFields();
+}
+
+/* =========================================================
+   STEP 2 — 规则字段 + 实时预览
+   ========================================================= */
+function buildRuleFields(){
+  var t = STATE.tpl;
+  if(!t) return;
+  document.getElementById("step2desc").textContent = "你选择了「" + t.type + "」。填写下面的条件，预览会实时更新。";
+  var box = document.getElementById("ruleFields");
+
+  var cols = t.fields.length >= 2 ? "" : " one";
+  var inner = t.fields.map(function(f){
+    var input;
+    if(f.text){
+      input = '<input type="text" data-rk="'+f.key+'" value="'+STATE.ruleVals[f.key]+'">';
+    } else if(f.pre){
+      input = '<div class="inpgroup"><span class="pre">'+f.pre+'</span>'+
+              '<input type="number" data-rk="'+f.key+'" value="'+STATE.ruleVals[f.key]+'" min="0"></div>';
+    } else if(f.suf){
+      input = '<div class="inpgroup"><input type="number" data-rk="'+f.key+'" value="'+STATE.ruleVals[f.key]+'" min="0">'+
+              '<span class="suf">'+f.suf+'</span></div>';
+    } else {
+      input = '<input type="number" data-rk="'+f.key+'" value="'+STATE.ruleVals[f.key]+'" min="0">';
+    }
+    return '<div class="field"><label>'+f.label+'</label>'+input+'</div>';
+  }).join("");
+
+  box.innerHTML = '<div class="frow'+cols+'">'+inner+'</div>';
+
+  box.querySelectorAll("[data-rk]").forEach(function(inp){
+    inp.addEventListener("input", function(){
+      STATE.ruleVals[inp.getAttribute("data-rk")] = inp.value || "0";
+      updatePreview();
+    });
+  });
+  updatePreview();
+}
+
+function updatePreview(){
+  var t = STATE.tpl;
+  if(!t) return;
+  var base = t.preview(STATE.ruleVals);
+  var scopeTxt = STATE.scope === "全部商品" ? "全场商品" : ("仅" + STATE.scope);
+  document.getElementById("rulePreview").innerHTML = base + ' · <em>' + scopeTxt + '</em>';
+}
+
+/* 适用范围 segmented */
+document.getElementById("scopeSeg").addEventListener("click", function(e){
+  var b = e.target.closest("[data-scope]");
+  if(!b) return;
+  this.querySelectorAll("button").forEach(function(x){ x.classList.remove("on"); });
+  b.classList.add("on");
+  STATE.scope = b.getAttribute("data-scope");
+  updatePreview();
+});
+
+/* =========================================================
+   STEP 3 — 绑定输入
+   ========================================================= */
+document.getElementById("genCode").addEventListener("click", function(){
+  var n = Math.floor(Math.random()*90) + 10;
+  var word = ["SAVE","CODE","STYLE","LOOK","CHIC"][Math.floor(Math.random()*5)];
+  var code = word + n;
+  document.getElementById("f_code").value = code;
+  STATE.code = code;
+});
+
+function bindField(id, key){
+  var el = document.getElementById(id);
+  el.addEventListener("input", function(){ STATE[key] = el.value; });
+}
+bindField("f_name","name");
+bindField("f_code","code");
+bindField("f_start","start");
+bindField("f_end","end");
+bindField("f_total","total");
+bindField("f_per","per");
+
+var codeReq = document.getElementById("f_codereq");
+codeReq.addEventListener("change", function(){
+  STATE.codeReq = codeReq.checked;
+  var title = document.getElementById("codeReqTitle");
+  var desc = document.getElementById("codeReqDesc");
+  if(codeReq.checked){
+    title.textContent = "需顾客输入优惠码";
+    desc.textContent = "顾客需在结账页填写上面的优惠码才能享受优惠。";
+  } else {
+    title.textContent = "自动套用（无需优惠码）";
+    desc.textContent = "满足条件即自动生效，顾客无需输入任何优惠码。";
+  }
+});
+
+/* =========================================================
+   STEP 4 — 生成审阅摘要
+   ========================================================= */
+function buildReview(){
+  var t = STATE.tpl;
+  document.getElementById("rv_type").textContent = (t ? t.type : "优惠类型") + " · DISCOUNT";
+  document.getElementById("rv_name").textContent = STATE.name || "未命名优惠";
+
+  var codeEl = document.getElementById("rv_code");
+  if(STATE.codeReq){
+    codeEl.style.display = "inline-block";
+    codeEl.textContent = STATE.code ? STATE.code : "（未填写优惠码）";
+  } else {
+    codeEl.style.display = "inline-block";
+    codeEl.textContent = "自动套用 · 无需优惠码";
+  }
+
+  var rows = [];
+  // rule summary in plain Chinese
+  if(t){
+    var ruleTxt = t.preview(STATE.ruleVals).replace(/<\/?em>/g, "");
+    rows.push(["优惠内容", ruleTxt]);
+  }
+  rows.push(["适用范围", STATE.scope === "全部商品" ? "全场商品" : ("仅" + STATE.scope)]);
+  rows.push(["优惠码方式", STATE.codeReq ? ("需输入：" + (STATE.code || "—")) : "自动套用（无需码）"]);
+  rows.push(["使用上限", (STATE.total ? (STATE.total + " 次") : "不限总量") + " · 每人 " + (STATE.per || "1") + " 次"]);
+  rows.push(["有效期", fmtDate(STATE.start) + " 至 " + fmtDate(STATE.end)]);
+
+  document.getElementById("revRows").innerHTML = rows.map(function(r){
+    return '<div class="rev-row"><span class="rk">'+r[0]+'</span><span class="rv">'+r[1]+'</span></div>';
+  }).join("");
+}
+
+function fmtDate(d){
+  if(!d) return "—";
+  var p = d.split("-");
+  if(p.length !== 3) return d;
+  return p[0] + "年" + p[1] + "月" + p[2] + "日";
+}
+
+/* =========================================================
+   步骤导航
+   ========================================================= */
+var railSteps = document.querySelectorAll("#rail .rstep");
+
+function gotoStep(n){
+  STATE.step = n;
+  if(n > MAX_DONE) MAX_DONE = n;
+
+  // panels
+  for(var i=1;i<=4;i++){
+    document.getElementById("step"+i).classList.toggle("on", i===n);
+  }
+
+  // rail states
+  railSteps.forEach(function(rs){
+    var s = parseInt(rs.getAttribute("data-step"),10);
+    rs.classList.remove("active","done","clickable");
+    if(s === n) rs.classList.add("active");
+    else if(s < n) rs.classList.add("done");
+    // allow clicking any step up to the furthest reached
+    if(s <= MAX_DONE && s !== n) rs.classList.add("clickable");
+  });
+
+  // progress bar
+  document.getElementById("progFill").style.width = (n/4*100) + "%";
+
+  // build dynamic content lazily
+  if(n === 2) buildRuleFields();
+  if(n === 4) buildReview();
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* rail clicking (only to reached steps; never skip past step 1 without a template) */
+railSteps.forEach(function(rs){
+  rs.addEventListener("click", function(){
+    var s = parseInt(rs.getAttribute("data-step"),10);
+    if(s === STATE.step) return;
+    if(!STATE.tplId && s > 1){ toast("请先在第 1 步选择一个优惠类型 ✿"); return; }
+    if(s <= MAX_DONE) gotoStep(s);
+  });
+});
+
+/* Step 1 dedicated next (gated) */
+document.getElementById("next1").addEventListener("click", function(){
+  if(!STATE.tplId){ toast("请先选择一个优惠类型 ✿"); return; }
+  gotoStep(2);
+});
+
+/* generic prev / next buttons inside steps 2–4 */
+document.querySelectorAll("[data-next]").forEach(function(b){
+  b.addEventListener("click", function(){
+    if(STATE.step < 4) gotoStep(STATE.step + 1);
+  });
+});
+document.querySelectorAll("[data-prev]").forEach(function(b){
+  b.addEventListener("click", function(){
+    if(STATE.step > 1) gotoStep(STATE.step - 1);
+  });
+});
+
+/* 启用优惠 */
+document.getElementById("activateBtn").addEventListener("click", function(){
+  toast("（Demo）优惠已启用 ✿ <b>" + (STATE.name || STATE.tpl.type) + "</b>");
+  setTimeout(function(){
+    // reset wizard for next time
+    MAX_DONE = 1;
+    resetWizard();
+    showDash();
+  }, 1400);
+});
+
+function resetWizard(){
+  STATE.tplId = null; STATE.tpl = null; STATE.ruleVals = {};
+  document.querySelectorAll("#tplGrid .tpl").forEach(function(x){ x.classList.remove("sel"); });
+  document.getElementById("next1").disabled = true;
+  document.getElementById("gate1").textContent = "请先选择一个类型";
+}
+
+/* =========================================================
+   toast
+   ========================================================= */
+var toastEl = document.getElementById("toast"), toastT;
+function toast(msg){
+  toastEl.innerHTML = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ toastEl.classList.remove("show"); }, 2800);
+}
+</script>
+</body>
+</html>

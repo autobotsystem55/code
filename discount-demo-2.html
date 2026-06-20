@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>优惠券 · 分类卡片 (Demo B) · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFFAF1; --cream2:#FAF6F3; --panel:#FAF6F3; --white:#fff;
+    --blush:#F2E4D9; --pink:#E9C9CC; --pink-soft:#F3E2E4; --pink-border:#DAB0B7;
+    --wine:#82213E; --wine-deep:#6A1A32; --mauve:#6B4B4F;
+    --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C;
+    --line:#ECD9D6; --line2:#E2DCD8;
+    --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6B12; --amber-bg:#FBF0DA;
+    --radius:8px; --radius-sm:6px;
+    --shadow:0 1px 3px rgba(28,28,28,.06), 0 8px 28px rgba(28,28,28,.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4,.serif{font-family:"DM Serif Display",Georgia,serif;font-weight:400;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:40;
+    background:var(--white);
+    border-bottom:1px solid var(--pink-soft);
+  }
+  .topbar-inner{
+    max-width:1180px;margin:0 auto;padding:13px 22px;
+    display:flex;align-items:center;gap:18px;
+  }
+  .wordmark{font-family:"DM Serif Display",serif;font-size:22px;letter-spacing:.4px;color:var(--ink);white-space:nowrap;}
+  .wordmark .flower{color:var(--wine);margin-left:3px;}
+  .crumb{font-size:12.5px;color:var(--muted);letter-spacing:.2px;}
+  .crumb .sep{margin:0 6px;opacity:.5;}
+  .demo-pill{
+    margin-left:auto;
+    border-radius:40px;font-size:11.5px;color:var(--wine);
+    border:1px solid var(--pink);background:var(--pink-soft);
+    padding:5px 13px;white-space:nowrap;letter-spacing:.2px;
+  }
+
+  /* ---------- layout ---------- */
+  main{max-width:1180px;margin:0 auto;padding:0 22px 90px;}
+
+  /* ---------- page header ---------- */
+  .page-head{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+    padding:42px 0 26px;
+  }
+  .eyebrow{
+    font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--wine);font-weight:600;margin-bottom:10px;
+  }
+  .page-head h1{font-size:42px;line-height:1.05;margin:0 0 10px;}
+  .page-head .lede{color:var(--muted);font-size:15px;max-width:520px;}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    border-radius:var(--radius-sm);font-size:14px;font-weight:600;
+    padding:11px 18px;border:1px solid transparent;line-height:1;
+    transition:background .18s ease, border-color .18s ease, color .18s ease, transform .12s ease;
+  }
+  .btn svg{width:17px;height:17px;}
+  .btn-primary{background:var(--wine);color:#fff;}
+  .btn-primary:hover{background:var(--wine-deep);}
+  .btn-primary:active{transform:translateY(1px);}
+  .btn-ghost{background:transparent;border-color:var(--pink-border);color:var(--wine);}
+  .btn-ghost:hover{background:var(--pink-soft);}
+  .btn-sm{padding:8px 14px;font-size:13px;}
+
+  /* ---------- demo note ---------- */
+  .demo-note{
+    display:flex;align-items:center;gap:9px;
+    font-size:12.5px;color:var(--muted);
+    background:var(--cream2);border:1px solid var(--line);
+    border-radius:var(--radius);padding:10px 14px;margin-bottom:26px;
+  }
+  .demo-note svg{width:15px;height:15px;color:var(--wine);flex:none;}
+
+  /* ---------- existing discount rows ---------- */
+  .section-label{
+    display:flex;align-items:baseline;gap:12px;margin:6px 0 16px;
+  }
+  .section-label h2{font-size:20px;margin:0;}
+  .section-label .count-tag{
+    font-size:12px;color:var(--muted);
+    border:1px solid var(--line);border-radius:40px;padding:2px 10px;
+  }
+  .rows{display:flex;flex-direction:column;gap:12px;}
+  .row{
+    display:grid;
+    grid-template-columns: minmax(210px,1.5fr) 130px 150px 120px minmax(150px,1fr) 70px;
+    align-items:center;gap:18px;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 20px;
+    transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+  .row:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--pink-soft);}
+  .row-main{min-width:0;}
+  .row-name{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+  .code-chip{
+    display:inline-block;font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12px;letter-spacing:.5px;color:var(--wine);
+    background:var(--pink-soft);border:1px solid var(--pink);
+    border-radius:5px;padding:2px 8px;
+  }
+  .type-tag{
+    display:inline-block;font-size:12px;color:var(--mauve);
+    background:var(--cream2);border:1px solid var(--line);
+    border-radius:40px;padding:4px 11px;white-space:nowrap;
+  }
+  .usage{font-size:12.5px;color:var(--muted);}
+  .usage .num{color:var(--ink2);font-weight:600;}
+  .bar{height:5px;background:var(--blush);border-radius:40px;margin-top:7px;overflow:hidden;}
+  .bar span{display:block;height:100%;background:var(--wine);border-radius:40px;}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;font-weight:600;border-radius:40px;padding:4px 11px;white-space:nowrap;
+  }
+  .pill .dot{width:6px;height:6px;border-radius:50%;}
+  .pill.on{color:var(--green);background:var(--green-bg);}
+  .pill.on .dot{background:var(--green);}
+  .pill.off{color:var(--muted);background:var(--cream2);border:1px solid var(--line);}
+  .pill.off .dot{background:var(--muted);}
+  .pill.sched{color:var(--amber);background:var(--amber-bg);}
+  .pill.sched .dot{background:var(--amber);}
+  .date{font-size:12.5px;color:var(--muted);}
+  .row-edit{
+    justify-self:end;font-size:13px;color:var(--wine);font-weight:600;
+    border:1px solid var(--pink-border);border-radius:var(--radius-sm);
+    padding:7px 14px;background:transparent;transition:background .16s ease;
+  }
+  .row-edit:hover{background:var(--pink-soft);}
+
+  /* ---------- template picker ---------- */
+  .picker{display:none;}
+  .picker.show{display:block;animation:fadeUp .3s ease;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .picker-head{
+    display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:6px 0 22px;border-bottom:1px solid var(--line);margin-bottom:30px;
+  }
+  .picker-head h2{font-size:24px;margin:0 0 4px;}
+  .picker-head .sub{font-size:13.5px;color:var(--muted);}
+  .back-link{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:13.5px;color:var(--wine);font-weight:600;
+    border:1px solid var(--pink-border);border-radius:var(--radius-sm);
+    padding:8px 14px;background:transparent;transition:background .16s ease;white-space:nowrap;
+  }
+  .back-link:hover{background:var(--pink-soft);}
+  .back-link svg{width:16px;height:16px;}
+
+  .cat{margin-bottom:38px;}
+  .cat-head{margin-bottom:16px;}
+  .cat-head .cat-eyebrow{
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--wine);font-weight:600;
+  }
+  .cat-head h3{font-size:19px;margin:5px 0 0;}
+  .cat-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;
+  }
+  .tpl{
+    display:flex;align-items:flex-start;gap:14px;text-align:left;
+    background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 18px;width:100%;
+    transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+  .tpl:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--pink-border);}
+  .tpl-ico{
+    flex:none;width:42px;height:42px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--pink-soft);color:var(--wine);
+  }
+  .tpl-ico svg{width:21px;height:21px;}
+  .tpl-body{min-width:0;}
+  .tpl-title{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:3px;}
+  .tpl-desc{font-size:13px;color:var(--muted);line-height:1.45;}
+  .tpl-en{font-size:11px;color:var(--mauve);opacity:.8;letter-spacing:.3px;margin-top:7px;}
+
+  /* ---------- drawer ---------- */
+  .backdrop{
+    position:fixed;inset:0;background:rgba(28,18,20,.34);
+    opacity:0;visibility:hidden;transition:opacity .3s ease, visibility .3s ease;
+    z-index:60;
+  }
+  .backdrop.show{opacity:1;visibility:visible;}
+  .drawer{
+    position:fixed;top:0;right:0;height:100%;width:440px;max-width:92vw;
+    background:var(--cream);box-shadow:-12px 0 40px rgba(28,28,28,.16);
+    transform:translateX(100%);transition:transform .34s cubic-bezier(.4,0,.2,1);
+    z-index:70;display:flex;flex-direction:column;
+  }
+  .drawer.show{transform:translateX(0);}
+  .drawer-head{
+    display:flex;align-items:flex-start;gap:14px;
+    padding:22px 24px 18px;border-bottom:1px solid var(--line);background:var(--white);
+  }
+  .drawer-head .tpl-ico{width:40px;height:40px;}
+  .drawer-head .dh-text{min-width:0;flex:1;}
+  .drawer-head .eyebrow{margin-bottom:5px;}
+  .drawer-head h3{font-size:21px;margin:0;line-height:1.15;}
+  .drawer-close{
+    flex:none;width:34px;height:34px;border-radius:50%;
+    border:1px solid var(--line);background:var(--white);color:var(--muted);
+    display:flex;align-items:center;justify-content:center;transition:background .16s ease,color .16s ease;
+  }
+  .drawer-close:hover{background:var(--pink-soft);color:var(--wine);}
+  .drawer-close svg{width:16px;height:16px;}
+  .drawer-body{flex:1;overflow-y:auto;padding:22px 24px;}
+
+  .field{margin-bottom:20px;}
+  .field > label{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:7px;}
+  .field .hint{font-size:11.5px;color:var(--muted);font-weight:400;margin-left:6px;}
+  .input{
+    width:100%;font-family:inherit;font-size:14px;color:var(--ink);
+    background:var(--white);border:1px solid var(--line2);border-radius:var(--radius-sm);
+    padding:10px 13px;transition:border-color .16s ease, box-shadow .16s ease;
+  }
+  .input:focus{outline:none;border-color:var(--pink-border);box-shadow:0 0 0 3px var(--pink-soft);}
+  .input::placeholder{color:#b8aca5;}
+  .input-mono{font-family:"DM Mono",ui-monospace,Consolas,monospace;letter-spacing:.6px;color:var(--wine);}
+
+  .code-row{display:flex;gap:9px;}
+  .code-row .input{flex:1;}
+  .gen-btn{
+    flex:none;display:inline-flex;align-items:center;gap:6px;
+    font-size:12.5px;font-weight:600;color:var(--wine);
+    background:var(--pink-soft);border:1px solid var(--pink);border-radius:var(--radius-sm);
+    padding:0 14px;transition:background .16s ease;
+  }
+  .gen-btn:hover{background:var(--pink);}
+  .gen-btn svg{width:14px;height:14px;}
+
+  .rule-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .rule-row .input{width:auto;flex:1;min-width:90px;}
+  .rule-row .rule-txt{font-size:13.5px;color:var(--ink2);white-space:nowrap;}
+  .affix{display:flex;align-items:center;}
+  .affix .pre{
+    font-size:13px;color:var(--muted);background:var(--cream2);
+    border:1px solid var(--line2);border-right:none;
+    border-radius:var(--radius-sm) 0 0 var(--radius-sm);padding:10px 11px;
+  }
+  .affix .input{border-radius:0 var(--radius-sm) var(--radius-sm) 0;width:90px;flex:none;}
+
+  .seg{display:flex;background:var(--cream2);border:1px solid var(--line2);border-radius:var(--radius-sm);padding:3px;gap:3px;}
+  .seg button{
+    flex:1;font-size:12.5px;font-weight:600;color:var(--muted);
+    background:transparent;border:none;border-radius:5px;padding:8px 6px;transition:all .16s ease;
+  }
+  .seg button.active{background:var(--white);color:var(--wine);box-shadow:0 1px 2px rgba(28,28,28,.08);}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+
+  .preview{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 17px;margin-top:8px;
+  }
+  .preview .pv-eyebrow{
+    font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--wine);font-weight:600;
+    display:flex;align-items:center;gap:7px;margin-bottom:9px;
+  }
+  .preview .pv-eyebrow svg{width:14px;height:14px;}
+  .preview .pv-text{font-size:14px;color:var(--ink2);line-height:1.55;}
+  .preview .pv-text b{color:var(--wine);font-weight:600;}
+
+  .drawer-foot{
+    display:flex;gap:11px;padding:16px 24px;
+    border-top:1px solid var(--line);background:var(--white);
+  }
+  .drawer-foot .btn{flex:1;justify-content:center;}
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;
+    padding:12px 22px;border-radius:40px;box-shadow:0 10px 30px rgba(28,28,28,.25);
+    opacity:0;visibility:hidden;transition:opacity .25s ease, transform .25s ease, visibility .25s ease;
+    z-index:90;display:flex;align-items:center;gap:9px;
+  }
+  .toast svg{width:16px;height:16px;color:#9be0b4;}
+  .toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:920px){
+    .row{grid-template-columns:1fr 1fr;gap:14px 18px;}
+    .row-main{grid-column:1 / -1;}
+    .row-edit{grid-column:1 / -1;justify-self:start;}
+  }
+  @media (max-width:860px){
+    .page-head{flex-direction:column;align-items:flex-start;gap:18px;}
+    .page-head h1{font-size:34px;}
+    .cat-grid{grid-template-columns:1fr;}
+    .drawer{width:100%;max-width:100%;}
+  }
+  @media (max-width:560px){
+    .row{grid-template-columns:1fr;}
+    .two-col{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <span class="wordmark">Code Official<span class="flower">✿</span></span>
+    <span class="crumb">后台<span class="sep">·</span>营销<span class="sep">·</span>优惠券</span>
+    <span class="demo-pill">Demo B · 分类卡片</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===== PAGE HEADER ===== -->
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">营销工具 · Marketing</div>
+      <h1>优惠券</h1>
+      <p class="lede">创建并管理店铺折扣、买赠与运费优惠，让每一季新品都有恰到好处的惊喜。</p>
+    </div>
+    <button class="btn btn-primary" id="newBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      新建优惠
+    </button>
+  </div>
+
+  <div class="demo-note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/></svg>
+    这是设计 Demo，数据为示例，未连接真实后台。
+  </div>
+
+  <!-- ===== EXISTING LIST ===== -->
+  <section id="listView">
+    <div class="section-label">
+      <h2>现有优惠</h2>
+      <span class="count-tag">5 个 · 3 个启用中</span>
+    </div>
+    <div class="rows">
+
+      <div class="row">
+        <div class="row-main">
+          <div class="row-name">新季会员折扣</div>
+          <span class="code-chip">NEWSEASON15</span>
+        </div>
+        <span class="type-tag">满额打折 · 15%</span>
+        <div class="usage"><span class="num">142</span> / 500<div class="bar"><span style="width:28%"></span></div></div>
+        <span class="pill on"><span class="dot"></span>启用</span>
+        <span class="date">至 2026-07-31</span>
+        <button class="row-edit">编辑</button>
+      </div>
+
+      <div class="row">
+        <div class="row-main">
+          <div class="row-name">全场免运费</div>
+          <span class="code-chip">FREESHIP</span>
+        </div>
+        <span class="type-tag">免运费 · 满 RM150</span>
+        <div class="usage"><span class="num">876</span> / 不限<div class="bar"><span style="width:62%"></span></div></div>
+        <span class="pill on"><span class="dot"></span>启用</span>
+        <span class="date">长期有效</span>
+        <button class="row-edit">编辑</button>
+      </div>
+
+      <div class="row">
+        <div class="row-main">
+          <div class="row-name">买二送一 · 基本款</div>
+          <span class="code-chip">BUY2GET1</span>
+        </div>
+        <span class="type-tag">买赠 · Buy 2 Free 1</span>
+        <div class="usage"><span class="num">58</span> / 200<div class="bar"><span style="width:29%"></span></div></div>
+        <span class="pill off"><span class="dot"></span>已停用</span>
+        <span class="date">至 2026-05-20</span>
+        <button class="row-edit">编辑</button>
+      </div>
+
+      <div class="row">
+        <div class="row-main">
+          <div class="row-name">会员专属 9 折</div>
+          <span class="code-chip">MEMBER10</span>
+        </div>
+        <span class="type-tag">满额打折 · 10%</span>
+        <div class="usage"><span class="num">312</span> / 1000<div class="bar"><span style="width:31%"></span></div></div>
+        <span class="pill on"><span class="dot"></span>启用</span>
+        <span class="date">长期有效</span>
+        <button class="row-edit">编辑</button>
+      </div>
+
+      <div class="row">
+        <div class="row-main">
+          <div class="row-name">开斋节限定 · 立减 RM50</div>
+          <span class="code-chip">RAYA50</span>
+        </div>
+        <span class="type-tag">满额立减 · RM50</span>
+        <div class="usage"><span class="num">0</span> / 300<div class="bar"><span style="width:0%"></span></div></div>
+        <span class="pill sched"><span class="dot"></span>排期中</span>
+        <span class="date">2026-07-01 起</span>
+        <button class="row-edit">编辑</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== TEMPLATE PICKER ===== -->
+  <section class="picker" id="pickerView">
+    <div class="picker-head">
+      <div>
+        <h2>选择优惠类型</h2>
+        <div class="sub">Choose a discount template · 选择一种模板，右侧抽屉中完成配置</div>
+      </div>
+      <button class="back-link" id="backBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        返回列表
+      </button>
+    </div>
+
+    <!-- Category: Discounts -->
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-eyebrow">折扣</div>
+        <h3>Discounts</h3>
+      </div>
+      <div class="cat-grid">
+
+        <button class="tpl" data-title="满额打折" data-eyebrow="折扣 · Discount"
+          data-rule="percent" data-num="10" data-en="Percentage off · 满件/满额"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">满额打折</span>
+            <span class="tpl-desc">满指定件数或金额，整单享百分比折扣。</span>
+            <span class="tpl-en">10% off · 满件/满额</span>
+          </span>
+        </button>
+
+        <button class="tpl" data-title="满额立减" data-eyebrow="折扣 · Discount"
+          data-rule="fixed" data-num="5" data-en="Fixed amount off · 满 RM"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="12" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="7" y1="15" x2="9" y2="15"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="12" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="7" y1="15" x2="9" y2="15"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">满额立减</span>
+            <span class="tpl-desc">订单满指定金额，直接减去固定金额。</span>
+            <span class="tpl-en">RM5 off · 满 RM</span>
+          </span>
+        </button>
+
+        <button class="tpl" data-title="第 N 件优惠" data-eyebrow="折扣 · Discount"
+          data-rule="nth" data-num="50" data-en="Nth item off · 每第 X 件"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="19" cy="17" r="2.4"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="19" cy="17" r="2.4"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">第 N 件优惠</span>
+            <span class="tpl-desc">购买多件时，每第 X 件享指定折扣。</span>
+            <span class="tpl-en">50% off · 每第 X 件</span>
+          </span>
+        </button>
+
+        <button class="tpl" data-title="组合价" data-eyebrow="折扣 · Discount"
+          data-rule="combo" data-num="99" data-en="Bundle price · 指定系列"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5v8l-9 5-9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5v8l-9 5-9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">组合价</span>
+            <span class="tpl-desc">指定系列任选 3 件，以固定组合价出售。</span>
+            <span class="tpl-en">Buy 3 at RM99 · 指定系列</span>
+          </span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Category: Gifts & BOGO -->
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-eyebrow">买赠</div>
+        <h3>Gifts &amp; BOGO</h3>
+      </div>
+      <div class="cat-grid">
+
+        <button class="tpl" data-title="买一送一" data-eyebrow="买赠 · Gift"
+          data-rule="bogo" data-num="1" data-en="Buy 1 Free 1 · 指定商品"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M3 12h18M12 8v13"/><path d="M12 8C12 8 11 4 8.5 4 7 4 7 6 8.5 6 11 6 12 8 12 8zM12 8C12 8 13 4 15.5 4 17 4 17 6 15.5 6 13 6 12 8 12 8z"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M3 12h18M12 8v13"/><path d="M12 8C12 8 11 4 8.5 4 7 4 7 6 8.5 6 11 6 12 8 12 8zM12 8C12 8 13 4 15.5 4 17 4 17 6 15.5 6 13 6 12 8 12 8z"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">买一送一</span>
+            <span class="tpl-desc">购买指定商品，免费获赠同款一件。</span>
+            <span class="tpl-en">Buy 1 Free 1 · 指定商品</span>
+          </span>
+        </button>
+
+        <button class="tpl" data-title="满额送赠品" data-eyebrow="买赠 · Gift"
+          data-rule="freegift" data-num="200" data-en="Free gift · 任意订单"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M3 12h18M12 8v13"/><path d="M12 8C12 8 11 4 8.5 4 7 4 7 6 8.5 6 11 6 12 8 12 8zM12 8C12 8 13 4 15.5 4 17 4 17 6 15.5 6 13 6 12 8 12 8z"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M3 12h18M12 8v13"/><path d="M12 8C12 8 11 4 8.5 4 7 4 7 6 8.5 6 11 6 12 8 12 8zM12 8C12 8 13 4 15.5 4 17 4 17 6 15.5 6 13 6 12 8 12 8z"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">满额送赠品</span>
+            <span class="tpl-desc">订单满指定金额，自动加入一份赠品。</span>
+            <span class="tpl-en">Free gift · 任意订单</span>
+          </span>
+        </button>
+
+        <button class="tpl" data-title="加购价" data-eyebrow="买赠 · Gift"
+          data-rule="addon" data-num="10" data-en="Add-on price · 满件可加购"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 13h11"/><path d="M5.5 6h15l-1.5 8"/><path d="M14 7v4M12 9h4"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 13h11"/><path d="M5.5 6h15l-1.5 8"/><path d="M14 7v4M12 9h4"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">加购价</span>
+            <span class="tpl-desc">满件后可用优惠价加购指定单品。</span>
+            <span class="tpl-en">RM10 加购 · 满件可加购</span>
+          </span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Category: Shipping & Credit -->
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-eyebrow">运费 & 购物金</div>
+        <h3>Shipping &amp; Credit</h3>
+      </div>
+      <div class="cat-grid">
+
+        <button class="tpl" data-title="免运费" data-eyebrow="运费 · Shipping"
+          data-rule="freeship" data-num="150" data-en="Free shipping · 满 RM 免运"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6h13v9H1zM14 9h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6h13v9H1zM14 9h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">免运费</span>
+            <span class="tpl-desc">订单满指定金额，自动减免全部运费。</span>
+            <span class="tpl-en">Free shipping · 满 RM 免运</span>
+          </span>
+        </button>
+
+        <button class="tpl" data-title="消费送购物金" data-eyebrow="购物金 · Credit"
+          data-rule="credit" data-num="10" data-en="Store credit · 每消费 RM N"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">消费送购物金</span>
+            <span class="tpl-desc">每消费指定金额，回馈等额购物金。</span>
+            <span class="tpl-en">RM10 credit · 每消费 RM N</span>
+          </span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Category: Custom -->
+    <div class="cat">
+      <div class="cat-head">
+        <div class="cat-eyebrow">自定义</div>
+        <h3>Custom</h3>
+      </div>
+      <div class="cat-grid">
+
+        <button class="tpl" data-title="按消费金额" data-eyebrow="自定义 · Custom"
+          data-rule="custom-amount" data-num="100" data-en="Amount spent"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1.1-1.6 2.5-1.6s2.5.7 2.5 1.7-1 1.4-2.5 1.6-2.5.6-2.5 1.6 1.1 1.7 2.5 1.7 2.5-.6 2.5-1.6"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1.1-1.6 2.5-1.6s2.5.7 2.5 1.7-1 1.4-2.5 1.6-2.5.6-2.5 1.6 1.1 1.7 2.5 1.7 2.5-.6 2.5-1.6"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">按消费金额</span>
+            <span class="tpl-desc">自定义按订单总额触发的优惠规则。</span>
+            <span class="tpl-en">Amount spent</span>
+          </span>
+        </button>
+
+        <button class="tpl" data-title="按购买数量" data-eyebrow="自定义 · Custom"
+          data-rule="custom-qty" data-num="3" data-en="Quantity purchased"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">按购买数量</span>
+            <span class="tpl-desc">自定义按购买件数触发的优惠规则。</span>
+            <span class="tpl-en">Quantity purchased</span>
+          </span>
+        </button>
+
+        <button class="tpl" data-title="运费优惠" data-eyebrow="自定义 · Custom"
+          data-rule="custom-ship" data-num="0" data-en="Shipping fee"
+          data-ico='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6h13v9H1zM14 9h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg>'>
+          <span class="tpl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6h13v9H1zM14 9h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg></span>
+          <span class="tpl-body">
+            <span class="tpl-title">运费优惠</span>
+            <span class="tpl-desc">自定义针对运费的折扣或减免规则。</span>
+            <span class="tpl-en">Shipping fee</span>
+          </span>
+        </button>
+
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- ===== DRAWER ===== -->
+<div class="backdrop" id="backdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <span class="tpl-ico" id="drawerIco"></span>
+    <div class="dh-text">
+      <div class="eyebrow" id="drawerEyebrow">折扣 · Discount</div>
+      <h3 id="drawerTitle">满额打折</h3>
+    </div>
+    <button class="drawer-close" id="closeBtn" aria-label="关闭">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+
+    <div class="field">
+      <label for="fName">优惠名称 <span class="hint">顾客结账时可见</span></label>
+      <input class="input" id="fName" type="text" placeholder="例如：新季会员折扣" />
+    </div>
+
+    <div class="field">
+      <label for="fCode">优惠码 <span class="hint">Discount code</span></label>
+      <div class="code-row">
+        <input class="input input-mono" id="fCode" type="text" value="NEWSEASON15" />
+        <button class="gen-btn" id="genBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+          生成
+        </button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>优惠规则 <span class="hint" id="ruleHint">折扣力度</span></label>
+      <div class="rule-row" id="ruleRow">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+    <div class="field">
+      <label>适用范围 <span class="hint">Applies to</span></label>
+      <div class="seg" id="scopeSeg">
+        <button class="active" data-scope="全部商品">全部</button>
+        <button data-scope="指定系列">指定系列</button>
+        <button data-scope="指定商品">指定商品</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="fLimit">使用上限 <span class="hint">留空表示不限</span></label>
+      <input class="input" id="fLimit" type="text" placeholder="例如：500（次）" />
+    </div>
+
+    <div class="field">
+      <label>有效期 <span class="hint">起 / 止</span></label>
+      <div class="two-col">
+        <input class="input" id="fStart" type="date" value="2026-06-20" />
+        <input class="input" id="fEnd" type="date" value="2026-07-31" />
+      </div>
+    </div>
+
+    <div class="preview">
+      <div class="pv-eyebrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        预览 · Preview
+      </div>
+      <div class="pv-text" id="previewText"></div>
+    </div>
+
+  </div>
+
+  <div class="drawer-foot">
+    <button class="btn btn-ghost" id="cancelBtn">取消</button>
+    <button class="btn btn-primary" id="createBtn">创建优惠</button>
+  </div>
+</aside>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+  （Demo）已创建
+</div>
+
+<script>
+(function(){
+  var listView = document.getElementById('listView');
+  var pickerView = document.getElementById('pickerView');
+  var newBtn = document.getElementById('newBtn');
+  var backBtn = document.getElementById('backBtn');
+  var drawer = document.getElementById('drawer');
+  var backdrop = document.getElementById('backdrop');
+  var closeBtn = document.getElementById('closeBtn');
+  var cancelBtn = document.getElementById('cancelBtn');
+  var createBtn = document.getElementById('createBtn');
+  var genBtn = document.getElementById('genBtn');
+  var toast = document.getElementById('toast');
+
+  var drawerIco = document.getElementById('drawerIco');
+  var drawerTitle = document.getElementById('drawerTitle');
+  var drawerEyebrow = document.getElementById('drawerEyebrow');
+  var ruleRow = document.getElementById('ruleRow');
+  var ruleHint = document.getElementById('ruleHint');
+  var previewText = document.getElementById('previewText');
+  var scopeSeg = document.getElementById('scopeSeg');
+
+  var fName = document.getElementById('fName');
+  var fCode = document.getElementById('fCode');
+  var fLimit = document.getElementById('fLimit');
+
+  var currentRule = 'percent';
+  var currentTitle = '满额打折';
+  var currentScope = '全部商品';
+
+  /* ---- show / hide picker ---- */
+  function showPicker(){
+    listView.style.display = 'none';
+    pickerView.classList.add('show');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  function hidePicker(){
+    pickerView.classList.remove('show');
+    listView.style.display = '';
+  }
+  newBtn.addEventListener('click', showPicker);
+  backBtn.addEventListener('click', hidePicker);
+
+  /* ---- rule field builders, per template ---- */
+  function ruleConfig(rule, num){
+    // returns {html, hint, preview fn}
+    var c = {};
+    switch(rule){
+      case 'percent':
+        c.hint = '折扣力度';
+        c.html = '<span class="rule-txt">满</span><input class="input" id="r1" value="2" data-suffix="件"><span class="rule-txt">件，享</span>'+
+                 '<div class="affix"><input class="input" id="r2" value="'+num+'"><span class="pre" style="border-left:none;border-radius:0 6px 6px 0;border:1px solid var(--line2);border-left:none">% off</span></div>';
+        break;
+      case 'fixed':
+        c.hint = '减免金额';
+        c.html = '<span class="rule-txt">满</span><div class="affix"><span class="pre">RM</span><input class="input" id="r1" value="80"></div>'+
+                 '<span class="rule-txt">减</span><div class="affix"><span class="pre">RM</span><input class="input" id="r2" value="'+num+'"></div>';
+        break;
+      case 'nth':
+        c.hint = '每第 X 件';
+        c.html = '<span class="rule-txt">每第</span><input class="input" id="r1" value="2"><span class="rule-txt">件，享</span>'+
+                 '<div class="affix"><input class="input" id="r2" value="'+num+'"><span class="pre" style="border-radius:0 6px 6px 0;border:1px solid var(--line2);border-left:none">% off</span></div>';
+        break;
+      case 'combo':
+        c.hint = '组合价';
+        c.html = '<span class="rule-txt">任选</span><input class="input" id="r1" value="3"><span class="rule-txt">件，组合价</span>'+
+                 '<div class="affix"><span class="pre">RM</span><input class="input" id="r2" value="'+num+'"></div>';
+        break;
+      case 'bogo':
+        c.hint = '买赠数量';
+        c.html = '<span class="rule-txt">买</span><input class="input" id="r1" value="1"><span class="rule-txt">件，送</span>'+
+                 '<input class="input" id="r2" value="'+num+'"><span class="rule-txt">件（同款）</span>';
+        break;
+      case 'freegift':
+        c.hint = '满额门槛';
+        c.html = '<span class="rule-txt">订单满</span><div class="affix"><span class="pre">RM</span><input class="input" id="r1" value="'+num+'"></div>'+
+                 '<span class="rule-txt">送赠品 ×</span><input class="input" id="r2" value="1">';
+        break;
+      case 'addon':
+        c.hint = '加购价';
+        c.html = '<span class="rule-txt">满</span><input class="input" id="r1" value="2"><span class="rule-txt">件，可加购价</span>'+
+                 '<div class="affix"><span class="pre">RM</span><input class="input" id="r2" value="'+num+'"></div>';
+        break;
+      case 'freeship':
+        c.hint = '免运门槛';
+        c.html = '<span class="rule-txt">订单满</span><div class="affix"><span class="pre">RM</span><input class="input" id="r1" value="'+num+'"></div>'+
+                 '<span class="rule-txt">免运费</span><input class="input" id="r2" type="hidden" value="0">';
+        break;
+      case 'credit':
+        c.hint = '回馈比例';
+        c.html = '<span class="rule-txt">每消费</span><div class="affix"><span class="pre">RM</span><input class="input" id="r1" value="100"></div>'+
+                 '<span class="rule-txt">送</span><div class="affix"><span class="pre">RM</span><input class="input" id="r2" value="'+num+'"></div>';
+        break;
+      case 'custom-amount':
+        c.hint = '消费金额';
+        c.html = '<span class="rule-txt">订单满</span><div class="affix"><span class="pre">RM</span><input class="input" id="r1" value="'+num+'"></div>'+
+                 '<span class="rule-txt">减</span><div class="affix"><span class="pre">RM</span><input class="input" id="r2" value="20"></div>';
+        break;
+      case 'custom-qty':
+        c.hint = '购买数量';
+        c.html = '<span class="rule-txt">购买满</span><input class="input" id="r1" value="'+num+'"><span class="rule-txt">件，享</span>'+
+                 '<div class="affix"><input class="input" id="r2" value="15"><span class="pre" style="border-radius:0 6px 6px 0;border:1px solid var(--line2);border-left:none">% off</span></div>';
+        break;
+      case 'custom-ship':
+        c.hint = '运费减免';
+        c.html = '<span class="rule-txt">运费减免</span><div class="affix"><span class="pre">RM</span><input class="input" id="r1" value="8"></div>'+
+                 '<span class="rule-txt">（满件适用）</span><input class="input" id="r2" type="hidden" value="0">';
+        break;
+      default:
+        c.hint = '折扣力度';
+        c.html = '<div class="affix"><input class="input" id="r1" value="'+num+'"><span class="pre" style="border-radius:0 6px 6px 0">%</span></div><input class="input" id="r2" type="hidden" value="0">';
+    }
+    return c;
+  }
+
+  function val(id){ var el = document.getElementById(id); return el ? el.value : ''; }
+
+  function buildPreview(){
+    var r1 = val('r1'), r2 = val('r2');
+    var scope = currentScope;
+    var t = '';
+    switch(currentRule){
+      case 'percent':   t = '满 <b>'+r1+'</b> 件，'+scope+'享 <b>'+r2+'% off</b> 折扣。'; break;
+      case 'fixed':     t = '订单满 <b>RM'+r1+'</b>（'+scope+'），立减 <b>RM'+r2+'</b>。'; break;
+      case 'nth':       t = '每第 <b>'+r1+'</b> 件（'+scope+'）享 <b>'+r2+'% off</b>。'; break;
+      case 'combo':     t = scope+'任选 <b>'+r1+'</b> 件，组合价 <b>RM'+r2+'</b>。'; break;
+      case 'bogo':      t = '买 <b>'+r1+'</b> 送 <b>'+r2+'</b>（'+scope+'，赠同款）。'; break;
+      case 'freegift':  t = '订单满 <b>RM'+r1+'</b>，赠送赠品 <b>×'+r2+'</b>。'; break;
+      case 'addon':     t = '满 <b>'+r1+'</b> 件，可用 <b>RM'+r2+'</b> 加购指定单品。'; break;
+      case 'freeship':  t = '订单满 <b>RM'+r1+'</b>（'+scope+'），<b>免运费</b>。'; break;
+      case 'credit':    t = '每消费 <b>RM'+r1+'</b>，回馈购物金 <b>RM'+r2+'</b>。'; break;
+      case 'custom-amount': t = '订单满 <b>RM'+r1+'</b>（'+scope+'），立减 <b>RM'+r2+'</b>。'; break;
+      case 'custom-qty':    t = '购买满 <b>'+r1+'</b> 件（'+scope+'），享 <b>'+r2+'% off</b>。'; break;
+      case 'custom-ship':   t = '满件订单运费减免 <b>RM'+r1+'</b>。'; break;
+      default:          t = '已选择「'+currentTitle+'」优惠。';
+    }
+    var code = fCode.value || '（未设置）';
+    var limit = fLimit.value ? ('，限用 <b>'+fLimit.value+'</b> 次') : '，不限使用次数';
+    previewText.innerHTML = '使用优惠码 <b>'+code+'</b>：'+t+limit+'。';
+  }
+
+  function openDrawer(btn){
+    currentRule = btn.getAttribute('data-rule');
+    currentTitle = btn.getAttribute('data-title');
+    var num = btn.getAttribute('data-num');
+    drawerIco.innerHTML = btn.getAttribute('data-ico');
+    drawerTitle.textContent = currentTitle;
+    drawerEyebrow.textContent = btn.getAttribute('data-eyebrow');
+
+    var cfg = ruleConfig(currentRule, num);
+    ruleRow.innerHTML = cfg.html;
+    ruleHint.textContent = cfg.hint;
+
+    // wire up rule inputs to live preview
+    var inputs = ruleRow.querySelectorAll('input');
+    for(var i=0;i<inputs.length;i++){ inputs[i].addEventListener('input', buildPreview); }
+
+    buildPreview();
+
+    backdrop.classList.add('show');
+    drawer.classList.add('show');
+    drawer.setAttribute('aria-hidden','false');
+  }
+
+  function closeDrawer(){
+    drawer.classList.remove('show');
+    backdrop.classList.remove('show');
+    drawer.setAttribute('aria-hidden','true');
+  }
+
+  // template clicks
+  var tpls = document.querySelectorAll('.tpl');
+  for(var i=0;i<tpls.length;i++){
+    tpls[i].addEventListener('click', (function(el){ return function(){ openDrawer(el); }; })(tpls[i]));
+  }
+
+  backdrop.addEventListener('click', closeDrawer);
+  closeBtn.addEventListener('click', closeDrawer);
+  cancelBtn.addEventListener('click', closeDrawer);
+
+  // scope segmented
+  scopeSeg.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    var btns = scopeSeg.querySelectorAll('button');
+    for(var k=0;k<btns.length;k++) btns[k].classList.remove('active');
+    b.classList.add('active');
+    currentScope = b.getAttribute('data-scope');
+    buildPreview();
+  });
+
+  // generate code
+  genBtn.addEventListener('click', function(){
+    var pool = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var s = '';
+    for(var k=0;k<8;k++) s += pool.charAt(Math.floor(Math.random()*pool.length));
+    fCode.value = s;
+    buildPreview();
+  });
+
+  // other inputs affecting preview
+  fCode.addEventListener('input', buildPreview);
+  fLimit.addEventListener('input', buildPreview);
+
+  // create
+  createBtn.addEventListener('click', function(){
+    closeDrawer();
+    hidePicker();
+    toast.classList.add('show');
+    setTimeout(function(){ toast.classList.remove('show'); }, 2200);
+  });
+
+  // existing-row edit buttons -> open a representative drawer (demo)
+  var edits = document.querySelectorAll('.row-edit');
+  for(var e2=0;e2<edits.length;e2++){
+    edits[e2].addEventListener('click', function(){
+      // open the percentage template as a stand-in editor
+      var stand = document.querySelector('.tpl[data-rule="percent"]');
+      if(stand) openDrawer(stand);
+    });
+  }
+
+  // esc closes drawer
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeDrawer();
+  });
+})();
+</script>
+
+</body>
+</html>
