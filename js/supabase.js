@@ -198,6 +198,10 @@
          'freeShippingThreshold', 'shippingFlat', 'paymentLink', 'paymentMode'].forEach(function (k) {
           if (d[k] !== undefined && d[k] !== null && d[k] !== '') window.STORE_CONFIG[k] = d[k];
         });
+        // bundle visibility switches (booleans — copy even when false)
+        ['bundlesEnabled', 'bundlesOnHome'].forEach(function (k) {
+          if (d[k] !== undefined && d[k] !== null) window.STORE_CONFIG[k] = d[k];
+        });
       }
     }).catch(function () {});
   }

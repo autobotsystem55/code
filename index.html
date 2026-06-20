@@ -111,6 +111,15 @@
       <div class="grid" id="newArrivals"></div>
     </section>
 
+    <!-- ===================== BUNDLES TEASER (toggle: bundlesOnHome) ===================== -->
+    <section class="section wrap" id="homeBundles" style="display:none;padding-top:0">
+      <div class="sec-head reveal">
+        <div><span class="eyebrow" data-i18n="home.bun.eyebrow">Bundles</span><h2 data-i18n="home.bun.title">Buy the set, save more</h2></div>
+        <a class="link-underline" href="bundles.html" data-i18n="home.bun.cta">Shop bundles →</a>
+      </div>
+      <div class="grid grid--3" id="homeBundlesGrid"></div>
+    </section>
+
     <!-- ===================== EDITORIAL ===================== -->
     <section class="section wrap">
       <div class="editorial">
@@ -164,7 +173,46 @@
       }).slice(0, 8);
       renderProducts(featured, '#newArrivals');
       renderProducts(PRODUCTS.filter(function (p) { return p.category === 'Knitwear'; }), '#knitEdit');
+      maybeHomeBundles();
     });
+
+    // Home bundles teaser — only when admin enabled the feature AND the home section
+    function maybeHomeBundles() {
+      var CFG = window.STORE_CONFIG || {};
+      if (!CFG.bundlesEnabled || !CFG.bundlesOnHome || !window.DB || !DB.allBundles) return;
+      var find = window.findProduct || function (id) { return (window.PRODUCTS || []).filter(function (p) { return p.id === id; })[0]; };
+      DB.allBundles().then(function (res) {
+        var list = ((res && res.data) || []).filter(function (b) { return b.active !== false; }).slice(0, 3);
+        if (!list.length) return;
+        var grid = document.getElementById('homeBundlesGrid');
+        grid.innerHTML = list.map(function (b) {
+          var ids, qtys = {}, single = 0, n = 0;
+          if (b.type === 'mix') {
+            ids = ((b.components || {}).pool) || []; n = (b.components || {}).choose || 2;
+            var prices = ids.map(function (id) { var p = find(id); return p ? p.price : 0; }).sort(function (x, y) { return y - x; });
+            single = prices.slice(0, n).reduce(function (s, x) { return s + x; }, 0);
+          } else {
+            ids = (Array.isArray(b.components) ? b.components : []).map(function (c) { return c.product_id; });
+            (Array.isArray(b.components) ? b.components : []).forEach(function (c) { var p = find(c.product_id); if (p) single += p.price * (c.qty || 1); });
+          }
+          var setP = (b.price_mode === 'percent') ? Math.round(single * (1 - (+b.percent || 0) / 100)) : Math.round(+b.price || 0);
+          var save = Math.max(0, single - setP);
+          var first = find(ids[0]);
+          var cover = imgUrl(b.image || (first && (first.images || [])[0]), 700);
+          var nm = (window.LANG === 'zh' && b.name_zh) ? b.name_zh : (b.name || b.name_zh || '');
+          var typeLabel = b.type === 'mix' ? t('bundles.mix') : t('bundles.fixed');
+          return '<a class="card reveal" href="bundles.html#b-' + b.id + '">' +
+            '<div class="card__media"><img class="main" src="' + cover + '" alt="' + nm + '" loading="lazy" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'">' +
+              (save > 0 ? '<span class="card__badge is-sale">' + t('bundles.save', { x: money(save) }) + '</span>' : '') + '</div>' +
+            '<div class="card__body"><div class="card__cat">' + typeLabel + '</div>' +
+              '<h3 class="card__name">' + nm + '</h3>' +
+              '<div class="card__price"><span class="now">' + money(setP) + '</span>' + (save > 0 ? ' <span class="was">' + money(single) + '</span>' : '') + '</div>' +
+            '</div></a>';
+        }).join('');
+        document.getElementById('homeBundles').style.display = '';
+        if (window.observeReveals) observeReveals();
+      });
+    }
   </script>
 </body>
 </html>

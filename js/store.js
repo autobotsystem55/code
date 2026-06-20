@@ -115,6 +115,8 @@
   // so admin Settings changes show without a hard reload.
   window.applySettingsToChrome = function () {
     document.querySelectorAll('.brand').forEach(function (el) { el.innerHTML = brandMarkup(); });
+    var showB = !!CFG.bundlesEnabled;
+    document.querySelectorAll('.nav-bundles').forEach(function (el) { el.style.display = showB ? '' : 'none'; });
     if (window.updateCartUI) updateCartUI();
   };
 
@@ -126,6 +128,9 @@
       var active = (n.href.split('?')[0] === path) ? ' class="is-active"' : '';
       return '<a href="' + n.href + '"' + active + '>' + T(n.key) + '</a>';
     }).join('');
+    // bundles entry — shown only when admin enables it (toggled in applySettingsToChrome)
+    var bActive = (path === 'bundles.html') ? ' is-active' : '';
+    navHtml += '<a href="bundles.html" class="nav-bundles' + bActive + '" style="' + (CFG.bundlesEnabled ? '' : 'display:none') + '">' + T('nav.bundles') + '</a>';
 
     var header = document.getElementById('site-header');
     if (header) {
@@ -160,6 +165,7 @@
               '<p>' + T('foot.tagline') + '</p></div>' +
             '<div><h4>' + T('foot.shop') + '</h4><ul>' +
               '<li><a href="shop.html">' + T('foot.all') + '</a></li>' +
+              '<li class="nav-bundles" style="' + (CFG.bundlesEnabled ? '' : 'display:none') + '"><a href="bundles.html">' + T('nav.bundles') + '</a></li>' +
               '<li><a href="shop.html?category=Outerwear">' + T('nav.outerwear') + '</a></li>' +
               '<li><a href="shop.html?category=Knitwear">' + T('nav.knitwear') + '</a></li>' +
               '<li><a href="shop.html?category=Accessories">' + T('foot.accessories') + '</a></li></ul></div>' +
@@ -229,7 +235,7 @@
 
     itemsEl.innerHTML = lines.map(function (l) {
       var k = l.key;
-      var imgHref = l.b ? ('bundle.html?id=' + l.id) : ('product.html?id=' + l.id);
+      var imgHref = l.b ? ('bundles.html#b-' + l.id) : ('product.html?id=' + l.id);
       var meta = l.b
         ? '<span class="line__set">' + T('bundle.set') + '</span>' + (l.items || []).map(function (x) { return x.name + (x.size ? ' (' + x.size + ')' : ''); }).join('、')
         : [l.color, l.size].filter(Boolean).join(' · ');

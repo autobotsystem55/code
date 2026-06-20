@@ -990,6 +990,10 @@
           '<div class="seg" id="payseg">'+[['demo','演示 Demo'],['stripe','Stripe'],['paypal','PayPal']].map(function(x){return '<button type="button" data-pm="'+x[0]+'"'+(mode===x[0]?' class="on"':'')+'>'+x[1]+'</button>';}).join('')+'</div>'+
           '<div class="field" id="linkWrap" style="margin-top:14px;'+(mode==='demo'?'display:none':'')+'"><label id="linkLbl">支付链接</label><input id="s_link" value="'+esc(link)+'" placeholder="粘贴 Stripe Payment Link 或 PayPal 链接"></div>'+
           '<p class="muted" style="font-size:12px;margin-top:6px">演示=不真实扣款；选 Stripe/PayPal 并粘贴收款链接后，结账会跳转到该链接收款（在该链接的"付款后跳转"设为你的 success.html，Purchase 事件才会触发）。</p>'+
+          '<h2 style="font-size:20px;margin:28px 0 12px">套装功能 Bundles</h2>'+
+          '<div class="field" style="margin-bottom:8px"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="s_bun"'+(g('bundlesEnabled',false)?' checked':'')+'> 在店面显示「套装组合」（导航入口 + 套装页 /bundles.html）</label></div>'+
+          '<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="s_bunHome"'+(g('bundlesOnHome',false)?' checked':'')+'> 在首页显示套装板块（需先开启上面的总开关）</label></div>'+
+          '<p class="muted" style="font-size:12px;margin-top:-2px">关掉总开关：顾客完全看不到套装。每个套装还能在「套装」区单独上架/下架。</p>'+
           '<div style="display:flex;gap:10px;margin-top:22px"><button class="btn" id="saveS">保存设置</button><span class="msg" id="sm"></span></div>'+
           '<p class="muted" style="font-size:12px;margin-top:18px">提示：保存后店面会即时采用这些设置（店名、货币、运费、支付方式、Pixel）。Pixel ID 在 Meta「事件管理工具」里复制（一串数字）。</p>'+
         '</div>';
@@ -1004,7 +1008,8 @@
           var out={brand:v('s_brand'),tagline:v('s_tag'),email:v('s_email'),defaultLang:document.getElementById('s_lang').value,
             currency:v('s_cur'),currencySymbol:v('s_sym'),pixelId:v('s_pixel'),
             freeShippingThreshold:parseFloat(v('s_free'))||0,shippingFlat:parseFloat(v('s_ship'))||0,
-            paymentMode:curMode,paymentLink:curMode==='demo'?'':v('s_link')};
+            paymentMode:curMode,paymentLink:curMode==='demo'?'':v('s_link'),
+            bundlesEnabled:document.getElementById('s_bun').checked,bundlesOnHome:document.getElementById('s_bunHome').checked};
           document.getElementById('saveS').disabled=true;
           DB.saveSettings(out).then(function(r){
             document.getElementById('saveS').disabled=false;
