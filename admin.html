@@ -334,6 +334,60 @@
     .bw .rev-banner{grid-column:1/-1;background:var(--green-bg);border:1px solid #cfe6d6;border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap} .bw .rev-banner .big{font-family:var(--serif);font-size:24px;color:var(--green)}
     @media(max-width:980px){.bw .layout{grid-template-columns:1fr}.bw .rail{position:static}}
     @media(max-width:760px){.bw .bstats{grid-template-columns:1fr}.bw .choices,.bw .pmode,.bw .review{grid-template-columns:1fr}.bw .step .d{display:none}}
+
+    /* ===== settings page (design A · grouped cards) ===== */
+    .setpage{max-width:980px}
+    .setpage .page-head{margin-bottom:24px}
+    .setpage .page-head h1{font-family:var(--serif);font-size:clamp(24px,3vw,30px);color:var(--ink);line-height:1.1}
+    .setpage .page-head p{color:var(--muted);font-size:14px;margin-top:7px}
+    .setpage .card{background:var(--white);border:1px solid var(--line);border-radius:8px;box-shadow:0 1px 2px rgba(130,33,62,.04),0 4px 16px rgba(130,33,62,.03);padding:24px 26px;margin-bottom:18px}
+    .setpage .card-head{display:flex;align-items:center;gap:11px;padding-bottom:14px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+    .setpage .card-head .ic{width:32px;height:32px;border-radius:7px;background:var(--pink-soft);color:var(--wine);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .setpage .card-head .ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+    .setpage .card-head h2{font-family:var(--serif);font-size:20px;color:var(--ink);line-height:1.15}
+    .setpage .card-head .cardhead-en{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--muted)}
+    .setpage .card-head .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+    .setpage .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px}
+    .setpage .field{display:flex;flex-direction:column;gap:7px}
+    .setpage .field.full{grid-column:1/-1}
+    .setpage label.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+    .setpage input[type=text],.setpage input[type=number],.setpage select{width:100%;height:44px;background:var(--white);border:1px solid var(--line2);border-radius:5px;padding:0 12px;font-family:var(--sans);font-size:14.5px;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+    .setpage input::placeholder{color:#B9ADA6}
+    .setpage input:focus,.setpage select:focus{outline:none;border-color:var(--wine);box-shadow:0 0 0 3px rgba(130,33,62,.10)}
+    .setpage select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2382213E' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+    .setpage .input-affix{position:relative}
+    .setpage .input-affix .pre{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted);pointer-events:none}
+    .setpage .input-affix input{padding-left:34px}
+    .setpage .help{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:1px}
+    .setpage .seg2{display:inline-flex;background:var(--cream2);border:1px solid var(--line2);border-radius:7px;padding:4px;gap:4px;width:100%;max-width:430px}
+    .setpage .seg2 button{flex:1;border:none;background:transparent;cursor:pointer;font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--ink2);padding:9px 10px;border-radius:5px;transition:background .15s,color .15s,box-shadow .15s}
+    .setpage .seg2 button:hover:not(.active){color:var(--wine-deep)}
+    .setpage .seg2 button.active{background:var(--wine);color:var(--white);box-shadow:0 1px 3px rgba(130,33,62,.22)}
+    .setpage .pay-link{margin-top:18px}
+    .setpage .pay-link.hidden{display:none}
+    .setpage .demo-note{margin-top:16px;display:flex;align-items:center;gap:9px;background:var(--cream2);border:1px dashed var(--line2);border-radius:5px;padding:11px 14px;font-size:13px;color:var(--muted)}
+    .setpage .demo-note svg{width:16px;height:16px;color:var(--wine);flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .setpage .toggle-row{display:flex;align-items:center;gap:18px;background:var(--cream2);border:1px solid var(--line2);border-radius:8px;padding:16px 18px}
+    .setpage .toggle-row+.toggle-row{margin-top:12px}
+    .setpage .toggle-row .tr-text{flex:1;min-width:0}
+    .setpage .toggle-row .tr-title{font-size:14.5px;font-weight:600;color:var(--ink)}
+    .setpage .toggle-row .tr-help{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+    .setpage .switch{position:relative;flex-shrink:0;width:46px;height:25px;border-radius:999px;background:var(--line2);border:none;cursor:pointer;padding:0;transition:background .2s ease}
+    .setpage .switch .knob{position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--white);box-shadow:0 1px 3px rgba(0,0,0,.22);transition:transform .2s ease}
+    .setpage .switch.on{background:var(--green)}
+    .setpage .switch.on .knob{transform:translateX(21px)}
+    .setpage .bundle-note{margin-top:16px;font-size:12.5px;color:var(--muted);line-height:1.6}
+    .setpage .savebar{position:sticky;bottom:0;background:var(--white);border:1px solid var(--line);box-shadow:0 -2px 12px rgba(130,33,62,.06);border-radius:8px;margin-top:8px}
+    .setpage .savebar-inner{padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .setpage .save-hint{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+    .setpage .saved-pill{display:none;align-items:center;gap:6px;background:var(--green-bg);color:var(--green);font-size:13px;font-weight:600;padding:7px 13px;border-radius:999px}
+    .setpage .saved-pill.show{display:inline-flex}
+    .setpage .saved-pill svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+    .setpage .btn-primary{background:var(--wine);color:var(--white);border:none;border-radius:5px;font-family:var(--sans);font-size:14.5px;font-weight:600;letter-spacing:.3px;padding:13px 30px;cursor:pointer;transition:background .15s,transform .05s}
+    .setpage .btn-primary:hover{background:var(--wine-deep)}
+    .setpage .btn-primary:active{transform:translateY(1px)}
+    .setpage .msg2{font-size:13px}
+    @media(max-width:720px){.setpage .grid{grid-template-columns:1fr}.setpage .seg2{max-width:100%}.setpage .savebar-inner{flex-direction:column-reverse;align-items:stretch}.setpage .btn-primary{width:100%}.setpage .save-hint{justify-content:center}}
   </style>
 </head>
 <body>
@@ -976,47 +1030,74 @@
         function g(k,d){return s[k]!==undefined&&s[k]!==null&&s[k]!==''?s[k]:(CFG[k]!==undefined?CFG[k]:d);}
         var mode=g('paymentMode','demo'),link=g('paymentLink','');
         var pix=g('pixelId','');if(pix==='YOUR_PIXEL_ID')pix='';
-        view.innerHTML='<div class="panel"><h2>店铺设置</h2>'+
-          '<div class="row2"><div class="field"><label>店名 Brand</label><input id="s_brand" value="'+esc(g('brand','Code Official'))+'"></div>'+
-            '<div class="field"><label>标语 Tagline</label><input id="s_tag" value="'+esc(g('tagline',''))+'"></div></div>'+
-          '<div class="row2"><div class="field"><label>联系邮箱</label><input id="s_email" value="'+esc(g('email',''))+'"></div>'+
-            '<div class="field"><label>默认语言</label><select id="s_lang"><option value="">自动</option><option value="en"'+(g('defaultLang','')==='en'?' selected':'')+'>English</option><option value="zh"'+(g('defaultLang','')==='zh'?' selected':'')+'>中文</option></select></div></div>'+
-          '<div class="row2"><div class="field"><label>货币代码 (MYR/HKD/USD)</label><input id="s_cur" value="'+esc(g('currency','MYR'))+'"></div>'+
-            '<div class="field"><label>货币符号 (RM/HK$/$)</label><input id="s_sym" value="'+esc(g('currencySymbol','RM'))+'"></div></div>'+
-          '<div class="row2"><div class="field"><label>免运门槛</label><input id="s_free" type="number" value="'+esc(g('freeShippingThreshold',150))+'"></div>'+
-            '<div class="field"><label>统一运费</label><input id="s_ship" type="number" value="'+esc(g('shippingFlat',10))+'"></div></div>'+
-          '<div class="field"><label>Facebook Pixel ID（广告追踪）</label><input id="s_pixel" value="'+esc(pix)+'" placeholder="纯数字，如 1234567890123456"></div>'+
-          '<h2 style="font-size:20px;margin:28px 0 12px">支付方式 Payment Gateway</h2>'+
-          '<div class="seg" id="payseg">'+[['demo','演示 Demo'],['stripe','Stripe'],['paypal','PayPal']].map(function(x){return '<button type="button" data-pm="'+x[0]+'"'+(mode===x[0]?' class="on"':'')+'>'+x[1]+'</button>';}).join('')+'</div>'+
-          '<div class="field" id="linkWrap" style="margin-top:14px;'+(mode==='demo'?'display:none':'')+'"><label id="linkLbl">支付链接</label><input id="s_link" value="'+esc(link)+'" placeholder="粘贴 Stripe Payment Link 或 PayPal 链接"></div>'+
-          '<p class="muted" style="font-size:12px;margin-top:6px">演示=不真实扣款；选 Stripe/PayPal 并粘贴收款链接后，结账会跳转到该链接收款（在该链接的"付款后跳转"设为你的 success.html，Purchase 事件才会触发）。</p>'+
-          '<h2 style="font-size:20px;margin:28px 0 12px">套装功能 Bundles</h2>'+
-          '<div class="field" style="margin-bottom:8px"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="s_bun"'+(g('bundlesEnabled',false)?' checked':'')+'> 在店面显示「套装组合」（导航入口 + 套装页 /bundles.html）</label></div>'+
-          '<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="s_bunHome"'+(g('bundlesOnHome',false)?' checked':'')+'> 在首页显示套装板块（需先开启上面的总开关）</label></div>'+
-          '<p class="muted" style="font-size:12px;margin-top:-2px">关掉总开关：顾客完全看不到套装。每个套装还能在「套装」区单独上架/下架。</p>'+
-          '<div style="display:flex;gap:10px;margin-top:22px"><button class="btn" id="saveS">保存设置</button><span class="msg" id="sm"></span></div>'+
-          '<p class="muted" style="font-size:12px;margin-top:18px">提示：保存后店面会即时采用这些设置（店名、货币、运费、支付方式、Pixel）。Pixel ID 在 Meta「事件管理工具」里复制（一串数字）。</p>'+
+        var lang=g('defaultLang','');
+        var bun=!!g('bundlesEnabled',false),bunHome=!!g('bundlesOnHome',false);
+        var sym=g('currencySymbol','RM');
+        var IC={
+          basics:'<svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>',
+          money:'<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.6"/></svg>',
+          track:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>',
+          pay:'<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
+          bundle:'<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>'
+        };
+        function card(icon,title,sub,body){return '<section class="card"><div class="card-head"><span class="ic">'+icon+'</span><div><h2>'+title+'</h2><div class="sub">'+sub+'</div></div></div>'+body+'</section>';}
+        function fT(id,label,val,ph){return '<div class="field"><label class="lbl">'+label+'</label><input type="text" id="'+id+'" value="'+(val||'')+'"'+(ph?' placeholder="'+ph+'"':'')+'></div>';}
+        function fAffix(id,label,pre,val){return '<div class="field"><label class="lbl">'+label+'</label><div class="input-affix"><span class="pre">'+esc(pre)+'</span><input type="number" id="'+id+'" value="'+esc(val)+'"></div></div>';}
+        function tRow(id,title,help,on){return '<div class="toggle-row"><div class="tr-text"><div class="tr-title">'+title+'</div><div class="tr-help">'+help+'</div></div><button type="button" class="switch'+(on?' on':'')+'" id="'+id+'" role="switch" aria-checked="'+(on?'true':'false')+'"><span class="knob"></span></button></div>';}
+        var segs=[['demo','演示 Demo'],['stripe','Stripe'],['paypal','PayPal']];
+        view.innerHTML='<div class="setpage">'+
+          '<div class="page-head"><h1>店铺设置 <span style="color:var(--muted);font-size:.6em">/ Store settings</span></h1><p>管理品牌信息、货币运费、广告追踪与套装功能。</p></div>'+
+          card(IC.basics,'基本信息','品牌名称、标语与联系方式',
+            '<div class="grid">'+
+              fT('s_brand','店名 Brand',esc(g('brand','Code Official')))+
+              fT('s_tag','标语 Tagline',esc(g('tagline','')))+
+              fT('s_email','联系邮箱',esc(g('email','')))+
+              '<div class="field"><label class="lbl">默认语言</label><select id="s_lang"><option value=""'+(lang===''?' selected':'')+'>自动</option><option value="en"'+(lang==='en'?' selected':'')+'>English</option><option value="zh"'+(lang==='zh'?' selected':'')+'>中文</option></select></div>'+
+            '</div>')+
+          card(IC.money,'货币与运费','结账显示的货币与运费规则',
+            '<div class="grid">'+
+              fT('s_cur','货币代码 (MYR/HKD/USD)',esc(g('currency','MYR')))+
+              fT('s_sym','货币符号 (RM/HK$/$)',esc(sym))+
+              fAffix('s_free','免运门槛',sym,g('freeShippingThreshold',150))+
+              fAffix('s_ship','统一运费',sym,g('shippingFlat',10))+
+            '</div>')+
+          card(IC.track,'广告追踪','Facebook / Meta 像素追踪',
+            '<div class="grid"><div class="field full"><label class="lbl">Facebook Pixel ID</label><input type="text" id="s_pixel" value="'+esc(pix)+'" placeholder="纯数字，如 1234567890123456"><div class="help">在 Meta「事件管理工具」里复制（一串数字）。</div></div></div>')+
+          card(IC.pay,'支付方式 <span class="cardhead-en">Payment Gateway</span>','选择结账时如何收款',
+            '<div class="field"><label class="lbl">收款方式</label><div class="seg2" id="payseg">'+segs.map(function(x){return '<button type="button" data-pm="'+x[0]+'"'+(mode===x[0]?' class="active"':'')+'>'+x[1]+'</button>';}).join('')+'</div></div>'+
+            '<div class="pay-link'+(mode==='demo'?' hidden':'')+'" id="linkWrap"><div class="field full"><label class="lbl" id="linkLbl">'+(mode==='paypal'?'PayPal 链接':'Stripe Payment Link')+'</label><input type="text" id="s_link" value="'+esc(link)+'" placeholder="粘贴 Stripe / PayPal 收款链接，例如 https://buy.stripe.com/..."></div></div>'+
+            '<div class="demo-note" id="demoNote" style="'+(mode==='demo'?'':'display:none')+'"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>当前为「演示 Demo」模式：不真实扣款，无需填写支付链接。</span></div>'+
+            '<div class="help" style="margin-top:14px">演示=不真实扣款；选 Stripe/PayPal 并粘贴收款链接后，结账会跳转到该链接收款（把该链接的"付款后跳转"设为你的 success.html，Purchase 事件才会触发）。</div>')+
+          card(IC.bundle,'套装功能 <span class="cardhead-en">Bundles</span>','控制套装组合在店面的展示',
+            tRow('s_bun','在店面显示套装组合','导航入口 + 套装页 /bundles.html',bun)+
+            tRow('s_bunHome','在首页显示套装板块','需先开启上面的总开关',bunHome)+
+            '<div class="bundle-note">关掉总开关：顾客完全看不到套装。每个套装还能在「套装」区单独上架/下架。</div>')+
+          '<div class="savebar"><div class="savebar-inner"><div class="save-hint"><span class="saved-pill" id="savedPill"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>已保存，店面已生效</span><span class="msg2" id="sm">改动后记得点「保存设置」生效。</span></div><button class="btn-primary" id="saveS">保存设置</button></div></div>'+
         '</div>';
         var seg=document.getElementById('payseg'),curMode=mode;
         seg.addEventListener('click',function(e){var b=e.target.closest('[data-pm]');if(!b)return;curMode=b.getAttribute('data-pm');
-          seg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);});
-          document.getElementById('linkWrap').style.display=curMode==='demo'?'none':'';
-          document.getElementById('linkLbl').textContent=curMode==='stripe'?'Stripe Payment Link':'PayPal 链接';
+          seg.querySelectorAll('button').forEach(function(x){x.classList.toggle('active',x===b);});
+          var isDemo=curMode==='demo';
+          document.getElementById('linkWrap').classList.toggle('hidden',isDemo);
+          document.getElementById('demoNote').style.display=isDemo?'':'none';
+          document.getElementById('linkLbl').textContent=curMode==='paypal'?'PayPal 链接':'Stripe Payment Link';
         });
+        ['s_bun','s_bunHome'].forEach(function(id){var sw=document.getElementById(id);sw.addEventListener('click',function(){var on=sw.classList.toggle('on');sw.setAttribute('aria-checked',on?'true':'false');});});
         document.getElementById('saveS').addEventListener('click',function(){
-          var m=document.getElementById('sm');m.style.color='var(--wine)';
           var out={brand:v('s_brand'),tagline:v('s_tag'),email:v('s_email'),defaultLang:document.getElementById('s_lang').value,
             currency:v('s_cur'),currencySymbol:v('s_sym'),pixelId:v('s_pixel'),
             freeShippingThreshold:parseFloat(v('s_free'))||0,shippingFlat:parseFloat(v('s_ship'))||0,
             paymentMode:curMode,paymentLink:curMode==='demo'?'':v('s_link'),
-            bundlesEnabled:document.getElementById('s_bun').checked,bundlesOnHome:document.getElementById('s_bunHome').checked};
-          document.getElementById('saveS').disabled=true;
+            bundlesEnabled:document.getElementById('s_bun').classList.contains('on'),bundlesOnHome:document.getElementById('s_bunHome').classList.contains('on')};
+          var btn=document.getElementById('saveS'),pill=document.getElementById('savedPill'),hint=document.getElementById('sm');
+          btn.disabled=true;
           DB.saveSettings(out).then(function(r){
-            document.getElementById('saveS').disabled=false;
-            if(r&&r.error){m.textContent='保存失败：'+r.error.message;return;}
-            m.style.color='var(--green)';m.textContent='✓ 已保存，店面已生效';
+            btn.disabled=false;
+            if(r&&r.error){hint.style.color='var(--red)';hint.style.display='';hint.textContent='保存失败：'+r.error.message;return;}
+            hint.style.display='none';pill.classList.add('show');
             if(window.STORE_CONFIG)Object.keys(out).forEach(function(k){if(out[k]!=='')window.STORE_CONFIG[k]=out[k];});
-          },function(){document.getElementById('saveS').disabled=false;m.textContent='保存失败，请重试';});
+            clearTimeout(window.__setT);window.__setT=setTimeout(function(){pill.classList.remove('show');hint.style.display='';hint.style.color='';hint.textContent='改动后记得点「保存设置」生效。';},2800);
+          },function(){btn.disabled=false;hint.style.color='var(--red)';hint.style.display='';hint.textContent='保存失败，请重试';});
         });
       });
     }
