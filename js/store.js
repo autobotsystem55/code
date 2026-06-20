@@ -409,13 +409,13 @@
     return { discount: discount, label: best ? (best.promo.name || best.promo.code) : '', effShip: effShip, total: Math.max(0, sub - discount) + effShip, savings: discount + savedShip, nudge: nudge, gift: giftName };
   }
   function receiptHTML(sub, rec) {
-    var row = function (a, b, cl) { return '<div style="display:flex;justify-content:space-between;font-size:13px;margin-top:6px"><span>' + a + '</span><span' + (cl ? ' style="' + cl + '"' : '') + '>' + b + '</span></div>'; };
+    var row = function (a, b, cl) { return '<div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px"><span>' + a + '</span><span' + (cl ? ' style="' + cl + '"' : '') + '>' + b + '</span></div>'; };
     var h = '<div style="display:flex;justify-content:space-between"><span>' + T('cart.subtotal') + '</span><b>' + money(sub) + '</b></div>';
     if (rec.gift) h += row('🎁 ' + rec.gift, T('cart.giftFree'), 'color:var(--green,#2F7D4F)');
     if (rec.discount > 0) h += row(rec.label, '−' + money(rec.discount), 'color:var(--wine,#82213E)');
     h += row(T('cart.shipping'), rec.effShip === 0 ? ('<b style="color:var(--green,#2F7D4F)">' + T('cart.free') + '</b>') : money(rec.effShip));
-    h += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#ECD9D6)"><span>' + T('cart.estTotal') + '</span><b style="font-family:var(--serif);font-size:22px">' + money(rec.total) + '</b></div>';
-    if (rec.savings > 0) h += '<div style="font-size:12.5px;color:var(--green,#2F7D4F);margin-top:4px">' + T('cart.saved', { x: money(rec.savings) }) + '</div>';
+    h += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;padding-top:8px;border-top:1px solid var(--line,#ECD9D6)"><span>' + T('cart.estTotal') + '</span><b style="font-family:var(--serif);font-size:20px">' + money(rec.total) + '</b></div>';
+    if (rec.savings > 0) h += '<div style="font-size:12.5px;color:var(--green,#2F7D4F);margin-top:3px">' + T('cart.saved', { x: money(rec.savings) }) + '</div>';
     if (rec.nudge && rec.nudge.need > 0) h += '<div style="font-size:12px;margin-top:8px;background:var(--pink-soft,#F6E4E6);color:var(--wine,#82213E);border-radius:6px;padding:8px 10px">' + T('cart.nudge', { n: rec.nudge.need, name: rec.nudge.label }) + '</div>';
     return h;
   }
