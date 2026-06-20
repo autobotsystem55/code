@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>上新商品 + 库存 · 两栏 (Demo C) · Code Official</title>
+<title>上新商品 + 库存 · 颜色×尺码 (Demo C) · Code Official</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
@@ -113,6 +113,23 @@ textarea{resize:vertical;min-height:70px;line-height:1.55;}
 .qty-row input[type=number]{width:74px;text-align:center;padding:6px 8px;}
 .qty-row.zero .qsize{background:var(--muted);}
 .qty-empty{font-size:12.5px;color:var(--muted);background:var(--cream2);border:1px dashed var(--line);border-radius:var(--radius-sm);padding:14px;text-align:center;}
+
+/* COLOR × SIZE MATRIX */
+.matrix{display:flex;flex-direction:column;gap:10px;margin-top:6px;max-height:46vh;overflow:auto;}
+.cgroup{background:var(--cream2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 11px;}
+.cgroup-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.cgroup-head .sw{width:16px;height:16px;border-radius:50%;border:1px solid rgba(28,28,28,.18);flex-shrink:0;}
+.cgroup-head .cname{font-size:12.5px;font-weight:600;color:var(--ink);}
+.cgrid{display:flex;flex-wrap:wrap;gap:8px;}
+.cell{display:flex;align-items:center;gap:6px;}
+.cell .csz{font-size:11.5px;font-weight:600;color:var(--ink2);min-width:18px;text-align:right;}
+.cell input[type=number]{width:54px;text-align:center;padding:5px 4px;font-size:12.5px;}
+.cell .cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.cell .cdot.ok{background:var(--green);}
+.cell .cdot.low{background:var(--amber);}
+.cell .cdot.zero{background:var(--wine);}
+.matrix-hint{font-size:11.5px;color:var(--muted);background:var(--cream2);border:1px dashed var(--line);border-radius:var(--radius-sm);padding:11px 12px;margin-top:6px;line-height:1.5;}
+.matrix-hint b{color:var(--ink2);font-weight:600;}
 .subhead{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
 .note{font-size:11.5px;color:var(--muted);background:var(--cream2);border-radius:var(--radius-sm);padding:9px 11px;margin-top:12px;line-height:1.5;}
 .note b{color:var(--ink2);font-weight:600;}
@@ -149,7 +166,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.55;}
     <div class="wordmark">Code Official <span class="flower">✿</span></div>
     <div class="crumb">后台 · 商品 · <b>上新商品</b></div>
     <div class="spacer"></div>
-    <div class="demo-pill">Demo C · 两栏</div>
+    <div class="demo-pill">Demo C · 颜色×尺码</div>
   </div>
 </div>
 
@@ -237,10 +254,13 @@ textarea{resize:vertical;min-height:70px;line-height:1.55;}
 
         <div class="field">
           <label class="lbl">颜色 <span class="opt">（最多 4 个）</span></label>
-          <div class="color-row"><input type="text" placeholder="颜色名，例如 Cream"><input type="color" value="#FFFAF1"></div>
-          <div class="color-row"><input type="text" placeholder="颜色名，例如 Wine"><input type="color" value="#82213E"></div>
-          <div class="color-row"><input type="text" placeholder="颜色名（可空）"><input type="color" value="#F2E4D9"></div>
-          <div class="color-row"><input type="text" placeholder="颜色名（可空）"><input type="color" value="#E9C9CC"></div>
+          <div id="colorRows">
+            <div class="color-row"><input type="text" placeholder="颜色名，例如 Cream" value="驼色"><input type="color" value="#C7A98B"></div>
+            <div class="color-row"><input type="text" placeholder="颜色名，例如 Wine" value="黑色"><input type="color" value="#1C1C1C"></div>
+            <div class="color-row"><input type="text" placeholder="颜色名（可空）"><input type="color" value="#F2E4D9"></div>
+            <div class="color-row"><input type="text" placeholder="颜色名（可空）"><input type="color" value="#E9C9CC"></div>
+          </div>
+          <div class="hint">填了颜色名，右侧库存会按「颜色 × 尺码」分别计数。</div>
         </div>
       </div>
 
@@ -301,8 +321,9 @@ textarea{resize:vertical;min-height:70px;line-height:1.55;}
 
         <!-- tracked block -->
         <div id="trackedBlock">
-          <div class="qty-list" id="qtyList" style="margin-top:14px;"></div>
+          <div class="matrix" id="matrix" style="margin-top:14px;"></div>
           <div class="qty-empty" id="qtyEmpty" style="display:none;">请先在左侧勾选尺码</div>
+          <div class="matrix-hint" id="noColorHint" style="display:none;"><b>未设颜色：</b>库存只按尺码计。在左侧填颜色名，即可按「颜色 × 尺码」分别计数。</div>
 
           <hr class="divider">
 
@@ -342,63 +363,140 @@ textarea{resize:vertical;min-height:70px;line-height:1.55;}
 
 <script>
 (function(){
-  var prefill = {S:10, M:8, L:0}; // 预填库存
+  // 预填库存：颜色名 -> {尺码:数量}；无颜色时用 __NONE__ 这一桶
+  var qtyStore = {
+    '驼色': {S:10, M:8, L:0},
+    '黑色': {S:5, M:3, L:2},
+    '__NONE__': {S:0, M:0, L:0}
+  };
+
   var chips = document.getElementById('sizeChips');
-  var qtyList = document.getElementById('qtyList');
+  var colorRows = document.getElementById('colorRows');
+  var matrix = document.getElementById('matrix');
   var qtyEmpty = document.getElementById('qtyEmpty');
+  var noColorHint = document.getElementById('noColorHint');
   var trackToggle = document.getElementById('trackToggle');
   var trackedBlock = document.getElementById('trackedBlock');
   var untrackedBlock = document.getElementById('untrackedBlock');
   var publishToggle = document.getElementById('publishToggle');
   var publishHint = document.getElementById('publishHint');
-
-  // remember entered quantities so toggling sizes doesn't lose them
-  var qtyStore = Object.assign({}, prefill);
+  var threshold = document.getElementById('threshold');
 
   function getCheckedSizes(){
     return Array.prototype.slice.call(chips.querySelectorAll('input:checked')).map(function(i){return i.value;});
   }
 
-  function renderQty(){
-    // save current visible values into store first
-    qtyList.querySelectorAll('input[data-size]').forEach(function(inp){
-      qtyStore[inp.getAttribute('data-size')] = inp.value;
+  // returns [{name, hex}] for each color row with a non-empty name
+  function getColors(){
+    var out = [];
+    Array.prototype.slice.call(colorRows.querySelectorAll('.color-row')).forEach(function(r){
+      var name = r.querySelector('input[type=text]').value.trim();
+      var hex = r.querySelector('input[type=color]').value;
+      if(name) out.push({name:name, hex:hex});
     });
+    return out;
+  }
 
-    var sizes = getCheckedSizes();
-    qtyList.innerHTML = '';
-    if(sizes.length === 0){
-      qtyEmpty.style.display = 'block';
-      qtyList.style.display = 'none';
-      return;
-    }
-    qtyEmpty.style.display = 'none';
-    qtyList.style.display = 'flex';
+  function getVal(colorKey, sz){
+    var b = qtyStore[colorKey];
+    if(b && b[sz] !== undefined) return b[sz];
+    return 0;
+  }
+  function setVal(colorKey, sz, v){
+    if(!qtyStore[colorKey]) qtyStore[colorKey] = {};
+    qtyStore[colorKey][sz] = v;
+  }
 
-    sizes.forEach(function(sz){
-      var val = (qtyStore[sz] !== undefined) ? qtyStore[sz] : 0;
-      var row = document.createElement('div');
-      row.className = 'qty-row' + (Number(val) === 0 ? ' zero' : '');
-      row.innerHTML =
-        '<div class="qsize">'+sz+'</div>' +
-        '<div class="qlabel">尺码 '+sz+' 库存</div>' +
-        '<input type="number" min="0" data-size="'+sz+'" value="'+val+'">';
-      var inp = row.querySelector('input');
-      inp.addEventListener('input', function(){
-        qtyStore[sz] = inp.value;
-        row.classList.toggle('zero', Number(inp.value) === 0);
-      });
-      qtyList.appendChild(row);
+  // save whatever inputs are currently visible into the store
+  function persistVisible(){
+    matrix.querySelectorAll('input[data-key]').forEach(function(inp){
+      setVal(inp.getAttribute('data-key'), inp.getAttribute('data-size'), inp.value);
     });
   }
 
-  chips.addEventListener('change', renderQty);
+  function dotClass(val){
+    var n = Number(val);
+    var t = Number(threshold.value) || 0;
+    if(n === 0) return 'zero';
+    if(n < t) return 'low';
+    return 'ok';
+  }
+
+  function buildCell(colorKey, sz){
+    var val = getVal(colorKey, sz);
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.innerHTML =
+      '<span class="cdot ' + dotClass(val) + '"></span>' +
+      '<span class="csz">' + sz + '</span>' +
+      '<input type="number" min="0" data-key="' + colorKey.replace(/"/g,'&quot;') + '" data-size="' + sz + '" value="' + val + '">';
+    var inp = cell.querySelector('input');
+    var dot = cell.querySelector('.cdot');
+    inp.addEventListener('input', function(){
+      setVal(colorKey, sz, inp.value);
+      dot.className = 'cdot ' + dotClass(inp.value);
+    });
+    return cell;
+  }
+
+  function renderMatrix(){
+    persistVisible();
+
+    var sizes = getCheckedSizes();
+    matrix.innerHTML = '';
+
+    if(sizes.length === 0){
+      qtyEmpty.style.display = 'block';
+      noColorHint.style.display = 'none';
+      matrix.style.display = 'none';
+      return;
+    }
+    qtyEmpty.style.display = 'none';
+    matrix.style.display = 'flex';
+
+    var colors = getColors();
+
+    if(colors.length === 0){
+      // 无颜色回退：单一按尺码列表
+      noColorHint.style.display = 'block';
+      var group = document.createElement('div');
+      group.className = 'cgroup';
+      group.innerHTML = '<div class="cgroup-head"><span class="cname">按尺码库存</span></div>';
+      var grid = document.createElement('div');
+      grid.className = 'cgrid';
+      sizes.forEach(function(sz){ grid.appendChild(buildCell('__NONE__', sz)); });
+      group.appendChild(grid);
+      matrix.appendChild(group);
+      return;
+    }
+
+    noColorHint.style.display = 'none';
+    colors.forEach(function(c){
+      var group = document.createElement('div');
+      group.className = 'cgroup';
+      var head = document.createElement('div');
+      head.className = 'cgroup-head';
+      head.innerHTML = '<span class="sw" style="background:' + c.hex + '"></span>' +
+                       '<span class="cname"></span>';
+      head.querySelector('.cname').textContent = c.name;
+      group.appendChild(head);
+      var grid = document.createElement('div');
+      grid.className = 'cgrid';
+      sizes.forEach(function(sz){ grid.appendChild(buildCell(c.name, sz)); });
+      group.appendChild(grid);
+      matrix.appendChild(group);
+    });
+  }
+
+  chips.addEventListener('change', renderMatrix);
+  colorRows.addEventListener('input', renderMatrix);
+  threshold.addEventListener('input', renderMatrix);
 
   trackToggle.addEventListener('change', function(){
     if(trackToggle.checked){
       trackedBlock.style.display = '';
       untrackedBlock.style.display = 'none';
-      renderQty();
+      renderMatrix();
     } else {
       trackedBlock.style.display = 'none';
       untrackedBlock.style.display = 'block';
@@ -425,7 +523,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.55;}
   });
 
   // init
-  renderQty();
+  renderMatrix();
 })();
 </script>
 
