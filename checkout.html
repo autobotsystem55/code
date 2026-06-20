@@ -53,13 +53,19 @@
       // ---- fire Pixel InitiateCheckout ----
       if (window.Pixel) Pixel.initiateCheckout(lines.map(function (l) { return { id: l.id, qty: l.qty, price: l.price }; }), subtotal);
 
-      var summaryLines = lines.map(function (l) {
-        return '<div class="summary__line">' +
-          '<div class="li-img"><img src="' + imgUrl(l.image, 160) + '" alt="" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'"><b>' + l.qty + '</b></div>' +
-          '<div><div class="li-name">' + l.name + '</div><div class="li-meta">' + [l.color, l.size].filter(Boolean).join(' · ') + '</div></div>' +
-          '<div class="li-price">' + money(l.price * l.qty) + '</div>' +
-        '</div>';
-      }).join('');
+      function summaryHTML(perLine) {
+        perLine = perLine || {};
+        return lines.map(function (l) {
+          var a = perLine[l.key];
+          var badge = a ? '<span style="display:inline-block;margin-top:4px;font-size:11px;color:#2F7D4F;background:#E3F1E8;border-radius:30px;padding:1px 9px;font-weight:600">' + (a.n > 1 ? (a.n + '件 ') : '') + a.label + '</span>' : '';
+          return '<div class="summary__line">' +
+            '<div class="li-img"><img src="' + imgUrl(l.image, 160) + '" alt="" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'"><b>' + l.qty + '</b></div>' +
+            '<div><div class="li-name">' + l.name + '</div><div class="li-meta">' + [l.color, l.size].filter(Boolean).join(' · ') + '</div>' + badge + '</div>' +
+            '<div class="li-price">' + money(l.price * l.qty) + '</div>' +
+          '</div>';
+        }).join('');
+      }
+      var summaryLines = summaryHTML(null);
 
       var paymentFieldset = demo
         ? '<fieldset><legend>' + t('co.payment') + ' <small>' + t('co.demo') + '</small></legend>' +
@@ -97,7 +103,8 @@
 
           '<aside class="summary">' +
             '<h3>' + t('co.summary') + '</h3>' +
-            summaryLines +
+            '<div id="sumLines">' + summaryLines + '</div>' +
+            '<p id="promoHint" style="display:none;font-size:12.5px;line-height:1.5;margin:10px 0 0;color:#6A1A32;background:#FBF0DA;border-radius:8px;padding:9px 12px"></p>' +
             '<div style="display:flex;gap:8px;margin:16px 0 2px">' +
               '<input id="discInput" placeholder="' + t('co.discPh') + '" style="flex:1;padding:11px 13px;background:var(--white);border:1px solid var(--pink-border);border-radius:var(--radius);outline:none;text-transform:uppercase">' +
               '<button type="button" class="btn btn--ghost" id="discBtn" style="padding:11px 18px">' + t('co.apply') + '</button>' +
@@ -112,7 +119,8 @@
           '</aside>' +
         '</div>';
 
-      // ---- discount code ----
+      // ---- discount: flat codes + cart-aware promos (买一送一 / 第N件半价) ----
+      var discountLabel = '';
       function renderTotals() {
         var effShip = freeShip ? 0 : shipping;
         total = Math.max(0, subtotal - discount) + effShip;
@@ -121,34 +129,106 @@
         var row = document.getElementById('discRow');
         if (discount > 0 || (freeShip && shipping > 0)) {
           row.style.display = '';
-          document.getElementById('discTag').textContent = discountCode;
+          document.getElementById('discTag').textContent = discountLabel || discountCode;
           document.getElementById('discAmt').textContent = '−' + money(discount > 0 ? discount : shipping);
         } else { row.style.display = 'none'; }
         document.getElementById('grandTotal').textContent = money(total);
         var pb = document.getElementById('placeBtn');
         if (pb) pb.textContent = demo ? t('co.place', { x: money(total) }) : t('co.proceed', { x: money(total) });
       }
+      function renderSummary(perLine) { var b = document.getElementById('sumLines'); if (b) b.innerHTML = summaryHTML(perLine || {}); }
+      function showHint(nudge) {
+        var h = document.getElementById('promoHint'); if (!h) return;
+        if (nudge && nudge.need > 0) { h.style.display = ''; h.textContent = t(nudge.more ? 'co.promoMore' : 'co.promoNudge', { n: nudge.need, name: nudge.label }); }
+        else { h.style.display = 'none'; h.textContent = ''; }
+      }
+      // --- cart-level discount math (computed here because we need the line items) ---
+      function dInScope(promo, line) {
+        if (promo.scope_type === 'all' || !promo.scope_type) return true;
+        var p = window.findProduct ? window.findProduct(line.id) : null; if (!p) return false;
+        if (promo.scope_type === 'category') return (promo.scope_ids || []).indexOf(p.category) >= 0;
+        if (promo.scope_type === 'product') return (promo.scope_ids || []).indexOf(line.id) >= 0;
+        return false;
+      }
+      function dUnits(promo) {
+        var units = [];
+        lines.forEach(function (l) {
+          if (l.b) return;                                            // bundles excluded
+          if (window.findProduct && !window.findProduct(l.id)) return; // removed product excluded
+          if (!dInScope(promo, l)) return;
+          for (var k = 0; k < (l.qty || 0); k++) units.push({ key: l.key, price: l.price || 0 });
+        });
+        units.sort(function (a, b) { return a.price - b.price; });     // cheapest first
+        return units;
+      }
+      function mark(res, key, label) { var m = res.perLine[key] || { n: 0, label: label }; m.n++; m.label = label; res.perLine[key] = m; }
+      function pctLabel(off) { return off === 50 ? '半价' : ((Math.round((100 - off) / 10 * 10) / 10) + ' 折'); }
+      function computeCartDiscount(promo) {
+        var cfg = promo.config || {}, units = dUnits(promo), n = units.length, i;
+        var res = { amount: 0, perLine: {}, eligible: n, need: 0 };
+        if (promo.type === 'bxgy') {
+          var buy = Math.max(1, parseInt(cfg.buy, 10) || 1), get = Math.max(1, parseInt(cfg.get, 10) || 1);
+          var fpct = (cfg.free_pct != null && +cfg.free_pct > 0) ? +cfg.free_pct : 100;
+          var gsize = buy + get, free = Math.floor(n / gsize) * get;
+          var cap = cfg.max_per_order ? parseInt(cfg.max_per_order, 10) : Infinity; if (free > cap) free = cap;
+          for (i = 0; i < free; i++) { res.amount += units[i].price * fpct / 100; mark(res, units[i].key, fpct >= 100 ? '免费' : '赠品价'); }
+          res.need = n > 0 ? ((gsize - n % gsize) % gsize) : 0;
+        } else if (promo.type === 'nth') {
+          var nth = Math.max(2, parseInt(cfg.nth, 10) || 2);
+          var opct = (cfg.off_pct != null && +cfg.off_pct > 0) ? +cfg.off_pct : 50;
+          var rep = cfg.repeating !== false;
+          var g = Math.floor(n / nth); if (!rep) g = Math.min(g, 1);
+          var cap2 = cfg.max_per_order ? parseInt(cfg.max_per_order, 10) : Infinity; if (g > cap2) g = cap2;
+          for (i = 0; i < g; i++) { res.amount += units[i].price * opct / 100; mark(res, units[i].key, pctLabel(opct)); }
+          res.need = (!rep && n >= nth) ? 0 : (n > 0 ? ((nth - n % nth) % nth) : 0);
+        }
+        res.amount = Math.round(res.amount * 100) / 100;
+        return res;
+      }
+      function applyPromo(promo, res) {
+        discount = res.amount; discountCode = promo.code; discountLabel = promo.name || promo.code; freeShip = false;
+        renderSummary(res.perLine); renderTotals();
+        if (res.need > 0) showHint({ need: res.need, label: promo.name || promo.code, more: true }); else showHint(null);
+      }
+      // auto-apply the best cart-level promo on load (no code needed)
+      function applyAuto() {
+        if (!(window.DB && DB.autoDiscounts)) return;
+        DB.autoDiscounts(subtotal).then(function (r) {
+          var promos = (r && r.data) || []; if (!promos.length) return;
+          var bestP = null, bestR = null, nudge = null;
+          promos.forEach(function (p) {
+            var res = computeCartDiscount(p);
+            if (res.amount > 0 && (!bestR || res.amount > bestR.amount)) { bestP = p; bestR = res; }
+            if (res.eligible > 0 && res.need > 0 && (!nudge || res.need < nudge.need)) nudge = { need: res.need, label: p.name || p.code };
+          });
+          if (bestR) applyPromo(bestP, bestR);
+          else if (nudge) showHint(nudge);
+        }, function () {});
+      }
       document.getElementById('discBtn').addEventListener('click', function () {
         var code = document.getElementById('discInput').value.trim();
         var msg = document.getElementById('discMsg');
         if (!code) return;
         if (!(window.DB && DB.validateDiscount)) { msg.style.color = 'var(--muted)'; msg.textContent = t('co.discNa'); return; }
-        this.disabled = true;
+        var btn = this; btn.disabled = true;
         DB.validateDiscount(code, subtotal).then(function (r) {
-          document.getElementById('discBtn').disabled = false;
-          var d = r && r.data;
-          if (!d) { discount = 0; discountCode = ''; freeShip = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); renderTotals(); return; }
-          discountCode = d.code;
-          if (d.type === 'free_shipping') {
-            freeShip = true; discount = 0;
-            msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discShip');
-          } else {
-            freeShip = false; discount = Number(d.discount) || 0;
-            msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discOk', { x: money(discount) });
+          btn.disabled = false; var d = r && r.data;
+          if (!d) { msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); return; }
+          if (d.type === 'bxgy' || d.type === 'nth') {
+            var res = computeCartDiscount(d);
+            if (res.amount > 0) { applyPromo(d, res); msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discOk', { x: money(res.amount) }); }
+            else { msg.style.color = 'var(--wine)'; msg.textContent = t('co.discNoQual'); }
+            return;
           }
+          if (d.type === 'free_shipping' && shipping <= 0) { msg.style.color = 'var(--muted)'; msg.textContent = t('co.discShipNone'); return; }
+          // flat / free-shipping codes override any auto promo (one discount per order)
+          renderSummary({}); showHint(null); discountCode = d.code; discountLabel = d.code;
+          if (d.type === 'free_shipping') { freeShip = true; discount = 0; msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discShip'); }
+          else { freeShip = false; discount = Math.max(0, Math.min(subtotal, Number(d.discount) || 0)); msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discOk', { x: money(discount) }); }
           renderTotals();
-        }, function () { document.getElementById('discBtn').disabled = false; discount = 0; freeShip = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); renderTotals(); });
+        }, function () { btn.disabled = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); });
       });
+      applyAuto();
 
       // ---- submit ----
       document.getElementById('coForm').addEventListener('submit', function (e) {

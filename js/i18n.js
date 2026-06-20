@@ -150,6 +150,8 @@
       'co.free': 'Free', 'co.total': 'Total', 'co.fill': 'Please complete the highlighted fields',
       'co.discount': 'Discount', 'co.discPh': 'Discount code', 'co.apply': 'Apply',
       'co.discOk': '−{x} applied', 'co.discBad': 'Invalid or expired code', 'co.discNa': 'Discounts unavailable right now', 'co.discShip': 'Free shipping applied',
+      'co.promoNudge': 'Add {n} more eligible item(s) to unlock {name}', 'co.discNoQual': 'Your cart does not meet this offer yet',
+      'co.promoMore': 'Add {n} more for another {name}', 'co.discShipNone': 'Shipping is already free',
       'co.empty': 'Your bag is empty.', 'co.continue': 'Continue shopping',
       // success
       'ok.confirmed': 'Order confirmed', 'ok.thanks': 'Thank you.',
@@ -284,6 +286,8 @@
       'co.free': '免费', 'co.total': '合计', 'co.fill': '请填写高亮的必填项',
       'co.discount': '优惠', 'co.discPh': '优惠码', 'co.apply': '应用',
       'co.discOk': '已减 {x}', 'co.discBad': '优惠码无效或已过期', 'co.discNa': '暂不可用优惠码', 'co.discShip': '已享免运费',
+      'co.promoNudge': '再加 {n} 件指定商品即可享「{name}」', 'co.discNoQual': '购物车未满足该优惠条件',
+      'co.promoMore': '再加 {n} 件可再享一次「{name}」', 'co.discShipNone': '运费已是免费',
       'co.empty': '购物袋是空的。', 'co.continue': '继续选购',
       'ok.confirmed': '订单已确认', 'ok.thanks': '感谢你的购买。',
       'ok.line': '订单已提交——确认邮件正发往 <b>{x}</b>。',

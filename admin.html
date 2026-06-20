@@ -776,13 +776,25 @@
           '.bw .dtpl.sel .tick{display:flex}'+
           '.bw .dprev{margin-top:14px;background:#E3F1E8;border:1px solid #cfe6d6;color:#2F7D4F;border-radius:8px;padding:12px 14px;font-size:14px}'+
           '.bw .dscope{display:inline-block;background:var(--cream-2,#FAF6F3);border:1px solid var(--line,#ECD9D6);border-radius:6px;padding:9px 12px;color:var(--muted,#6F635C);font-size:13px}'+
+          '.bw .seg3{display:inline-flex;border:1px solid var(--line,#ECD9D6);border-radius:8px;overflow:hidden;background:var(--white,#fff);flex-wrap:wrap}'+
+          '.bw .seg3 .sopt{border:0;background:transparent;padding:9px 16px;font:inherit;font-size:13.5px;color:var(--muted,#6F635C);cursor:pointer;border-right:1px solid var(--line,#ECD9D6)}'+
+          '.bw .seg3 .sopt:last-child{border-right:0}'+
+          '.bw .seg3 .sopt.on{background:var(--wine,#82213E);color:#fff}'+
+          '.bw .dpick{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;max-height:260px;overflow:auto;padding:2px}'+
+          '.bw .dpk{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line,#ECD9D6);border-radius:8px;padding:8px 12px;font-size:13.5px;cursor:pointer;background:var(--cream-2,#FAF6F3)}'+
+          '.bw .dpk.on{border-color:var(--wine,#82213E);background:#fff;box-shadow:0 0 0 1px var(--wine,#82213E)}'+
+          '.bw .dpk input{accent-color:var(--wine,#82213E)}'+
+          '.bw .dprod .dpk{flex:1 1 240px}'+
           '@media(max-width:920px){.bw .dtpl-grid{grid-template-columns:repeat(2,1fr)}}'+
           '@media(max-width:560px){.bw .dtpl-grid{grid-template-columns:1fr}}';
         document.head.appendChild(st);
       }
-      DB.allDiscounts().then(function(r){
+      Promise.all([DB.allDiscounts(),DB.allProducts?DB.allProducts():Promise.resolve({data:[]})]).then(function(res){
+        var r=res[0],pres=res[1]||{data:[]};
         if(r.error){view.innerHTML='<p class="msg">读取失败：'+esc(r.error.message)+'</p>';return;}
         var rows=r.data||[];
+        var CATALOG=((pres.data)||[]).map(function(p){return {id:p.id,zh:p.name_zh||p.name||p.id,cat:p.category||'',price:Number(p.price)||0};});
+        var CATS=[];CATALOG.forEach(function(p){if(p.cat&&CATS.indexOf(p.cat)<0)CATS.push(p.cat);});
         var sym=(window.STORE_CONFIG&&window.STORE_CONFIG.currencySymbol)||'RM';
         var toastEl=document.getElementById('invToast');if(!toastEl){toastEl=document.createElement('div');toastEl.id='invToast';toastEl.className='itoast';document.body.appendChild(toastEl);}
         function toast(m){toastEl.innerHTML=m;toastEl.classList.add('show');clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove('show');},2600);}
@@ -791,18 +803,18 @@
           {key:'percent',live:true,big:'10%',unit:'OFF',title:'满额打折',sub:'满额/全场打折扣',en:'percent off'},
           {key:'fixed',live:true,big:sym+' 5',unit:'OFF',title:'满额立减',sub:'满额减固定金额',en:'amount off'},
           {key:'free_shipping',live:true,big:'免运费',unit:'',title:'免运费',sub:'满额免运费',en:'free shipping'},
-          {key:'bxgy',live:false,big:'1+1',unit:'',title:'买一送一',sub:'指定商品买一送一',en:'buy 1 free 1'},
-          {key:'nth',live:false,big:'50%',unit:'OFF',title:'第 N 件优惠',sub:'每第 X 件打折',en:'every Xth item'},
+          {key:'bxgy',live:true,big:'1+1',unit:'',title:'买一送一',sub:'指定商品买一送一',en:'buy 1 free 1'},
+          {key:'nth',live:true,big:'50%',unit:'OFF',title:'第 N 件优惠',sub:'每第 X 件打折',en:'every Xth item'},
           {key:'setdeal',live:false,big:sym+' 99',unit:'',title:'组合价',sub:'任选 N 件特价',en:'buy N at price'},
           {key:'gift',live:false,big:'赠品',unit:'',title:'满额送赠品',sub:'满额送礼',en:'free gift'},
           {key:'addon',live:false,big:'加购',unit:'',title:'加购价',sub:'满件可加购',en:'add-on price'},
           {key:'credit',live:false,big:'购物金',unit:'',title:'消费送购物金',sub:'每消费回馈',en:'store credit'}
         ];
         function tplOf(k){return TEMPLATES.filter(function(t){return t.key===k;})[0];}
-        function typeLabel(t){return ({percent:'满额打折',fixed:'满额立减',free_shipping:'免运费'})[t]||t;}
+        function typeLabel(t){return ({percent:'满额打折',fixed:'满额立减',free_shipping:'免运费',bxgy:'买一送一',nth:'第N件优惠'})[t]||t;}
 
         var S,editingCode=null;
-        function freshState(){return {type:null,value:10,min:0,name:'',code:'',limit:'',start:'',exp:'',live:true};}
+        function freshState(){return {type:null,value:10,min:0,name:'',code:'',limit:'',start:'',exp:'',live:true,scopeType:'all',scopeIds:[],config:{}};}
 
         var now=Date.now();
         var activeN=rows.filter(function(c){return c.active&&(!c.expires_at||new Date(c.expires_at).getTime()>now);}).length;
@@ -829,7 +841,7 @@
               '<div class="wfoot"><button type="button" class="btn btn--quiet btn--lg" id="dCancel1">取消</button><div class="right"><button type="button" class="btn btn--lg" id="dGo2" disabled>下一步 · 设置规则 →</button></div></div></div>'+
             '<div class="stepwrap" data-pane="2"><div class="wcard"><h2 id="dS2title">第二步 · 设置规则</h2><p class="lede">填写折扣条件，下面会实时预览顾客看到的优惠。</p>'+
               '<div id="dRuleFields"></div>'+
-              '<div class="field" style="margin-top:4px"><label>适用范围</label><div class="dscope">全部商品 <span class="muted">（指定系列 / 指定商品即将推出）</span></div></div>'+
+              '<div id="dScopeBox"></div>'+
               '<div class="dprev" id="dPrev2">—</div></div>'+
               '<div class="wfoot"><button type="button" class="btn btn--quiet btn--lg" data-dback="1">← 上一步</button><div class="right"><button type="button" class="btn btn--lg" data-dgo="3">下一步 · 优惠码 →</button></div></div></div>'+
             '<div class="stepwrap" data-pane="3"><div class="wcard"><h2>第三步 · 优惠码 &amp; 排期</h2><p class="lede">设置优惠名称、顾客结账输入的优惠码，以及使用次数和有效期。</p>'+
@@ -849,11 +861,16 @@
 
         function renderRows(){
           $('#dRows').innerHTML=rows.length?rows.map(function(c){
-            var val=c.type==='percent'?(c.value+'%'):(c.type==='free_shipping'?'免运费':money(c.value));
+            var cf=c.config||{};
+            var val=c.type==='percent'?(c.value+'%')
+              :c.type==='free_shipping'?'免运费'
+              :c.type==='bxgy'?('买'+(cf.buy||1)+'送'+(cf.get||1))
+              :c.type==='nth'?('第'+(cf.nth||2)+'件'+((+cf.off_pct===50)?'半价':((cf.off_pct||50)+'% off')))
+              :money(c.value);
             var per=(c.starts_at?fdate(c.starts_at):'即时')+' → '+(c.expires_at?fdate(c.expires_at):'长期');
             var nm=c.name?('<div class="b-name">'+esc(c.name)+'</div><div class="b-en">'+esc(c.code)+'</div>'):('<div class="b-name">'+esc(c.code)+'</div>');
             return '<tr><td>'+nm+'</td>'+
-              '<td><span class="bpill '+(c.type==='free_shipping'?'mix':'fixed')+'">'+typeLabel(c.type)+'</span><div class="muted" style="font-size:12px;margin-top:3px">'+val+'</div></td>'+
+              '<td><span class="bpill '+((c.type==='percent'||c.type==='fixed')?'fixed':'mix')+'">'+typeLabel(c.type)+'</span><div class="muted" style="font-size:12px;margin-top:3px">'+val+(c.auto_apply?' · 自动':'')+'</div></td>'+
               '<td class="muted">'+(c.used_count||0)+' / '+(c.usage_limit==null?'∞':c.usage_limit)+'</td>'+
               '<td class="muted">'+(c.min_subtotal>0?money(c.min_subtotal):'—')+'</td>'+
               '<td class="muted" style="font-size:12px">'+per+'</td>'+
@@ -874,20 +891,35 @@
           $$('#dTplGrid .dtpl').forEach(function(el){el.addEventListener('click',function(){
             var k=el.getAttribute('data-tpl');var t=tplOf(k);
             if(!t.live){toast('「'+t.title+'」即将推出，敬请期待 ✿');return;}
+            if(S.type===k){$('#dGo2').disabled=false;return;}   // 重复点同一类型：保留已填/已恢复的设置
             S.type=k;S.value=(k==='percent'?10:(k==='fixed'?5:0));
+            S.scopeType='all';S.scopeIds=[];                     // 切换类型 → 适用范围重置
+            if(k==='bxgy')S.config={buy:1,get:1,free_pct:100,max_per_order:''};
+            else if(k==='nth')S.config={nth:2,off_pct:50,repeating:true,max_per_order:''};
+            else S.config={};
             $$('#dTplGrid .dtpl').forEach(function(x){x.classList.toggle('sel',x===el);});
             $('#dGo2').disabled=false;
           });});
         }
 
+        function scopeText(){
+          if(S.type!=='bxgy'&&S.type!=='nth')return '全部商品';
+          if(S.scopeType==='all')return '全部商品';
+          if(S.scopeType==='category')return '系列：'+((S.scopeIds||[]).join('、')||'未选');
+          return '指定商品 '+((S.scopeIds||[]).length)+' 款';
+        }
         function ruleText(){
+          var c=S.config||{};
           if(S.type==='percent')return (S.min>0?('满 '+sym+' '+S.min+'，'):'全场 ')+(S.value||0)+'% 折扣';
           if(S.type==='fixed')return (S.min>0?('满 '+sym+' '+S.min+'，'):'')+'立减 '+sym+' '+(S.value||0);
-          return (S.min>0?('满 '+sym+' '+S.min+'，'):'')+'免运费';
+          if(S.type==='free_shipping')return (S.min>0?('满 '+sym+' '+S.min+'，'):'')+'免运费';
+          if(S.type==='bxgy')return '买 '+(c.buy||1)+' 送 '+(c.get||1)+'（'+((c.free_pct==null||+c.free_pct>=100)?'赠品免费':('赠品 '+c.free_pct+'% off'))+'）· '+scopeText();
+          if(S.type==='nth')return '每 '+(c.nth||2)+' 件，最便宜 1 件'+((+c.off_pct===50)?'半价':('享 '+(c.off_pct||50)+'% off'))+((c.repeating!==false)?'（循环）':'')+' · '+scopeText();
+          return '';
         }
         function updatePrev(){var p=$('#dPrev2');if(p)p.innerHTML='顾客看到：<b>'+esc(ruleText())+'</b>';}
         function renderRule(){
-          var t=S.type;var box=$('#dRuleFields');
+          var t=S.type,c=S.config||{},box=$('#dRuleFields');
           if(t==='percent'){
             box.innerHTML='<div class="row2"><div class="field"><label>折扣百分比</label><div class="priceinput pct"><input id="dVal" type="number" min="1" max="99" value="'+(S.value||10)+'"><span class="suf">%</span></div><div class="hint">例：10 = 打 9 折。</div></div>'+
               '<div class="field"><label>满额门槛（0 = 不限）</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dMin" type="number" min="0" step="0.01" value="'+(S.min||0)+'"></div></div></div>';
@@ -896,21 +928,60 @@
             box.innerHTML='<div class="row2"><div class="field"><label>立减金额</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dVal" type="number" min="1" step="0.01" value="'+(S.value||5)+'"></div><div class="hint">直接从小计中扣除。</div></div>'+
               '<div class="field"><label>满额门槛（0 = 不限）</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dMin" type="number" min="0" step="0.01" value="'+(S.min||0)+'"></div></div></div>';
             $('#dS2title').textContent='第二步 · 设置「满额立减」';
-          } else {
+          } else if(t==='free_shipping'){
             box.innerHTML='<div class="field"><label>满额门槛（0 = 不限）</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dMin" type="number" min="0" step="0.01" value="'+(S.min||0)+'"></div><div class="hint">订单达到门槛即免运费。</div></div>';
             $('#dS2title').textContent='第二步 · 设置「免运费」';
+          } else if(t==='bxgy'){
+            box.innerHTML='<div class="row2"><div class="field"><label>购买数量</label><div class="priceinput"><input id="dBuy" type="number" min="1" value="'+(c.buy||1)+'"><span class="suf">件</span></div></div>'+
+              '<div class="field"><label>赠送数量</label><div class="priceinput"><input id="dGet" type="number" min="1" value="'+(c.get||1)+'"><span class="suf">件</span></div></div></div>'+
+              '<div class="row2"><div class="field"><label>赠品折扣（100 = 完全免费）</label><div class="priceinput pct"><input id="dFree" type="number" min="1" max="100" value="'+(c.free_pct!=null?c.free_pct:100)+'"><span class="suf">%</span></div><div class="hint">100 = 第二件免费；50 = 赠品半价。</div></div>'+
+              '<div class="field"><label>每单最多送几件（留空 = 不限）</label><input id="dMaxP" type="number" min="1" placeholder="不限" value="'+(c.max_per_order||'')+'"></div></div>'+
+              '<p class="hint" style="margin:2px 0 0">系统会自动把每组里<b>最便宜的一件</b>设为赠品。</p>';
+            $('#dS2title').textContent='第二步 · 设置「买一送一」';
+          } else if(t==='nth'){
+            box.innerHTML='<div class="row2"><div class="field"><label>每几件优惠一次</label><div class="priceinput"><input id="dNth" type="number" min="2" value="'+(c.nth||2)+'"><span class="suf">件</span></div><div class="hint">2 = 第二件优惠。</div></div>'+
+              '<div class="field"><label>折扣力度（50 = 半价）</label><div class="priceinput pct"><input id="dOff" type="number" min="1" max="100" value="'+(c.off_pct!=null?c.off_pct:50)+'"><span class="suf">% off</span></div></div></div>'+
+              '<div class="row2"><div class="field"><label>每单最多优惠几件（留空 = 不限）</label><input id="dMaxP" type="number" min="1" placeholder="不限" value="'+(c.max_per_order||'')+'"></div>'+
+              '<div class="field"><label>循环优惠</label><div class="toggle-row" style="margin-top:0;padding:6px 0"><div class="lab" style="font-size:13px">买 4 件就 2 件优惠…<small>关闭则整单只优惠一次</small></div><div class="sw'+(c.repeating!==false?' on':'')+'" id="dRep" role="switch"></div></div></div></div>'+
+              '<p class="hint" style="margin:2px 0 0">系统会自动把每组里<b>最便宜的一件</b>打折。</p>';
+            $('#dS2title').textContent='第二步 · 设置「第N件优惠」';
           }
+          renderScope();
           var vEl=$('#dVal');if(vEl)vEl.addEventListener('input',function(){S.value=+this.value||0;updatePrev();});
-          $('#dMin').addEventListener('input',function(){S.min=+this.value||0;updatePrev();});
+          var mEl=$('#dMin');if(mEl)mEl.addEventListener('input',function(){S.min=+this.value||0;updatePrev();});
+          function bindC(id,key){var e=$(id);if(e)e.addEventListener('input',function(){S.config[key]=(this.value===''?'':parseInt(this.value,10));updatePrev();});}
+          bindC('#dBuy','buy');bindC('#dGet','get');bindC('#dFree','free_pct');bindC('#dNth','nth');bindC('#dOff','off_pct');bindC('#dMaxP','max_per_order');
+          var rep=$('#dRep');if(rep)rep.addEventListener('click',function(){S.config.repeating=!(S.config.repeating!==false);this.classList.toggle('on',S.config.repeating!==false);updatePrev();});
           updatePrev();
         }
+        function renderScope(){
+          var box=$('#dScopeBox');if(!box)return;
+          if(S.type!=='bxgy'&&S.type!=='nth'){box.innerHTML='<div class="field" style="margin-top:6px"><label>适用范围</label><div class="dscope">全部商品（按整单计算）</div></div>';return;}
+          var seg='<div class="field" style="margin-top:8px"><label>适用范围（参加活动的商品）</label>'+
+            '<div class="seg3" id="dScopeSeg">'+
+              '<button type="button" class="sopt'+(S.scopeType==='all'?' on':'')+'" data-sc="all">全部商品</button>'+
+              '<button type="button" class="sopt'+(S.scopeType==='category'?' on':'')+'" data-sc="category">指定系列</button>'+
+              '<button type="button" class="sopt'+(S.scopeType==='product'?' on':'')+'" data-sc="product">指定商品</button>'+
+            '</div></div>';
+          var body='';
+          if(S.scopeType==='category'){
+            body=CATS.length?('<div class="dpick">'+CATS.map(function(cat){var on=S.scopeIds.indexOf(cat)>=0;return '<label class="dpk'+(on?' on':'')+'"><input type="checkbox" data-cat="'+esc(cat)+'"'+(on?' checked':'')+'> '+esc(cat)+'</label>';}).join('')+'</div>'):'<p class="hint">未读取到商品系列。</p>';
+          } else if(S.scopeType==='product'){
+            body=CATALOG.length?('<div class="dpick dprod">'+CATALOG.map(function(p){var on=S.scopeIds.indexOf(p.id)>=0;return '<label class="dpk'+(on?' on':'')+'"><input type="checkbox" data-pid="'+esc(p.id)+'"'+(on?' checked':'')+'> '+esc(p.zh)+' <span class="muted">'+esc(p.cat)+'</span></label>';}).join('')+'</div>'):'<p class="hint">未读取到商品。</p>';
+          }
+          box.innerHTML=seg+body;
+          $$('#dScopeSeg .sopt').forEach(function(b){b.addEventListener('click',function(){var nt=b.getAttribute('data-sc');if(nt!==S.scopeType)S.scopeIds=[];S.scopeType=nt;renderScope();updatePrev();});});
+          $$('#dScopeBox [data-cat]').forEach(function(cb){cb.addEventListener('change',function(){toggleScope(cb.getAttribute('data-cat'),cb.checked,cb);});});
+          $$('#dScopeBox [data-pid]').forEach(function(cb){cb.addEventListener('change',function(){toggleScope(cb.getAttribute('data-pid'),cb.checked,cb);});});
+        }
+        function toggleScope(v,on,cb){var i=S.scopeIds.indexOf(v);if(on&&i<0)S.scopeIds.push(v);else if(!on&&i>=0)S.scopeIds.splice(i,1);if(cb&&cb.parentNode)cb.parentNode.classList.toggle('on',on);updatePrev();}
 
         function renderReview(){
           var codeU=(S.code||'').toUpperCase();
           $('#dReview').innerHTML='<div class="rev-block"><h4>优惠规则 <button data-djump="2">修改</button></h4>'+
             '<div class="rev-line"><span class="k">类型</span><span class="v">'+typeLabel(S.type)+'</span></div>'+
             '<div class="rev-line"><span class="k">规则</span><span class="v">'+esc(ruleText())+'</span></div>'+
-            '<div class="rev-line"><span class="k">适用范围</span><span class="v">全部商品</span></div></div>'+
+            '<div class="rev-line"><span class="k">适用范围</span><span class="v">'+esc(scopeText())+'</span></div></div>'+
             '<div class="rev-block"><h4>优惠码 &amp; 排期 <button data-djump="3">修改</button></h4>'+
             '<div class="rev-line"><span class="k">名称</span><span class="v">'+(esc(S.name)||'—')+'</span></div>'+
             '<div class="rev-line"><span class="k">优惠码</span><span class="v" style="font-weight:700;letter-spacing:.04em">'+(esc(codeU)||'—')+'</span></div>'+
@@ -935,9 +1006,10 @@
         function openWizard(code){
           S=freshState();editingCode=null;
           if(code){var c=rows.filter(function(x){return x.code===code;})[0];if(c){editingCode=code;
-            S.type=(c.type==='percent'||c.type==='fixed'||c.type==='free_shipping')?c.type:'fixed';
+            S.type=(['percent','fixed','free_shipping','bxgy','nth'].indexOf(c.type)>=0)?c.type:'fixed';
             S.value=c.value!=null?c.value:0;S.min=c.min_subtotal||0;S.name=c.name||'';S.code=c.code||'';
             S.limit=c.usage_limit==null?'':c.usage_limit;S.start=c.starts_at?c.starts_at.slice(0,10):'';S.exp=c.expires_at?c.expires_at.slice(0,10):'';S.live=c.active!==false;
+            S.config=Object.assign({},c.config||{});S.scopeType=c.scope_type||'all';S.scopeIds=(c.scope_ids||[]).slice();
           }}
           $('#dLanding').classList.add('off');$('#dWizard').classList.add('on');
           renderTpls();$('#dGo2').disabled=!S.type;goStep(1);window.scrollTo(0,0);
@@ -947,13 +1019,24 @@
         function commit(live){
           pullStep3();
           if(!S.type){toast('请先选择优惠类型');goStep(1);return;}
+          var cart=(S.type==='bxgy'||S.type==='nth');
           if((S.type==='percent'||S.type==='fixed')&&!(S.value>0)){toast('请填写有效的折扣值');goStep(2);return;}
+          if(S.type==='bxgy'&&(!((+S.config.buy)>=1)||!((+S.config.get)>=1))){toast('买 / 送数量需 ≥ 1');goStep(2);return;}
+          if(S.type==='nth'&&!((+S.config.nth)>=2)){toast('「每几件优惠」需 ≥ 2');goStep(2);return;}
+          if(cart&&S.scopeType!=='all'&&!((S.scopeIds||[]).length)){toast('请选择参加活动的系列或商品');goStep(2);return;}
           if(!S.name){toast('请填写优惠名称');goStep(3);return;}
           if(!S.code){toast('请填写优惠码');goStep(3);return;}
-          var row={code:S.code.toUpperCase(),name:S.name,type:S.type,value:(S.type==='free_shipping'?0:(+S.value||0)),
+          var cap=function(v){return (v===''||v==null)?null:Math.max(1,parseInt(v,10)||1);};
+          if(cart){var cc=S.config||{};
+            S.config=S.type==='bxgy'
+              ?{buy:Math.max(1,parseInt(cc.buy,10)||1),get:Math.max(1,parseInt(cc.get,10)||1),free_pct:Math.min(100,Math.max(1,parseInt(cc.free_pct,10)||100)),max_per_order:cap(cc.max_per_order)}
+              :{nth:Math.max(2,parseInt(cc.nth,10)||2),off_pct:Math.min(100,Math.max(1,parseInt(cc.off_pct,10)||50)),repeating:cc.repeating!==false,max_per_order:cap(cc.max_per_order)};
+          }
+          var row={code:S.code.toUpperCase(),name:S.name,type:S.type,value:((S.type==='free_shipping'||cart)?0:(+S.value||0)),
             min_subtotal:+S.min||0,usage_limit:S.limit?parseInt(S.limit,10):null,
             starts_at:S.start?new Date(S.start+'T00:00:00').toISOString():null,
-            expires_at:S.exp?new Date(S.exp+'T23:59:59').toISOString():null,active:!!live};
+            expires_at:S.exp?new Date(S.exp+'T23:59:59').toISOString():null,active:!!live,
+            config:cart?S.config:{},scope_type:cart?S.scopeType:'all',scope_ids:cart?(S.scopeIds||[]):[],auto_apply:cart};
           $('#dSave').disabled=true;$('#dDraft').disabled=true;
           DB.upsertDiscount(row).then(function(rr){
             if(rr&&rr.error){toast('保存失败：'+rr.error.message);$('#dSave').disabled=false;$('#dDraft').disabled=false;return;}
@@ -966,7 +1049,7 @@
         $('#dGo2').addEventListener('click',function(){if(S.type)goStep(2);});
         $$('[data-dgo]').forEach(function(b){b.addEventListener('click',function(){goStep(+b.getAttribute('data-dgo'));});});
         $$('[data-dback]').forEach(function(b){b.addEventListener('click',function(){goStep(+b.getAttribute('data-dback'));});});
-        $('#dGen').addEventListener('click',function(){var base=(S.type==='free_shipping'?'SHIP':(S.type==='fixed'?'SAVE':'OFF'));var code=base+(100+(+String(Date.now()).slice(-3))%900);$('#dCode').value=code;S.code=code;});
+        $('#dGen').addEventListener('click',function(){var base=({free_shipping:'SHIP',fixed:'SAVE',percent:'OFF',bxgy:'BOGO',nth:'NTH'})[S.type]||'SAVE';var code=base+(100+(+String(Date.now()).slice(-3))%900);$('#dCode').value=code;S.code=code;});
         $('#dLiveSw').addEventListener('click',function(){S.live=!S.live;this.classList.toggle('on',S.live);});
         $('#dDraft').addEventListener('click',function(){commit(false);});
         $('#dSave').addEventListener('click',function(){commit(true);});

@@ -137,6 +137,11 @@
       return window.sb.rpc('validate_discount', { p_code: code, p_subtotal: subtotal })
         .then(function (r) { return { data: (r.data && r.data[0]) || null, error: r.error }; });
     },
+    // 自动套用的购物车级优惠（买一送一 / 第N件半价）；返回多条，结账页自行按购物车计算并择优
+    autoDiscounts: function (subtotal) {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.rpc('auto_discounts', { p_subtotal: subtotal || 0 });
+    },
     redeemDiscount: function (code) {
       if (!window.sb) return Promise.resolve({});
       return window.sb.rpc('redeem_discount', { p_code: code });
