@@ -156,7 +156,9 @@
         var orderId = 'ME' + String(Date.now()).slice(-7);
         var f = form;
         var itemRows = lines.map(function (l) {
-          return { id: l.id, name: l.name, qty: l.qty, price: l.price, size: l.size, color: l.color };
+          return l.b
+            ? { b: 1, id: l.id, name: l.name, qty: l.qty, price: l.price, items: l.items }
+            : { id: l.id, name: l.name, qty: l.qty, price: l.price, size: l.size, color: l.color };
         });
         var customer = {
           first: f.first.value, last: f.last.value, address: f.address.value, apt: f.apt.value,
@@ -188,7 +190,14 @@
             if (r && r.error) console.warn('[Supabase] order save:', r.error.message);
             else {
               if (discountCode && DB.redeemDiscount) { try { DB.redeemDiscount(discountCode); } catch (e) {} }
-              if (DB.decrementStock) { try { DB.decrementStock(itemRows.map(function (l) { return { id: l.id, size: l.size, qty: l.qty }; })); } catch (e) {} }
+              if (DB.decrementStock) { try {
+                var stockRows = [];
+                lines.forEach(function (l) {
+                  if (l.b) { (l.items || []).forEach(function (it) { stockRows.push({ id: it.id, size: it.size, qty: (it.qty || 1) * l.qty }); }); }
+                  else { stockRows.push({ id: l.id, size: l.size, qty: l.qty }); }
+                });
+                DB.decrementStock(stockRows);
+              } catch (e) {} }
             }
           }).then(go, go);
         } else { go(); }
