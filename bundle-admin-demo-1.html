@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>套装管理 · Code Official（设计预览 A）</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFFAF1; --cream2:#FAF6F3; --white:#fff;
+    --wine:#82213E; --wine-deep:#6A1A32; --pink:#E9C9CC; --blush:#F2E4D9;
+    --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C; --line:#ECD9D6; --line2:#E2DCD8;
+    --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6A1E; --amber-bg:#F6EAD3; --red:#B23A3A;
+    --serif:'DM Serif Display',Georgia,serif; --sans:'DM Sans',-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);background:var(--cream);font-size:15px;line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select,textarea{font-family:inherit;font-size:14px;color:inherit}
+  img{display:block;max-width:100%}
+  h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:1.12}
+  .muted{color:var(--muted)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--wine);color:var(--cream);
+    padding:11px 20px;font-size:13px;font-weight:500;letter-spacing:.02em;border:1px solid var(--wine);transition:.25s}
+  .btn:hover{background:var(--wine-deep);border-color:var(--wine-deep)}
+  .btn--ghost{background:transparent;color:var(--wine)}
+  .btn--ghost:hover{background:var(--wine);color:var(--cream)}
+  .btn--sm{padding:7px 13px;font-size:12px}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+
+  /* ---------- shell ---------- */
+  .shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+  .side{background:var(--cream2);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .side .brand{font-family:var(--serif);font-size:24px;padding:24px 24px 20px}
+  .side .brand sup{font-size:.42em;color:var(--wine)}
+  .nav{display:flex;flex-direction:column;padding:6px 12px;gap:2px}
+  .nav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:11px 14px;font-size:14px;color:var(--ink2);border-radius:6px;transition:.18s}
+  .nav button:hover{background:var(--blush)}
+  .nav button.on{background:var(--wine);color:var(--cream)}
+  .nav button.on svg{stroke:var(--cream)}
+  .nav svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6;flex-shrink:0}
+  .side-foot{margin-top:auto;padding:16px 16px 22px;border-top:1px solid var(--line);font-size:13px}
+  .side-foot a{display:block;color:var(--muted);padding:6px 8px}
+  .side-foot a:hover{color:var(--wine)}
+
+  .main{min-width:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 30px;border-bottom:1px solid var(--line);background:var(--cream)}
+  .topbar h1{font-size:30px}
+  .topbar .who{font-size:13px;color:var(--muted)}
+  .demo-tag{display:inline-block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--wine);border:1px solid var(--pink);background:var(--white);padding:3px 9px;border-radius:999px;margin-left:12px;vertical-align:middle}
+  .view{padding:26px 30px 80px;max-width:1180px}
+
+  .panel{background:var(--white);border:1px solid var(--line);padding:24px 26px;margin-bottom:22px}
+  .panel h2{font-size:22px;margin-bottom:4px}
+  .panel .sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:14px;flex-wrap:wrap}
+  .panel-head h2{margin:0}
+
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%;padding:11px 13px;background:var(--white);border:1px solid var(--line2);outline:none;transition:.2s}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--wine)}
+  .field textarea{min-height:74px;resize:vertical}
+  .field .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+  /* ---------- segmented controls ---------- */
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:var(--white)}
+  .seg button{padding:10px 18px;font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:7px;transition:.18s}
+  .seg button:not(.on):hover{background:var(--blush)}
+  .seg button.on{background:var(--wine);color:var(--cream)}
+  .seg svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7}
+  .seg-row{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:6px}
+  .seg-block .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+
+  /* ---------- product picker ---------- */
+  .search{position:relative;margin-bottom:10px}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:1.7}
+  .search input{width:100%;padding:11px 13px 11px 38px;background:var(--white);border:1px solid var(--line2);outline:none}
+  .search input:focus{border-color:var(--wine)}
+  .catalog{border:1px solid var(--line2);max-height:228px;overflow:auto;background:var(--cream2)}
+  .cat-item{display:flex;align-items:center;gap:12px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;transition:.14s}
+  .cat-item:last-child{border-bottom:none}
+  .cat-item:hover{background:var(--blush)}
+  .cat-item.added{opacity:.5;cursor:default}
+  .cat-item.added:hover{background:transparent}
+  .cat-thumb{width:36px;height:46px;flex-shrink:0;border:1px solid var(--line);object-fit:cover}
+  .cat-name{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cat-price{font-size:13px;color:var(--muted);white-space:nowrap}
+  .cat-add{font-size:12px;color:var(--wine);border:1px solid var(--pink);border-radius:5px;padding:4px 9px;flex-shrink:0}
+  .cat-add:hover{background:var(--wine);color:var(--cream);border-color:var(--wine)}
+  .cat-empty{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+
+  /* ---------- selected rows ---------- */
+  .picked{margin-top:18px;border:1px solid var(--line);border-radius:2px}
+  .pk-head,.pk-row{display:grid;grid-template-columns:1fr 92px 132px 96px 40px;align-items:center;gap:12px;padding:11px 16px}
+  .pk-head{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);background:var(--cream2)}
+  .pk-head .ta-r,.pk-row .ta-r{text-align:right}
+  .pk-head .ta-c,.pk-row .ta-c{text-align:center}
+  .pk-row{border-bottom:1px solid var(--line)}
+  .pk-row:last-child{border-bottom:none}
+  .pk-prod{display:flex;align-items:center;gap:12px;min-width:0}
+  .pk-thumb{width:40px;height:52px;flex-shrink:0;border:1px solid var(--line);object-fit:cover}
+  .pk-name{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pk-en{font-size:11px;color:var(--muted)}
+  .pk-unit{font-variant-numeric:tabular-nums}
+  .stepper{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:6px;overflow:hidden}
+  .stepper button{width:30px;height:32px;font-size:16px;color:var(--wine);background:var(--white)}
+  .stepper button:hover{background:var(--blush)}
+  .stepper input{width:42px;height:32px;border:none;border-left:1px solid var(--line2);border-right:1px solid var(--line2);text-align:center;outline:none;-moz-appearance:textfield}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .pk-sub{font-variant-numeric:tabular-nums;font-weight:500}
+  .pk-x{width:28px;height:28px;border-radius:6px;color:var(--muted);font-size:17px;display:grid;place-items:center}
+  .pk-x:hover{background:var(--red);color:#fff}
+  .pk-empty{padding:30px 16px;text-align:center;color:var(--muted);font-size:13.5px}
+
+  /* ---------- pricing block ---------- */
+  .price-config{display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start;margin-top:6px}
+  @media(max-width:1024px){.price-config{grid-template-columns:1fr}}
+  .price-input-wrap{position:relative}
+  .price-input-wrap .pfx{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted)}
+  .price-input-wrap .sfx{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted)}
+  .price-input-wrap input{padding-left:42px}
+  .price-input-wrap.pct input{padding-left:13px;padding-right:34px}
+
+  /* live preview card */
+  .preview{background:linear-gradient(180deg,var(--cream2),var(--white));border:1px solid var(--pink);padding:20px 22px}
+  .preview .pv-t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--wine);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+  .preview .pv-t svg{width:14px;height:14px;fill:none;stroke:var(--wine);stroke-width:1.8}
+  .pv-line{display:flex;align-items:baseline;justify-content:space-between;padding:7px 0;font-size:14px}
+  .pv-line .k{color:var(--muted)}
+  .pv-line .v{font-variant-numeric:tabular-nums}
+  .pv-line.strike .v{text-decoration:line-through;color:var(--muted)}
+  .pv-bundle{border-top:1px solid var(--line);margin-top:6px;padding-top:12px}
+  .pv-bundle .k{font-size:13px;color:var(--ink2)}
+  .pv-bundle .v{font-family:var(--serif);font-size:30px;line-height:1;color:var(--wine)}
+  .pv-save{margin-top:12px;background:var(--green-bg);color:var(--green);border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600}
+  .pv-save .pct{font-size:12px;font-weight:500;opacity:.85}
+  .pv-meta{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6}
+  .pv-warn{margin-top:10px;font-size:12.5px;color:var(--amber);background:var(--amber-bg);border-radius:6px;padding:8px 12px;display:none}
+  .pv-warn.show{display:block}
+
+  /* mix & match note */
+  .mix-pick{display:none;align-items:center;gap:12px;background:var(--cream2);border:1px solid var(--line2);padding:12px 16px;border-radius:6px;margin-bottom:4px;flex-wrap:wrap}
+  .mix-pick.show{display:flex}
+  .mix-pick label{font-size:13.5px;color:var(--ink2)}
+  .mix-pick .stepper input{width:54px}
+  .mix-pick .note{font-size:12px;color:var(--muted)}
+
+  /* toggle switch */
+  .sw{width:44px;height:25px;border-radius:999px;background:var(--line2);position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+  .sw.on{background:var(--green)}
+  .sw.on::after{left:22px}
+  .toggle-row{display:flex;align-items:center;gap:14px}
+  .toggle-row .tl{flex:1}
+  .toggle-row .tl .t{font-size:14px;font-weight:500}
+  .toggle-row .tl .d{font-size:12px;color:var(--muted)}
+
+  .builder-actions{display:flex;align-items:center;gap:12px;justify-content:flex-end;margin-top:6px}
+  .builder-actions .spacer{flex:1}
+
+  /* ---------- bundles list table ---------- */
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:11px 12px;border-bottom:1px solid var(--line)}
+  td{padding:13px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .b-name{display:flex;align-items:center;gap:12px}
+  .b-cover{width:46px;height:46px;flex-shrink:0;border:1px solid var(--line);background:var(--blush);object-fit:cover}
+  .b-name .nm{font-weight:500}
+  .b-name .en{font-size:12px;color:var(--muted)}
+  .pill{display:inline-block;font-size:11px;letter-spacing:.03em;padding:3px 10px;border-radius:999px;background:var(--blush);color:var(--ink2)}
+  .pill.fixed{background:#EDE3F0;color:#6B3F7A}
+  .pill.mix{background:#E2E9F6;color:#3A5C9A}
+  .pill.on{background:var(--green-bg);color:var(--green)}
+  .pill.off{background:var(--line2);color:var(--muted)}
+  .price-cell{font-variant-numeric:tabular-nums}
+  .price-cell .was{text-decoration:line-through;color:var(--muted);font-size:12px;margin-right:6px}
+  .price-cell .sv{color:var(--green);font-size:12px}
+  .tbl-actions{text-align:right;white-space:nowrap}
+  .tbl-actions button{font-size:12px;color:var(--muted);padding:6px 10px;border:1px solid var(--line2);border-radius:5px;margin-left:6px}
+  .tbl-actions button:hover{border-color:var(--wine);color:var(--wine)}
+  .tbl-actions button.del:hover{border-color:var(--red);color:var(--red)}
+
+  /* toast */
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--cream);padding:12px 22px;font-size:14px;border-radius:8px;opacity:0;pointer-events:none;transition:.28s;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:none;border-bottom:1px solid var(--line)}
+    .side .brand{padding:16px 18px;font-size:20px}
+    .nav{flex-direction:row;flex-wrap:wrap;flex:1}
+    .nav button{padding:8px 11px}
+    .nav button span{display:none}
+    .side-foot{margin:0;border-top:none;padding:10px 16px}
+    .row2,.row3{grid-template-columns:1fr}
+    .topbar,.view{padding-left:18px;padding-right:18px}
+    .topbar h1{font-size:23px}
+    .pk-head{display:none}
+    .pk-row{grid-template-columns:1fr 96px;grid-template-areas:"prod x" "unit unit" "qty sub";row-gap:8px}
+    .pk-row .pk-prod{grid-area:prod}.pk-row .pk-unit{grid-area:unit}.pk-row .pk-qty{grid-area:qty}
+    .pk-row .pk-sub{grid-area:sub}.pk-row .pk-x{grid-area:x;justify-self:end}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- sidebar -->
+  <aside class="side">
+    <div class="brand">Code Official <sup>✿</sup></div>
+    <nav class="nav">
+      <button><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>概览</span></button>
+      <button><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/></svg><span>商品</span></button>
+      <button><svg viewBox="0 0 24 24"><path d="M20 7H4M16 3H8M5 7l1 13a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1l1-13"/></svg><span>库存</span></button>
+      <button><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg><span>订单</span></button>
+      <button><svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg><span>折扣码</span></button>
+      <button class="on"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13M12 8c-1.5-4-5-4-5-1.5S9.5 8 12 8zM12 8c1.5-4 5-4 5-1.5S14.5 8 12 8z"/></svg><span>套装</span></button>
+      <button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.4-2.5H9.5L9.1 6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z"/></svg><span>设置</span></button>
+    </nav>
+    <div class="side-foot">
+      <a href="admin.html">← 返回后台</a>
+      <a href="index.html">查看店面</a>
+    </div>
+  </aside>
+
+  <!-- main -->
+  <div class="main">
+    <div class="topbar">
+      <h1>套装管理 <span class="demo-tag">设计预览 A · 单页构建器</span></h1>
+      <div class="who">老板 · Code Official</div>
+    </div>
+
+    <div class="view">
+
+      <!-- ===================== BUILDER ===================== -->
+      <div class="panel" id="builder">
+        <div class="panel-head">
+          <div>
+            <h2>新建套装</h2>
+            <div class="sub">挑选商品、设定定价，右侧实时预览顾客看到的省钱效果。</div>
+          </div>
+        </div>
+
+        <!-- type + pricing segmented controls -->
+        <div class="seg-row">
+          <div class="seg-block">
+            <div class="lbl">套装类型</div>
+            <div class="seg" id="typeSeg">
+              <button class="on" data-type="fixed"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M12 8v13"/></svg>固定套装</button>
+              <button data-type="mix"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>自选组合</button>
+            </div>
+          </div>
+          <div class="seg-block">
+            <div class="lbl">定价方式</div>
+            <div class="seg" id="priceSeg">
+              <button class="on" data-mode="fixed"><svg viewBox="0 0 24 24"><path d="M3 7h18v10H3zM3 12h18"/></svg>固定套装价</button>
+              <button data-mode="percent"><svg viewBox="0 0 24 24"><path d="M19 5 5 19M6.5 7.5a1.5 1.5 0 1 0 .01 0M17.5 16.5a1.5 1.5 0 1 0 .01 0"/></svg>按总价打折</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- mix & match config -->
+        <div class="mix-pick" id="mixPick">
+          <label>顾客需从下方商品池中选 <b>N</b> 件 →</label>
+          <div class="stepper">
+            <button type="button" id="mixDec">−</button>
+            <input type="number" id="mixN" min="1" value="3">
+            <button type="button" id="mixInc">+</button>
+          </div>
+          <span class="note">自选组合：把候选商品放进池子，顾客自由搭配 N 件，单价取池中均价估算。</span>
+        </div>
+
+        <!-- product picker -->
+        <div style="margin-top:20px">
+          <div class="field" style="margin-bottom:8px"><label id="pickerLbl">添加商品（固定套装）</label></div>
+          <div class="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="text" id="catSearch" placeholder="搜索商品名 / English…">
+          </div>
+          <div class="catalog" id="catalog"></div>
+        </div>
+
+        <!-- selected rows -->
+        <div class="picked">
+          <div class="pk-head">
+            <div>已选商品 / Product</div>
+            <div class="ta-r">单价</div>
+            <div class="ta-c" id="qtyHead">数量</div>
+            <div class="ta-r">小计</div>
+            <div></div>
+          </div>
+          <div id="pickedRows"></div>
+        </div>
+
+        <!-- pricing + live preview -->
+        <div class="price-config">
+          <div>
+            <!-- fixed price mode -->
+            <div class="field" id="modeFixed">
+              <label>套装价（RM）</label>
+              <div class="price-input-wrap">
+                <span class="pfx">RM</span>
+                <input type="number" id="setPrice" min="0" step="1" value="0" placeholder="例如 420">
+              </div>
+              <div class="hint">直接给整套设定一口价，省多少自动算给顾客看。</div>
+            </div>
+            <!-- percent mode -->
+            <div class="field" id="modePercent" style="display:none">
+              <label>按单买合计打折</label>
+              <div class="price-input-wrap pct">
+                <input type="number" id="setPct" min="0" max="90" step="1" value="15">
+                <span class="sfx">% off</span>
+              </div>
+              <div class="hint">在「单买合计」基础上打折，套装价随商品增减自动浮动。</div>
+            </div>
+
+            <div class="row2">
+              <div class="field">
+                <label>套装名（中文）*</label>
+                <input type="text" id="bName" placeholder="例如：秋日通勤三件套">
+              </div>
+              <div class="field">
+                <label>套装名（English）</label>
+                <input type="text" id="bNameEn" placeholder="Autumn Workwear Set">
+              </div>
+            </div>
+            <div class="field">
+              <label>套装描述</label>
+              <textarea id="bDesc" placeholder="一句话卖点：例如「一套搞定上班通勤，省下一件衬衫的钱」"></textarea>
+            </div>
+            <div class="row3">
+              <div class="field">
+                <label>封面图 URL</label>
+                <input type="text" id="bCover" placeholder="https://…">
+              </div>
+              <div class="field">
+                <label>排序</label>
+                <input type="number" id="bSort" value="1" min="0">
+              </div>
+              <div class="field">
+                <label>有效期至（可选）</label>
+                <input type="date" id="bExpiry">
+              </div>
+            </div>
+            <div class="toggle-row" style="margin-top:4px">
+              <div class="tl"><div class="t">上架到店面</div><div class="d">关闭则保存为草稿，顾客看不到。</div></div>
+              <div class="sw on" id="bActive"></div>
+            </div>
+          </div>
+
+          <!-- live preview -->
+          <div>
+            <div class="preview">
+              <div class="pv-t"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>实时预览</div>
+              <div class="pv-line strike"><span class="k">单买合计</span><span class="v" id="pvTotal">RM0</span></div>
+              <div class="pv-line pv-bundle"><span class="k">套装价</span><span class="v" id="pvBundle">RM0</span></div>
+              <div class="pv-save"><span id="pvSaveTxt">省 RM0</span><span class="pct" id="pvSavePct">0%</span></div>
+              <div class="pv-meta" id="pvMeta">含 0 件商品 · 固定套装 · 固定套装价</div>
+              <div class="pv-warn" id="pvWarn"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="builder-actions">
+          <span class="spacer"></span>
+          <button class="btn btn--ghost btn--sm" id="resetBtn">清空重来</button>
+          <button class="btn" id="saveBtn">保存套装</button>
+        </div>
+      </div>
+
+      <!-- ===================== LIST ===================== -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>现有套装 <span class="muted" style="font-size:15px" id="bundleCount"></span></h2>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>套装</th><th>类型</th><th>定价</th><th>含商品</th><th>状态</th><th class="tbl-actions">操作</th>
+            </tr>
+          </thead>
+          <tbody id="bundleRows"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(s,r){return (r||document).querySelector(s);};
+  var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+  var money=function(n){return 'RM'+Math.round(n);};
+
+  // ---- mock catalog ----
+  var IMG=function(c){return 'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="76"><rect width="60" height="76" fill="'+c+'"/></svg>');};
+  var CATALOG=[
+    {id:'p1',zh:'羊毛混纺大衣',en:'Wool-Blend Coat',price:248,c:'#C9B7A3'},
+    {id:'p2',zh:'牛津纺棉质衬衫',en:'Oxford Cotton Shirt',price:95,c:'#DCD3C4'},
+    {id:'p3',zh:'褶裥阔腿裤',en:'Pleated Wide-Leg Trousers',price:130,c:'#A89C8E'},
+    {id:'p4',zh:'真丝吊带连衣裙',en:'Silk Slip Dress',price:185,c:'#C8A6A0'},
+    {id:'p5',zh:'罗纹针织开衫',en:'Ribbed Knit Cardigan',price:145,c:'#B8A88F'},
+    {id:'p6',zh:'羊绒圆领毛衣',en:'Cashmere Crew Sweater',price:165,c:'#D2C0A8'},
+    {id:'p7',zh:'美利奴高领衫',en:'Merino Turtleneck',price:120,c:'#BCA98E'},
+    {id:'p8',zh:'有机棉T恤',en:'Organic Cotton Tee',price:48,c:'#E0D6C6'},
+    {id:'p9',zh:'真皮托特包',en:'Leather Tote Bag',price:195,c:'#9C7E63'}
+  ];
+  var byId={}; CATALOG.forEach(function(p){byId[p.id]=p;});
+
+  // ---- seed bundles list ----
+  var BUNDLES=[
+    {id:'b1',zh:'秋日通勤三件套',en:'Autumn Workwear Set',type:'fixed',mode:'fixed',price:420,active:true,
+     items:[{id:'p1',qty:1},{id:'p2',qty:1},{id:'p3',qty:1}]},
+    {id:'b2',zh:'针织任选两件',en:'Pick Any 2 Knits',type:'mix',mode:'percent',pct:20,pickN:2,active:true,
+     items:[{id:'p5',qty:1},{id:'p6',qty:1},{id:'p7',qty:1}]},
+    {id:'b3',zh:'约会出街套装',en:'Date-Night Duo',type:'fixed',mode:'percent',pct:15,active:false,
+     items:[{id:'p4',qty:1},{id:'p9',qty:1}]}
+  ];
+
+  // ---- builder state ----
+  var state={ type:'fixed', mode:'fixed', picked:[], pickN:3 };
+
+  /* ---------------- catalog render ---------------- */
+  function renderCatalog(){
+    var q=($('#catSearch').value||'').trim().toLowerCase();
+    var host=$('#catalog');
+    var list=CATALOG.filter(function(p){
+      return !q || p.zh.toLowerCase().indexOf(q)>=0 || p.en.toLowerCase().indexOf(q)>=0;
+    });
+    if(!list.length){host.innerHTML='<div class="cat-empty">没有匹配的商品</div>';return;}
+    host.innerHTML=list.map(function(p){
+      var added=state.picked.some(function(x){return x.id===p.id;});
+      return '<div class="cat-item'+(added?' added':'')+'" data-id="'+p.id+'">'+
+        '<img class="cat-thumb" src="'+IMG(p.c)+'" alt="">'+
+        '<div class="cat-name">'+p.zh+' <span style="color:var(--muted);font-size:12px">'+p.en+'</span></div>'+
+        '<div class="cat-price">'+money(p.price)+'</div>'+
+        (added?'<span class="cat-add" style="border:none;color:var(--green)">✓ 已加</span>'
+              :'<button class="cat-add" type="button">＋ 添加</button>')+
+      '</div>';
+    }).join('');
+    $$('.cat-item',host).forEach(function(el){
+      if(el.classList.contains('added'))return;
+      el.addEventListener('click',function(){ addProduct(el.getAttribute('data-id')); });
+    });
+  }
+
+  /* ---------------- picked rows ---------------- */
+  function addProduct(id){
+    if(state.picked.some(function(x){return x.id===id;}))return;
+    state.picked.push({id:id,qty:1});
+    renderCatalog(); renderPicked(); recalc();
+  }
+  function removeProduct(id){
+    state.picked=state.picked.filter(function(x){return x.id!==id;});
+    renderCatalog(); renderPicked(); recalc();
+  }
+  function setQty(id,q){
+    q=Math.max(1,parseInt(q,10)||1);
+    state.picked.forEach(function(x){if(x.id===id)x.qty=q;});
+    renderPicked(); recalc();
+  }
+  function renderPicked(){
+    var host=$('#pickedRows');
+    if(!state.picked.length){
+      host.innerHTML='<div class="pk-empty">还没有商品。从上面的列表里挑选，加入这套搭配。</div>';
+      return;
+    }
+    var isMix=state.type==='mix';
+    host.innerHTML=state.picked.map(function(it){
+      var p=byId[it.id];
+      var sub=p.price*it.qty;
+      var qtyCell = isMix
+        ? '<div class="pk-qty ta-c"><span class="pill">候选</span></div>'
+        : '<div class="pk-qty ta-c"><div class="stepper">'+
+            '<button type="button" data-act="dec" data-id="'+it.id+'">−</button>'+
+            '<input type="number" min="1" value="'+it.qty+'" data-id="'+it.id+'">'+
+            '<button type="button" data-act="inc" data-id="'+it.id+'">+</button>'+
+          '</div></div>';
+      return '<div class="pk-row">'+
+        '<div class="pk-prod"><img class="pk-thumb" src="'+IMG(p.c)+'" alt="">'+
+          '<div style="min-width:0"><div class="pk-name">'+p.zh+'</div><div class="pk-en">'+p.en+'</div></div></div>'+
+        '<div class="pk-unit ta-r">'+money(p.price)+'</div>'+
+        qtyCell+
+        '<div class="pk-sub ta-r">'+ (isMix?'—':money(sub)) +'</div>'+
+        '<div class="pk-x" data-rm="'+it.id+'" title="移除">×</div>'+
+      '</div>';
+    }).join('');
+    // wire steppers
+    $$('.stepper button',host).forEach(function(b){
+      b.addEventListener('click',function(){
+        var id=b.getAttribute('data-id'), cur=byId[id];
+        var item=state.picked.filter(function(x){return x.id===id;})[0];
+        setQty(id, b.getAttribute('data-act')==='inc'?item.qty+1:item.qty-1);
+      });
+    });
+    $$('.stepper input',host).forEach(function(inp){
+      inp.addEventListener('change',function(){ setQty(inp.getAttribute('data-id'),inp.value); });
+    });
+    $$('.pk-x',host).forEach(function(x){
+      x.addEventListener('click',function(){ removeProduct(x.getAttribute('data-rm')); });
+    });
+  }
+
+  /* ---------------- pricing math ---------------- */
+  function singleTotal(){
+    if(state.type==='mix'){
+      // estimate: average pool price * N
+      if(!state.picked.length)return 0;
+      var avg=state.picked.reduce(function(s,it){return s+byId[it.id].price;},0)/state.picked.length;
+      return avg*state.pickN;
+    }
+    return state.picked.reduce(function(s,it){return s+byId[it.id].price*it.qty;},0);
+  }
+  function bundlePrice(total){
+    if(state.mode==='percent'){
+      var pct=Math.max(0,Math.min(95,parseFloat($('#setPct').value)||0));
+      return total*(1-pct/100);
+    }
+    return Math.max(0,parseFloat($('#setPrice').value)||0);
+  }
+
+  function recalc(){
+    var total=singleTotal();
+    var bundle=bundlePrice(total);
+    var save=Math.max(0,total-bundle);
+    var pct= total>0 ? Math.round(save/total*100) : 0;
+
+    $('#pvTotal').textContent=money(total);
+    $('#pvBundle').textContent=money(bundle);
+    $('#pvSaveTxt').textContent='省 '+money(save);
+    $('#pvSavePct').textContent=pct+'% off';
+
+    var typeTxt=state.type==='fixed'?'固定套装':('自选组合 · 选 '+state.pickN+' 件');
+    var modeTxt=state.mode==='fixed'?'固定套装价':'按总价打折';
+    var cnt=state.type==='mix'?state.picked.length:state.picked.reduce(function(s,it){return s+it.qty;},0);
+    $('#pvMeta').textContent='含 '+cnt+(state.type==='mix'?' 件候选':' 件商品')+' · '+typeTxt+' · '+modeTxt;
+
+    // warnings
+    var warn=$('#pvWarn'); var msg='';
+    if(!state.picked.length) msg='请先添加商品。';
+    else if(state.type==='mix' && state.picked.length < state.pickN) msg='候选商品（'+state.picked.length+'）少于「选 '+state.pickN+' 件」，请多加几件或调小 N。';
+    else if(state.mode==='fixed' && bundle>total && total>0) msg='套装价高于单买合计 —— 顾客买套装反而更贵了。';
+    else if(state.mode==='fixed' && bundle<=0) msg='请填写套装价。';
+    if(msg){warn.textContent='⚠ '+msg;warn.classList.add('show');}
+    else warn.classList.remove('show');
+  }
+
+  /* ---------------- type / mode switching ---------------- */
+  function setType(t){
+    state.type=t;
+    $$('#typeSeg button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-type')===t);});
+    $('#mixPick').classList.toggle('show',t==='mix');
+    $('#pickerLbl').textContent = t==='mix'?'添加候选商品（自选组合池）':'添加商品（固定套装）';
+    $('#qtyHead').textContent = t==='mix'?'状态':'数量';
+    renderPicked(); recalc();
+  }
+  function setMode(m){
+    state.mode=m;
+    $$('#priceSeg button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-mode')===m);});
+    $('#modeFixed').style.display = m==='fixed'?'':'none';
+    $('#modePercent').style.display = m==='percent'?'':'none';
+    recalc();
+  }
+
+  /* ---------------- bundles list ---------------- */
+  function bundleDisplayPrice(b){
+    var total=b.items.reduce(function(s,it){return s+byId[it.id].price*(it.qty||1);},0);
+    if(b.type==='mix'){
+      var avg= b.items.length? total/b.items.length:0;
+      total=avg*(b.pickN||1);
+    }
+    var price = b.mode==='percent' ? total*(1-(b.pct||0)/100) : (b.price||0);
+    return {total:total, price:price, save:Math.max(0,total-price)};
+  }
+  function renderBundles(){
+    var host=$('#bundleRows');
+    $('#bundleCount').textContent='('+BUNDLES.length+')';
+    if(!BUNDLES.length){host.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:36px">还没有套装。用上面的构建器创建第一个。</td></tr>';return;}
+    host.innerHTML=BUNDLES.map(function(b){
+      var pr=bundleDisplayPrice(b);
+      var typePill = b.type==='fixed'
+        ? '<span class="pill fixed">固定套装</span>'
+        : '<span class="pill mix">自选 · 选'+(b.pickN||0)+'</span>';
+      var priceCell = b.mode==='percent'
+        ? '<div class="price-cell"><span class="was">'+money(pr.total)+'</span>'+money(pr.price)+'<br><span class="sv">省'+money(pr.save)+' ('+(b.pct||0)+'% off)</span></div>'
+        : '<div class="price-cell">'+money(pr.price)+'<br><span class="sv">省'+money(pr.save)+'</span></div>';
+      return '<tr>'+
+        '<td><div class="b-name"><img class="b-cover" src="'+IMG(byId[b.items[0].id].c)+'" alt="">'+
+          '<div><div class="nm">'+b.zh+'</div><div class="en">'+b.en+'</div></div></div></td>'+
+        '<td>'+typePill+'</td>'+
+        '<td>'+priceCell+'</td>'+
+        '<td>'+b.items.length+' 件</td>'+
+        '<td><span class="pill '+(b.active?'on':'off')+'">'+(b.active?'已上架':'草稿')+'</span></td>'+
+        '<td class="tbl-actions"><button data-edit="'+b.id+'">编辑</button><button class="del" data-del="'+b.id+'">删除</button></td>'+
+      '</tr>';
+    }).join('');
+    $$('[data-del]',host).forEach(function(b){
+      b.addEventListener('click',function(){
+        var id=b.getAttribute('data-del');
+        BUNDLES=BUNDLES.filter(function(x){return x.id!==id;});
+        renderBundles(); toast('已删除套装');
+      });
+    });
+    $$('[data-edit]',host).forEach(function(b){
+      b.addEventListener('click',function(){ loadIntoBuilder(b.getAttribute('data-edit')); });
+    });
+  }
+
+  function loadIntoBuilder(id){
+    var b=BUNDLES.filter(function(x){return x.id===id;})[0]; if(!b)return;
+    setType(b.type); setMode(b.mode);
+    state.picked=b.items.map(function(it){return {id:it.id,qty:it.qty||1};});
+    state.pickN=b.pickN||3; $('#mixN').value=state.pickN;
+    $('#bName').value=b.zh; $('#bNameEn').value=b.en;
+    if(b.mode==='percent'){$('#setPct').value=b.pct||0;} else {$('#setPrice').value=b.price||0;}
+    $('#builder').scrollIntoView({behavior:'smooth',block:'start'});
+    renderCatalog(); renderPicked(); recalc();
+    toast('已载入「'+b.zh+'」到构建器（演示，不会保存到数据库）');
+  }
+
+  /* ---------------- save / reset ---------------- */
+  function saveBundle(){
+    if(!state.picked.length){toast('请先添加商品');return;}
+    var name=$('#bName').value.trim();
+    if(!name){toast('请填套装名（中文）');return;}
+    var nb={
+      id:'b'+(Date.now()), zh:name, en:$('#bNameEn').value.trim()||name,
+      type:state.type, mode:state.mode, active:$('#bActive').classList.contains('on'),
+      items:state.picked.map(function(x){return {id:x.id,qty:x.qty};})
+    };
+    if(state.mode==='percent') nb.pct=Math.round(parseFloat($('#setPct').value)||0);
+    else nb.price=Math.round(parseFloat($('#setPrice').value)||0);
+    if(state.type==='mix') nb.pickN=state.pickN;
+    BUNDLES.unshift(nb);
+    renderBundles();
+    toast('已保存「'+name+'」（演示：仅存在本页面）');
+    resetBuilder();
+  }
+  function resetBuilder(){
+    state.picked=[]; state.pickN=3;
+    $('#bName').value=''; $('#bNameEn').value=''; $('#bDesc').value='';
+    $('#bCover').value=''; $('#bSort').value='1'; $('#bExpiry').value='';
+    $('#setPrice').value='0'; $('#setPct').value='15'; $('#mixN').value='3';
+    $('#bActive').classList.add('on');
+    setType('fixed'); setMode('fixed');
+    renderCatalog(); renderPicked(); recalc();
+  }
+
+  /* ---------------- toast ---------------- */
+  var toastT;
+  function toast(msg){
+    var t=$('#toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(toastT); toastT=setTimeout(function(){t.classList.remove('show');},2200);
+  }
+
+  /* ---------------- wire events ---------------- */
+  $('#catSearch').addEventListener('input',renderCatalog);
+  $$('#typeSeg button').forEach(function(b){b.addEventListener('click',function(){setType(b.getAttribute('data-type'));});});
+  $$('#priceSeg button').forEach(function(b){b.addEventListener('click',function(){setMode(b.getAttribute('data-mode'));});});
+  $('#setPrice').addEventListener('input',recalc);
+  $('#setPct').addEventListener('input',recalc);
+  $('#bActive').addEventListener('click',function(){this.classList.toggle('on');});
+  $('#mixN').addEventListener('change',function(){state.pickN=Math.max(1,parseInt(this.value,10)||1);this.value=state.pickN;recalc();renderPicked();});
+  $('#mixDec').addEventListener('click',function(){$('#mixN').value=Math.max(1,state.pickN-1);state.pickN=parseInt($('#mixN').value,10);recalc();renderPicked();});
+  $('#mixInc').addEventListener('click',function(){$('#mixN').value=state.pickN+1;state.pickN=parseInt($('#mixN').value,10);recalc();renderPicked();});
+  $('#saveBtn').addEventListener('click',saveBundle);
+  $('#resetBtn').addEventListener('click',function(){resetBuilder();toast('已清空构建器');});
+
+  /* ---------------- init ---------------- */
+  // seed builder with a sample fixed set so preview isn't empty
+  state.picked=[{id:'p1',qty:1},{id:'p2',qty:1},{id:'p3',qty:1}];
+  $('#setPrice').value='420';
+  renderCatalog(); renderPicked(); setType('fixed'); setMode('fixed'); recalc();
+  renderBundles();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>套装管理 · 分步向导（设计样稿 C）— Code Official 后台</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFFAF1; --cream2:#FAF6F3; --white:#fff;
+  --wine:#82213E; --wine-deep:#6A1A32; --pink:#E9C9CC; --pink-soft:#F3E2E4; --blush:#F2E4D9;
+  --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C; --line:#ECD9D6; --line2:#E2DCD8;
+  --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6A1E; --amber-bg:#F6EAD3; --red:#B23A3A; --red-bg:#F7E3E0;
+  --serif:'DM Serif Display',Georgia,serif; --sans:'DM Sans',-apple-system,Segoe UI,sans-serif;
+  --radius:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--ink);background:var(--cream);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:14px;color:inherit}
+img{display:block;max-width:100%}
+h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:1.1}
+.muted{color:var(--muted)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--wine);color:var(--cream);
+  padding:12px 22px;font-size:14px;font-weight:500;letter-spacing:.02em;border:1px solid var(--wine);transition:.22s;border-radius:var(--radius)}
+.btn:hover{background:var(--wine-deep);border-color:var(--wine-deep)}
+.btn--ghost{background:transparent;color:var(--wine)}
+.btn--ghost:hover{background:var(--wine);color:var(--cream)}
+.btn--quiet{background:var(--white);color:var(--ink2);border-color:var(--line2)}
+.btn--quiet:hover{background:var(--blush);color:var(--ink);border-color:var(--pink)}
+.btn--sm{padding:8px 14px;font-size:13px}
+.btn--lg{padding:15px 30px;font-size:15px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+.side{background:var(--cream2);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side .brand{font-family:var(--serif);font-size:24px;padding:24px 24px 20px}
+.side .brand sup{font-size:.42em;color:var(--wine)}
+.nav{display:flex;flex-direction:column;padding:6px 12px;gap:2px}
+.nav a{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:11px 14px;font-size:14px;color:var(--ink2);border-radius:6px;transition:.18s}
+.nav a:hover{background:var(--blush)}
+.nav a.on{background:var(--wine);color:var(--cream)}
+.nav a.on svg{stroke:var(--cream)}
+.nav svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6}
+.side-foot{margin-top:auto;padding:16px 16px 22px;border-top:1px solid var(--line);font-size:13px}
+.side-foot a{display:block;color:var(--muted);padding:6px 8px}
+.side-foot a:hover{color:var(--wine)}
+
+.main{min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 30px;border-bottom:1px solid var(--line);background:var(--cream);flex-wrap:wrap}
+.topbar h1{font-size:30px}
+.topbar .sub{font-size:13px;color:var(--muted);margin-top:2px}
+.demo-pill{font-size:11.5px;letter-spacing:.04em;color:var(--wine);border:1px solid var(--pink);background:var(--pink-soft);padding:5px 12px;border-radius:40px;white-space:nowrap}
+.view{padding:26px 30px 90px;max-width:1080px}
+
+/* ---------- landing: bundles list ---------- */
+.land-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.land-head h2{font-size:23px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.stat{background:var(--white);border:1px solid var(--line);padding:18px 20px;border-radius:var(--radius)}
+.stat .n{font-family:var(--serif);font-size:32px;line-height:1}
+.stat .l{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:13px 16px;border-bottom:1px solid var(--line);background:var(--cream2)}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--cream2)}
+.b-name{font-weight:600;font-size:14.5px}
+.b-en{font-size:12px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;letter-spacing:.02em;padding:4px 10px;border-radius:999px;background:var(--blush);color:var(--ink2);white-space:nowrap}
+.pill.fixed{background:#EAE3F0;color:#5B4880}
+.pill.mix{background:var(--pink-soft);color:var(--wine)}
+.pill.green{background:var(--green-bg);color:var(--green)}
+.pill.off{background:var(--line2);color:var(--muted)}
+.price-cell .set{font-weight:600}
+.price-cell .sub{font-size:12px;color:var(--green)}
+.tbl-actions{white-space:nowrap;text-align:right}
+.tbl-actions button{font-size:12px;color:var(--muted);padding:7px 11px;border:1px solid var(--line2);border-radius:5px;margin-left:6px;background:var(--white)}
+.tbl-actions button:hover{border-color:var(--wine);color:var(--wine)}
+.tbl-actions button.del:hover{border-color:var(--red);color:var(--red)}
+
+/* ---------- wizard ---------- */
+.wizard{display:none}
+.wizard.on{display:block}
+.land{display:block}
+.land.off{display:none}
+
+.steps{display:flex;align-items:center;gap:0;margin:6px 0 26px;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:11px;flex:1;min-width:0}
+.step .num{width:34px;height:34px;border-radius:50%;border:2px solid var(--line2);background:var(--white);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;color:var(--muted);flex-shrink:0;transition:.25s}
+.step .txt{min-width:0}
+.step .t{font-size:14px;font-weight:600;color:var(--muted);transition:.2s;white-space:nowrap}
+.step .d{font-size:12px;color:var(--muted);opacity:.8;white-space:nowrap}
+.step.active .num{border-color:var(--wine);background:var(--wine);color:var(--cream)}
+.step.active .t{color:var(--ink)}
+.step.done .num{border-color:var(--green);background:var(--green);color:#fff}
+.step.done .t{color:var(--ink2)}
+.step-line{flex:1;height:2px;background:var(--line2);margin:0 12px;min-width:18px;align-self:center;transition:.3s}
+.step-line.fill{background:var(--green)}
+
+.wcard{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:28px 30px;margin-bottom:20px}
+.wcard h2{font-size:24px;margin-bottom:5px}
+.wcard .lede{color:var(--muted);font-size:14.5px;margin-bottom:24px}
+.stepwrap{display:none;animation:fade .3s ease}
+.stepwrap.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* layout: form + sticky preview */
+.layout{display:grid;grid-template-columns:1fr 312px;gap:22px;align-items:start}
+
+/* step1 big choice cards */
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:760px}
+.choice{border:2px solid var(--line);border-radius:10px;padding:26px 24px;cursor:pointer;transition:.2s;background:var(--white);position:relative;text-align:left}
+.choice:hover{border-color:var(--pink);background:var(--cream2)}
+.choice.sel{border-color:var(--wine);background:var(--pink-soft)}
+.choice .ic{width:46px;height:46px;border-radius:10px;background:var(--blush);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.choice.sel .ic{background:var(--wine)}
+.choice .ic svg{width:24px;height:24px;fill:none;stroke:var(--wine);stroke-width:1.7}
+.choice.sel .ic svg{stroke:#fff}
+.choice h3{font-size:20px;margin-bottom:7px}
+.choice p{font-size:13.5px;color:var(--muted);line-height:1.55}
+.choice .tick{position:absolute;top:18px;right:18px;width:24px;height:24px;border-radius:50%;border:2px solid var(--line2);transition:.2s}
+.choice.sel .tick{border-color:var(--wine);background:var(--wine)}
+.choice.sel .tick::after{content:'✓';color:#fff;display:flex;align-items:center;justify-content:center;height:100%;font-size:13px}
+
+/* step2 picker */
+.pick-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.search{position:relative;flex:1;min-width:200px}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:1.7}
+.search input{width:100%;padding:11px 12px 11px 36px;background:var(--white);border:1px solid var(--line2);outline:none;border-radius:var(--radius)}
+.search input:focus{border-color:var(--wine)}
+.mixn{display:flex;align-items:center;gap:10px;background:var(--cream2);border:1px solid var(--pink-soft);border-radius:var(--radius);padding:10px 16px;margin-bottom:16px;flex-wrap:wrap}
+.mixn .lab{font-size:14px;font-weight:500}
+.mixn .lab small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:6px;overflow:hidden;background:var(--white)}
+.stepper button{width:34px;height:36px;font-size:18px;color:var(--wine);background:var(--white)}
+.stepper button:hover{background:var(--blush)}
+.stepper button[disabled]{color:var(--line2);cursor:not-allowed}
+.stepper input{width:50px;height:36px;text-align:center;border:none;border-left:1px solid var(--line2);border-right:1px solid var(--line2);outline:none;font-size:15px;font-weight:600;background:var(--white)}
+
+.plist{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--white)}
+.prow{display:grid;grid-template-columns:24px 50px 1fr auto auto;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);transition:.15s}
+.prow:last-child{border-bottom:none}
+.prow:hover{background:var(--cream2)}
+.prow.sel{background:var(--pink-soft)}
+.prow.sel:hover{background:#efd9dc}
+.prow.hide{display:none}
+.ckbox{width:20px;height:20px;border:1.6px solid var(--pink);border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;background:var(--white)}
+.prow.sel .ckbox{background:var(--wine);border-color:var(--wine)}
+.prow.sel .ckbox::after{content:'✓';color:#fff;font-size:12px}
+.pthumb{width:50px;height:62px;object-fit:cover;background:var(--blush);border:1px solid var(--line);border-radius:4px;flex-shrink:0}
+.pinfo{min-width:0}
+.pinfo .nm{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pinfo .ct{font-size:12px;color:var(--muted)}
+.pprice{font-size:14px;font-weight:500;text-align:right;white-space:nowrap}
+.pqty{display:flex;align-items:center;gap:8px}
+.pqty .qlab{font-size:12px;color:var(--muted)}
+.qstep{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:6px;overflow:hidden;background:var(--white)}
+.qstep button{width:28px;height:30px;font-size:15px;color:var(--wine)}
+.qstep button:hover{background:var(--blush)}
+.qstep input{width:38px;height:30px;text-align:center;border:none;border-left:1px solid var(--line2);border-right:1px solid var(--line2);outline:none;font-weight:600;font-size:14px}
+.qstep.dim{opacity:.35;pointer-events:none}
+
+/* step3 pricing & publish */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.field input[type=text],.field input[type=number],.field textarea,.field select{width:100%;padding:11px 13px;background:var(--white);border:1px solid var(--line2);outline:none;border-radius:var(--radius);transition:.2s}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--wine)}
+.field textarea{min-height:74px;resize:vertical}
+.field .hint{font-size:12px;color:var(--muted);margin-top:6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+.pmode{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.pmode .opt{border:2px solid var(--line);border-radius:8px;padding:16px 18px;cursor:pointer;transition:.2s;background:var(--white)}
+.pmode .opt:hover{border-color:var(--pink);background:var(--cream2)}
+.pmode .opt.sel{border-color:var(--wine);background:var(--pink-soft)}
+.pmode .opt .t{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.pmode .opt .t .r{width:18px;height:18px;border-radius:50%;border:2px solid var(--line2);flex-shrink:0;transition:.2s}
+.pmode .opt.sel .t .r{border-color:var(--wine);background:radial-gradient(circle,var(--wine) 0 5px,transparent 5px)}
+.pmode .opt .d{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+.priceinput{position:relative;max-width:260px}
+.priceinput .pre{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none}
+.priceinput .suf{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none}
+.priceinput input{padding-left:42px;font-size:17px;font-weight:600}
+.priceinput.pct input{padding-left:13px;padding-right:34px}
+
+.cover{display:flex;align-items:center;gap:16px}
+.cover .ph{width:84px;height:104px;border:1.6px dashed var(--pink);border-radius:var(--radius);background:var(--cream2);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:11px;gap:6px;text-align:center;flex-shrink:0}
+.cover .ph svg{width:22px;height:22px;fill:none;stroke:var(--pink);stroke-width:1.6}
+.cover .ph img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--cream2);margin-bottom:16px}
+.toggle-row .lab{font-size:14px;font-weight:500}
+.toggle-row .lab small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.sw{position:relative;width:46px;height:25px;border-radius:999px;background:var(--line2);transition:.2s;flex-shrink:0;cursor:pointer}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:.2s}
+.sw.on{background:var(--green)}.sw.on::after{transform:translateX(21px)}
+
+/* sticky live preview rail */
+.rail{position:sticky;top:20px}
+.preview{background:var(--cream2);border:1px solid var(--pink-soft);border-radius:var(--radius);overflow:hidden}
+.preview .ph{padding:14px 18px;border-bottom:1px solid var(--pink-soft);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--wine);font-weight:600;display:flex;align-items:center;gap:7px}
+.preview .ph svg{width:15px;height:15px;fill:none;stroke:var(--wine);stroke-width:1.7}
+.preview .body{padding:18px}
+.pv-name{font-family:var(--serif);font-size:19px;line-height:1.15;margin-bottom:3px}
+.pv-meta{font-size:12px;color:var(--muted);margin-bottom:16px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.pv-items{list-style:none;margin:0 0 16px;padding:0;border-top:1px dashed var(--pink);border-bottom:1px dashed var(--pink)}
+.pv-items li{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:8px 0;border-bottom:1px solid var(--pink-soft);color:var(--ink2)}
+.pv-items li:last-child{border-bottom:none}
+.pv-items li .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-items li .q{color:var(--muted);font-size:12px}
+.pv-empty{font-size:13px;color:var(--muted);text-align:center;padding:18px 0}
+.pv-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+.pv-row .k{font-size:13px;color:var(--muted)}
+.pv-row .v{font-size:14px}
+.pv-row .v.strike{text-decoration:line-through;color:var(--muted)}
+.pv-row.set{margin:10px 0 4px;padding-top:12px;border-top:1px solid var(--pink)}
+.pv-row.set .k{font-size:13px;color:var(--ink);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.pv-big{font-family:var(--serif);font-size:30px;color:var(--wine);line-height:1}
+.pv-save{display:block;text-align:center;background:var(--green-bg);color:var(--green);font-weight:700;font-size:15px;padding:10px;border-radius:var(--radius);margin-top:12px}
+.pv-save small{display:block;font-weight:500;font-size:12px;opacity:.85;margin-top:2px}
+.pv-save.none{background:var(--blush);color:var(--muted);font-weight:500}
+
+/* footer nav */
+.wfoot{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:8px;flex-wrap:wrap}
+.wfoot .right{display:flex;gap:10px;margin-left:auto}
+
+/* review summary */
+.review{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.rev-block{background:var(--cream2);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
+.rev-block h4{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.rev-block h4 button{font-size:12px;color:var(--wine);text-decoration:underline;text-underline-offset:2px}
+.rev-line{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:5px 0}
+.rev-line .k{color:var(--muted)}
+.rev-line .v{font-weight:500;text-align:right}
+.rev-items{list-style:none;margin:6px 0 0;padding:0}
+.rev-items li{font-size:13.5px;padding:5px 0;border-top:1px solid var(--pink-soft);display:flex;justify-content:space-between;gap:10px}
+.rev-banner{grid-column:1/-1;background:var(--green-bg);border:1px solid #cfe6d6;border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.rev-banner .big{font-family:var(--serif);font-size:24px;color:var(--green)}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--cream);padding:14px 24px;border-radius:40px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:90;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast b{color:#f3c6cf}
+
+@media(max-width:980px){
+  .layout{grid-template-columns:1fr}
+  .rail{position:static}
+}
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:none;border-bottom:1px solid var(--line)}
+  .side .brand{padding:16px 18px;font-size:20px}
+  .nav{flex-direction:row;flex-wrap:wrap;flex:1}
+  .nav a{padding:8px 11px}
+  .side-foot{margin:0;border-top:none;padding:10px 16px}
+  .stats{grid-template-columns:1fr}
+  .choices,.pmode,.row2,.review{grid-template-columns:1fr}
+  .topbar,.view{padding-left:18px;padding-right:18px}
+  .step .d{display:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ===== sidebar ===== -->
+  <aside class="side">
+    <div class="brand">Code Official <sup>✿</sup></div>
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>概览</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/></svg>商品</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M20 7L4 7M16 3l4 4-4 4M4 17h16M8 13l-4 4 4 4"/></svg>库存</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>订单</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 11 3.8a2 2 0 0 0-1.4-.6H4a1 1 0 0 0-1 1v5.6a2 2 0 0 0 .6 1.4l9.6 9.6a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8zM7.5 7.5h.01"/></svg>折扣码</a>
+      <a href="#" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8M16.5 8a2.5 2.5 0 0 0 0-5C13 3 12 8 12 8"/></svg>套装</a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4.6 15H4.5a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 6 8.6a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 11 4.6h.1A1.6 1.6 0 0 0 13 4.5V4.5a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.1a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.1 1.7z"/></svg>设置</a>
+    </nav>
+    <div class="side-foot">
+      <a href="#">查看店面 →</a>
+      <a href="#">退出登录</a>
+    </div>
+  </aside>
+
+  <!-- ===== main ===== -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="pageTitle">套装管理</h1>
+        <div class="sub" id="pageSub">用分步向导创建组合套装，越搭越省。</div>
+      </div>
+      <span class="demo-pill">设计样稿 C · 分步向导（模拟数据）</span>
+    </div>
+
+    <div class="view">
+
+      <!-- ============ LANDING ============ -->
+      <section class="land" id="landing">
+        <div class="stats">
+          <div class="stat"><div class="n" id="statTotal">3</div><div class="l">套装总数</div></div>
+          <div class="stat"><div class="n" id="statLive">2</div><div class="l">已上架</div></div>
+          <div class="stat"><div class="n">RM 278</div><div class="l">本月套装最高省</div></div>
+        </div>
+
+        <div class="land-head">
+          <h2>现有套装</h2>
+          <button class="btn" id="newBundle">＋ 新建套装</button>
+        </div>
+
+        <div class="panel">
+          <table>
+            <thead>
+              <tr><th>套装名</th><th>类型</th><th>定价</th><th>含商品</th><th>状态</th><th style="text-align:right">操作</th></tr>
+            </thead>
+            <tbody id="bundleRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ WIZARD ============ -->
+      <section class="wizard" id="wizard">
+
+        <!-- progress indicator -->
+        <div class="steps" id="stepsBar">
+          <div class="step active" data-step="1">
+            <div class="num">1</div>
+            <div class="txt"><div class="t">选类型</div><div class="d">固定 / 自选</div></div>
+          </div>
+          <div class="step-line" data-line="1"></div>
+          <div class="step" data-step="2">
+            <div class="num">2</div>
+            <div class="txt"><div class="t">选商品</div><div class="d">挑单品 + 数量</div></div>
+          </div>
+          <div class="step-line" data-line="2"></div>
+          <div class="step" data-step="3">
+            <div class="num">3</div>
+            <div class="txt"><div class="t">定价 &amp; 上架</div><div class="d">价格 / 名称</div></div>
+          </div>
+          <div class="step-line" data-line="3"></div>
+          <div class="step" data-step="4">
+            <div class="num">✓</div>
+            <div class="txt"><div class="t">确认</div><div class="d">检查并保存</div></div>
+          </div>
+        </div>
+
+        <!-- ===== STEP 1 — choose type ===== -->
+        <div class="stepwrap on" data-pane="1">
+          <div class="wcard">
+            <h2>第一步 · 这是哪种套装？</h2>
+            <p class="lede">两种都支持。挑一个开始，之后随时能改。</p>
+            <div class="choices">
+              <button class="choice sel" data-type="fixed">
+                <span class="tick"></span>
+                <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13"/></svg></span>
+                <h3>固定套装</h3>
+                <p>你预先搭好整套（例：通勤三件套）。顾客整套购买，每件可设数量。库存由所含单品自动推算。</p>
+              </button>
+              <button class="choice" data-type="mix">
+                <span class="tick"></span>
+                <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="2.4"/></svg></span>
+                <h3>自选组合</h3>
+                <p>你设定一个商品池，顾客「任选 N 件」享套装价（例：针织 5 选 3）。灵活，下单率更高。</p>
+              </button>
+            </div>
+          </div>
+          <div class="wfoot">
+            <button class="btn btn--quiet btn--lg" id="cancel1">取消</button>
+            <div class="right"><button class="btn btn--lg" data-go="2">下一步 · 选商品 →</button></div>
+          </div>
+        </div>
+
+        <!-- ===== STEP 2 — pick products ===== -->
+        <div class="stepwrap" data-pane="2">
+          <div class="layout">
+            <div>
+              <div class="wcard">
+                <h2 id="s2title">第二步 · 选入套装的商品</h2>
+                <p class="lede" id="s2lede">勾选要放进套装的单品，并为每件设置数量。</p>
+
+                <!-- mix-only: 选 N 件 -->
+                <div class="mixn" id="mixNbox" style="display:none">
+                  <div class="lab" style="flex:1">顾客需选 <small>在商品池中任选的件数</small></div>
+                  <div class="stepper">
+                    <button id="nDec">−</button>
+                    <input id="nInput" type="text" value="3" inputmode="numeric" aria-label="选 N 件">
+                    <button id="nInc">＋</button>
+                  </div>
+                  <span style="font-size:14px;font-weight:500">件</span>
+                </div>
+
+                <div class="pick-head">
+                  <div class="search">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                    <input id="catSearch" type="text" placeholder="搜索商品名…">
+                  </div>
+                  <span class="muted" style="font-size:13px" id="pickCount">已选 0 件</span>
+                </div>
+
+                <div class="plist" id="catalogList"></div>
+              </div>
+              <div class="wfoot">
+                <button class="btn btn--quiet btn--lg" data-back="1">← 上一步</button>
+                <div class="right"><button class="btn btn--lg" data-go="3" id="toStep3">下一步 · 定价 →</button></div>
+              </div>
+            </div>
+            <!-- live preview rail -->
+            <div class="rail"><div class="preview" id="previewBox2"></div></div>
+          </div>
+        </div>
+
+        <!-- ===== STEP 3 — pricing & publish ===== -->
+        <div class="stepwrap" data-pane="3">
+          <div class="layout">
+            <div>
+              <div class="wcard">
+                <h2>第三步 · 定价</h2>
+                <p class="lede">选一种计价方式，右侧实时显示能省多少。</p>
+                <div class="pmode" id="pmode">
+                  <div class="opt sel" data-mode="set">
+                    <div class="t"><span class="r"></span>固定套装价</div>
+                    <div class="d">直接设一个整套价格，例如 RM 399。</div>
+                  </div>
+                  <div class="opt" data-mode="pct">
+                    <div class="t"><span class="r"></span>按总价打折</div>
+                    <div class="d">按单买合计打 X% 折，单品涨价自动跟随。</div>
+                  </div>
+                </div>
+
+                <div class="field" id="setPriceField">
+                  <label>套装价 (RM)</label>
+                  <div class="priceinput"><span class="pre">RM</span><input id="setPrice" type="number" min="0" value="399"></div>
+                  <div class="hint">顾客整套支付这个价格。</div>
+                </div>
+                <div class="field" id="pctField" style="display:none">
+                  <label>折扣百分比</label>
+                  <div class="priceinput pct"><input id="pctOff" type="number" min="0" max="90" value="15"><span class="suf">%</span></div>
+                  <div class="hint">在单买合计上打折，省额随之自动计算。</div>
+                </div>
+              </div>
+
+              <div class="wcard">
+                <h2>套装信息 &amp; 上架</h2>
+                <p class="lede">名称会显示在店面；封面与描述可选。</p>
+                <div class="row2">
+                  <div class="field"><label>套装名（中文）*</label><input id="fName" type="text" placeholder="例：通勤三件套" value="通勤三件套"></div>
+                  <div class="field"><label>套装名（English）</label><input id="fNameEn" type="text" placeholder="e.g. Workwear Trio" value="Workwear Trio"></div>
+                </div>
+                <div class="field">
+                  <label>封面图</label>
+                  <div class="cover">
+                    <div class="ph" id="coverPh"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>上传/选图</div>
+                    <button class="btn btn--quiet btn--sm" id="pickCover">从商品图选一张</button>
+                  </div>
+                </div>
+                <div class="field"><label>描述</label><textarea id="fDesc" placeholder="一句话告诉顾客这套有多划算…">一件大衣、一件衬衫、一条阔腿裤，从早会到晚餐一套到位。</textarea></div>
+                <div class="row2">
+                  <div class="field"><label>排序（数字越小越靠前）</label><input id="fSort" type="number" value="1"></div>
+                  <div class="field"><label>有效期（可选）</label><input id="fValid" type="text" placeholder="例：至 2026-08-31，留空=长期"></div>
+                </div>
+                <div class="toggle-row">
+                  <div class="lab">立即上架<small>关闭则存为草稿，店面不显示</small></div>
+                  <div class="sw on" id="liveSw" role="switch" aria-checked="true"></div>
+                </div>
+              </div>
+
+              <div class="wfoot">
+                <button class="btn btn--quiet btn--lg" data-back="2">← 上一步</button>
+                <div class="right"><button class="btn btn--lg" data-go="4">下一步 · 确认 →</button></div>
+              </div>
+            </div>
+            <div class="rail"><div class="preview" id="previewBox3"></div></div>
+          </div>
+        </div>
+
+        <!-- ===== STEP 4 — review ===== -->
+        <div class="stepwrap" data-pane="4">
+          <div class="wcard">
+            <h2>第四步 · 确认并保存</h2>
+            <p class="lede">检查一下，没问题就保存。任何一项都可回到对应步骤修改。</p>
+            <div class="review" id="reviewBox"></div>
+          </div>
+          <div class="wfoot">
+            <button class="btn btn--quiet btn--lg" data-back="3">← 上一步</button>
+            <div class="right">
+              <button class="btn btn--ghost btn--lg" id="saveDraft">存为草稿</button>
+              <button class="btn btn--lg" id="saveBundle">保存并上架 ✓</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   Mock catalog (no backend)
+   ========================================================= */
+function img(id){return "https://images.unsplash.com/photo-"+id+"?auto=format&fit=crop&w=300&q=80";}
+var CATALOG = [
+  {id:"p1", zh:"羊毛混纺大衣",   en:"Wool-Blend Coat",       price:248, cat:"外套", img:"1539109136881-3be0616acf4b"},
+  {id:"p2", zh:"牛津纺棉质衬衫", en:"Oxford Cotton Shirt",   price:95,  cat:"上衣", img:"1503342217505-b0a15ec3261c"},
+  {id:"p3", zh:"褶裥阔腿裤",     en:"Pleated Wide-Leg Pant", price:130, cat:"下装", img:"1542272604-787c3835535d"},
+  {id:"p4", zh:"真丝吊带连衣裙", en:"Silk Slip Dress",       price:185, cat:"裙装", img:"1572804013309-59a88b7e92f1"},
+  {id:"p5", zh:"罗纹针织开衫",   en:"Ribbed Knit Cardigan",  price:145, cat:"针织", img:"1556905055-8f358a7a47b2"},
+  {id:"p6", zh:"羊绒圆领毛衣",   en:"Cashmere Crew Sweater", price:165, cat:"针织", img:"1576566588028-4147f3842f27"},
+  {id:"p7", zh:"美利奴高领衫",   en:"Merino Turtleneck",     price:120, cat:"针织", img:"1521577352947-9bb58764b69a"},
+  {id:"p8", zh:"有机棉 T 恤",    en:"Organic Cotton Tee",    price:48,  cat:"上衣", img:"1521572163474-6864f9cf17ab"},
+  {id:"p9", zh:"真皮托特包",     en:"Leather Tote Bag",      price:195, cat:"配饰", img:"1584917865442-de89df76afd3"}
+];
+
+/* existing bundles list (mock) */
+var BUNDLES = [
+  {name:"通勤三件套", en:"Workwear Trio", type:"fixed", mode:"set", price:399, list:473, count:3, live:true},
+  {name:"针织 5 选 3", en:"Knit Pick 3", type:"mix", mode:"set", price:299, list:430, count:5, n:3, live:true},
+  {name:"周末慵懒组", en:"Weekend Easy Set", type:"fixed", mode:"pct", pct:20, price:170, list:213, count:2, live:false}
+];
+
+var rm = function(n){return "RM "+Math.round(n);};
+function esc(s){return String(s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+/* =========================================================
+   wizard state
+   ========================================================= */
+var S = {
+  type:"fixed",        // fixed | mix
+  n:3,                 // mix: 选 N
+  mode:"set",          // set | pct
+  setPrice:399,
+  pctOff:15,
+  selected:{},         // id -> qty (qty only meaningful for fixed)
+  name:"通勤三件套", nameEn:"Workwear Trio",
+  desc:"一件大衣、一件衬衫、一条阔腿裤，从早会到晚餐一套到位。",
+  sort:1, valid:"", live:true, cover:null
+};
+
+/* preset a sensible default selection so the demo feels alive */
+S.selected = {p1:1, p2:1, p3:1};
+
+var $ = function(s){return document.querySelector(s);};
+var $$ = function(s){return Array.prototype.slice.call(document.querySelectorAll(s));};
+
+/* ---------- toast ---------- */
+var toastEl = $("#toast"), toastT;
+function toast(msg){toastEl.innerHTML=msg;toastEl.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){toastEl.classList.remove("show");},2800);}
+
+/* =========================================================
+   landing bundles list
+   ========================================================= */
+function typePill(t){return t==="fixed"?'<span class="pill fixed">固定套装</span>':'<span class="pill mix">自选组合</span>';}
+function priceCell(b){
+  var saved = b.list - b.price;
+  var line = b.mode==="pct" ? (rm(b.price)+' <span class="muted" style="font-size:12px">(打'+ (100-b.pct) +'折)</span>') : rm(b.price);
+  return '<div class="price-cell"><div class="set">'+line+'</div><div class="sub">省 '+rm(saved)+'</div></div>';
+}
+function renderBundles(){
+  var rows = BUNDLES.map(function(b){
+    var cnt = b.type==="mix" ? (b.count+' 选 '+b.n) : (b.count+' 件');
+    return '<tr>'+
+      '<td><div class="b-name">'+esc(b.name)+'</div><div class="b-en">'+esc(b.en)+'</div></td>'+
+      '<td>'+typePill(b.type)+'</td>'+
+      '<td>'+priceCell(b)+'</td>'+
+      '<td>'+cnt+'</td>'+
+      '<td>'+(b.live?'<span class="pill green">● 已上架</span>':'<span class="pill off">○ 草稿</span>')+'</td>'+
+      '<td class="tbl-actions"><button class="ed">编辑</button><button class="del">删除</button></td>'+
+    '</tr>';
+  }).join("");
+  $("#bundleRows").innerHTML = rows;
+  $("#statTotal").textContent = BUNDLES.length;
+  $("#statLive").textContent = BUNDLES.filter(function(b){return b.live;}).length;
+
+  $$("#bundleRows .ed").forEach(function(b){b.addEventListener("click",function(){openWizard();});});
+  $$("#bundleRows .del").forEach(function(b,i){b.addEventListener("click",function(){
+    if(confirm("确定删除这个套装？")){BUNDLES.splice(i,1);renderBundles();toast("套装已删除");}
+  });});
+}
+
+/* =========================================================
+   show / hide wizard
+   ========================================================= */
+function openWizard(){
+  $("#landing").classList.add("off");
+  $("#wizard").classList.add("on");
+  $("#pageTitle").textContent = "新建套装";
+  $("#pageSub").textContent = "跟着 3 步向导走，几分钟搞定。";
+  goStep(1);
+  window.scrollTo(0,0);
+}
+function closeWizard(){
+  $("#wizard").classList.remove("on");
+  $("#landing").classList.remove("off");
+  $("#pageTitle").textContent = "套装管理";
+  $("#pageSub").textContent = "用分步向导创建组合套装，越搭越省。";
+  window.scrollTo(0,0);
+}
+
+/* =========================================================
+   step navigation
+   ========================================================= */
+var curStep = 1;
+function goStep(n){
+  curStep = n;
+  $$(".stepwrap").forEach(function(p){p.classList.toggle("on", +p.dataset.pane===n);});
+  // progress indicator
+  $$("#stepsBar .step").forEach(function(s){
+    var k=+s.dataset.step;
+    s.classList.toggle("active", k===n);
+    s.classList.toggle("done", k<n);
+  });
+  $$("#stepsBar .step-line").forEach(function(l){
+    l.classList.toggle("fill", +l.dataset.line < n);
+  });
+  if(n===2){ renderCatalog(); updatePreview("#previewBox2"); }
+  if(n===3){ updatePreview("#previewBox3"); }
+  if(n===4){ renderReview(); }
+  window.scrollTo(0,0);
+}
+
+/* =========================================================
+   STEP 1 — type choice
+   ========================================================= */
+$$(".choice").forEach(function(c){
+  c.addEventListener("click", function(){
+    $$(".choice").forEach(function(x){x.classList.remove("sel");});
+    c.classList.add("sel");
+    S.type = c.dataset.type;
+  });
+});
+
+/* =========================================================
+   STEP 2 — product picker
+   ========================================================= */
+function selCount(){return Object.keys(S.selected).length;}
+function pricing(){
+  // listTotal = sum(price * qty) for fixed; for mix sum of pool prices is reference, target is N cheapest? keep simple: sum of all pool * 1, and "single-buy" basis for mix = avg N of pool
+  var ids = Object.keys(S.selected);
+  var listTotal = 0;
+  if(S.type==="fixed"){
+    ids.forEach(function(id){var p=byId(id);listTotal += p.price * (S.selected[id]||1);});
+  } else {
+    // mix: single-buy reference = sum of the N priciest in pool (best-case savings shown)
+    var prices = ids.map(function(id){return byId(id).price;}).sort(function(a,b){return b-a;});
+    listTotal = prices.slice(0, Math.min(S.n, prices.length)).reduce(function(a,b){return a+b;},0);
+  }
+  var setP;
+  if(S.mode==="set"){ setP = +S.setPrice||0; }
+  else { setP = listTotal * (1 - (+S.pctOff||0)/100); }
+  setP = Math.round(setP);
+  var saved = Math.max(0, Math.round(listTotal - setP));
+  var pct = listTotal>0 ? Math.round(saved/listTotal*100) : 0;
+  return {listTotal:Math.round(listTotal), setP:setP, saved:saved, pct:pct};
+}
+function byId(id){return CATALOG.filter(function(p){return p.id===id;})[0];}
+
+function renderCatalog(){
+  // step2 header reflects type
+  if(S.type==="mix"){
+    $("#s2title").textContent = "第二步 · 设定商品池";
+    $("#s2lede").textContent = "勾选要放进「池子」的商品，再设定顾客需选几件。";
+    $("#mixNbox").style.display = "flex";
+  } else {
+    $("#s2title").textContent = "第二步 · 选入套装的商品";
+    $("#s2lede").textContent = "勾选要放进套装的单品，并为每件设置数量。";
+    $("#mixNbox").style.display = "none";
+  }
+  $("#nInput").value = S.n;
+
+  var q = ($("#catSearch").value||"").trim();
+  var rows = CATALOG.map(function(p){
+    var on = S.selected.hasOwnProperty(p.id);
+    var qty = S.selected[p.id]||1;
+    var hidden = q && p.zh.indexOf(q)<0 && p.en.toLowerCase().indexOf(q.toLowerCase())<0;
+    var qtyCtrl = S.type==="fixed"
+      ? '<div class="pqty"><span class="qlab">数量</span><div class="qstep'+(on?'':' dim')+'" data-q="'+p.id+'">'+
+          '<button class="qd">−</button><input class="qi" type="text" value="'+qty+'" inputmode="numeric"><button class="qu">＋</button></div></div>'
+      : '<div class="pqty"><span class="qlab" style="color:var(--muted)">入池</span></div>';
+    return '<div class="prow'+(on?' sel':'')+(hidden?' hide':'')+'" data-id="'+p.id+'">'+
+      '<div class="ckbox"></div>'+
+      '<img class="pthumb" src="'+img(p.img)+'" alt="" onerror="this.style.visibility=\'hidden\'">'+
+      '<div class="pinfo"><div class="nm">'+esc(p.zh)+'</div><div class="ct">'+esc(p.en)+' · '+esc(p.cat)+'</div></div>'+
+      '<div class="pprice">'+rm(p.price)+'</div>'+
+      qtyCtrl+
+    '</div>';
+  }).join("");
+  $("#catalogList").innerHTML = rows;
+  bindCatalog();
+  updatePickCount();
+}
+function updatePickCount(){
+  var c = selCount();
+  $("#pickCount").textContent = S.type==="mix" ? ("池中 "+c+" 件") : ("已选 "+c+" 件");
+}
+function bindCatalog(){
+  $$("#catalogList .prow").forEach(function(row){
+    var id = row.dataset.id;
+    // toggle select (click row, but not on qty stepper)
+    row.addEventListener("click", function(e){
+      if(e.target.closest(".qstep")) return;
+      if(S.selected.hasOwnProperty(id)){ delete S.selected[id]; }
+      else { S.selected[id] = 1; }
+      renderCatalog();
+      updatePreview("#previewBox2");
+    });
+  });
+  // qty steppers (fixed only)
+  $$("#catalogList .qstep").forEach(function(st){
+    var id = st.dataset.q;
+    var input = st.querySelector(".qi");
+    st.querySelector(".qd").addEventListener("click", function(e){e.stopPropagation();setQty(id, (S.selected[id]||1)-1);});
+    st.querySelector(".qu").addEventListener("click", function(e){e.stopPropagation();setQty(id, (S.selected[id]||1)+1);});
+    input.addEventListener("click", function(e){e.stopPropagation();});
+    input.addEventListener("input", function(){var v=parseInt(input.value.replace(/\D/g,""),10);setQty(id, isNaN(v)?1:v, true);});
+  });
+}
+function setQty(id, v, fromInput){
+  if(!S.selected.hasOwnProperty(id)) S.selected[id]=1;
+  v = Math.max(1, Math.min(99, v||1));
+  S.selected[id]=v;
+  if(!fromInput) renderCatalog();
+  else { // light update without rerender to keep focus
+    updatePreview("#previewBox2");
+  }
+  updatePreview("#previewBox2");
+}
+
+$("#catSearch").addEventListener("input", renderCatalog);
+
+/* mix N stepper */
+function setN(v){ S.n = Math.max(1, Math.min(9, v||1)); $("#nInput").value=S.n; updatePreview("#previewBox2"); }
+$("#nDec").addEventListener("click", function(){setN(S.n-1);});
+$("#nInc").addEventListener("click", function(){setN(S.n+1);});
+$("#nInput").addEventListener("input", function(){var v=parseInt(this.value.replace(/\D/g,""),10);setN(isNaN(v)?1:v);});
+
+/* =========================================================
+   STEP 3 — pricing mode + fields
+   ========================================================= */
+$$("#pmode .opt").forEach(function(o){
+  o.addEventListener("click", function(){
+    $$("#pmode .opt").forEach(function(x){x.classList.remove("sel");});
+    o.classList.add("sel");
+    S.mode = o.dataset.mode;
+    $("#setPriceField").style.display = S.mode==="set" ? "block" : "none";
+    $("#pctField").style.display = S.mode==="pct" ? "block" : "none";
+    updatePreview("#previewBox3");
+  });
+});
+$("#setPrice").addEventListener("input", function(){S.setPrice=+this.value||0;updatePreview("#previewBox3");});
+$("#pctOff").addEventListener("input", function(){S.pctOff=+this.value||0;updatePreview("#previewBox3");});
+$("#fName").addEventListener("input", function(){S.name=this.value;updatePreview("#previewBox3");});
+$("#fNameEn").addEventListener("input", function(){S.nameEn=this.value;updatePreview("#previewBox3");});
+$("#fDesc").addEventListener("input", function(){S.desc=this.value;});
+$("#fSort").addEventListener("input", function(){S.sort=this.value;});
+$("#fValid").addEventListener("input", function(){S.valid=this.value;});
+$("#liveSw").addEventListener("click", function(){
+  S.live=!S.live; this.classList.toggle("on", S.live); this.setAttribute("aria-checked", S.live);
+});
+$("#pickCover").addEventListener("click", function(){
+  // grab first selected product image as cover (demo)
+  var first = Object.keys(S.selected)[0];
+  if(first){ S.cover = byId(first).img;
+    $("#coverPh").innerHTML = '<img src="'+img(S.cover)+'" alt="封面">';
+    toast("已选用「"+byId(first).zh+"」的图作封面 ✿");
+  } else { toast("先在第二步选入商品，再选封面"); }
+});
+
+/* =========================================================
+   live preview (steps 2 & 3 share)
+   ========================================================= */
+function updatePreview(sel){
+  var box = $(sel);
+  if(!box) return;
+  var ids = Object.keys(S.selected);
+  var pr = pricing();
+  var itemsHtml;
+  if(ids.length){
+    itemsHtml = '<ul class="pv-items">'+ids.map(function(id){
+      var p=byId(id); var q=S.selected[id]||1;
+      var qtxt = S.type==="fixed" ? (q>1?('<span class="q">×'+q+'</span>'):'') : '';
+      return '<li><span class="n">'+esc(p.zh)+'</span><span>'+rm(p.price)+' '+qtxt+'</span></li>';
+    }).join("")+'</ul>';
+  } else {
+    itemsHtml = '<div class="pv-empty">还没选商品<br>左侧勾选后这里会更新</div>';
+  }
+
+  var typeLabel = S.type==="fixed" ? '固定套装' : ('自选组合 · '+ids.length+' 选 '+S.n);
+  var modeLabel = S.mode==="set" ? '固定套价' : ('打 '+(100-(+S.pctOff||0))+' 折');
+
+  var saveBlock;
+  if(ids.length && pr.saved>0){
+    saveBlock = '<span class="pv-save">省 '+rm(pr.saved)+'<small>约 '+pr.pct+'% off</small></span>';
+  } else {
+    saveBlock = '<span class="pv-save none">'+(ids.length?'当前未省（套价 ≥ 单买）':'选商品后显示省额')+'</span>';
+  }
+
+  box.innerHTML =
+    '<div class="ph"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>实时预览</div>'+
+    '<div class="body">'+
+      '<div class="pv-name">'+(esc(S.name)||'未命名套装')+'</div>'+
+      '<div class="pv-meta">'+typeLabel+' · '+modeLabel+'</div>'+
+      itemsHtml+
+      '<div class="pv-row"><span class="k">单买合计</span><span class="v strike">'+rm(pr.listTotal)+'</span></div>'+
+      '<div class="pv-row set"><span class="k">套装价</span><span class="v"><span class="pv-big">'+rm(pr.setP)+'</span></span></div>'+
+      saveBlock+
+    '</div>';
+}
+
+/* =========================================================
+   STEP 4 — review
+   ========================================================= */
+function renderReview(){
+  var ids = Object.keys(S.selected);
+  var pr = pricing();
+  var itemLines = ids.length ? ids.map(function(id){
+    var p=byId(id); var q=S.selected[id]||1;
+    return '<li><span>'+esc(p.zh)+(S.type==="fixed"&&q>1?(' ×'+q):'')+'</span><span class="muted">'+rm(p.price)+'</span></li>';
+  }).join("") : '<li class="muted">（未选商品）</li>';
+
+  var typeTxt = S.type==="fixed" ? "固定套装（整套购买）" : ("自选组合 · "+ids.length+" 选 "+S.n);
+  var modeTxt = S.mode==="set" ? ("固定套价 "+rm(S.setPrice)) : ("按总价打 "+(100-(+S.pctOff||0))+" 折 ("+S.pctOff+"% off)");
+
+  $("#reviewBox").innerHTML =
+    '<div class="rev-block">'+
+      '<h4>类型 &amp; 商品 <button data-jump="'+(S.type==="mix"?2:2)+'">修改</button></h4>'+
+      '<div class="rev-line"><span class="k">类型</span><span class="v">'+typeTxt+'</span></div>'+
+      '<div class="rev-line"><span class="k">'+(S.type==="mix"?"池中商品":"含商品")+'</span><span class="v">'+ids.length+' 件</span></div>'+
+      '<ul class="rev-items">'+itemLines+'</ul>'+
+    '</div>'+
+    '<div class="rev-block">'+
+      '<h4>定价 &amp; 信息 <button data-jump="3">修改</button></h4>'+
+      '<div class="rev-line"><span class="k">计价方式</span><span class="v">'+modeTxt+'</span></div>'+
+      '<div class="rev-line"><span class="k">单买合计</span><span class="v">'+rm(pr.listTotal)+'</span></div>'+
+      '<div class="rev-line"><span class="k">套装价</span><span class="v" style="color:var(--wine);font-weight:700">'+rm(pr.setP)+'</span></div>'+
+      '<div class="rev-line"><span class="k">名称</span><span class="v">'+(esc(S.name)||'—')+'</span></div>'+
+      '<div class="rev-line"><span class="k">排序 / 有效期</span><span class="v">'+esc(S.sort||'—')+' · '+(esc(S.valid)||'长期')+'</span></div>'+
+      '<div class="rev-line"><span class="k">状态</span><span class="v">'+(S.live?'<span class="pill green">● 立即上架</span>':'<span class="pill off">○ 草稿</span>')+'</span></div>'+
+    '</div>'+
+    '<div class="rev-banner">'+
+      '<div><div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">顾客可省</div><div class="big">省 '+rm(pr.saved)+'</div></div>'+
+      '<div style="font-size:14px;color:var(--green)">约 '+pr.pct+'% off · 单买 '+rm(pr.listTotal)+' → 套装 '+rm(pr.setP)+'</div>'+
+    '</div>';
+
+  $$("#reviewBox [data-jump]").forEach(function(b){
+    b.addEventListener("click", function(){goStep(+b.dataset.jump);});
+  });
+}
+
+/* =========================================================
+   wire footer nav buttons
+   ========================================================= */
+$$("[data-go]").forEach(function(b){
+  b.addEventListener("click", function(){
+    var n=+b.dataset.go;
+    if(n===3 && selCount()===0){ toast("请先在第二步选入至少 1 件商品"); return; }
+    goStep(n);
+  });
+});
+$$("[data-back]").forEach(function(b){
+  b.addEventListener("click", function(){goStep(+b.dataset.back);});
+});
+$("#cancel1").addEventListener("click", closeWizard);
+$("#newBundle").addEventListener("click", openWizard);
+
+/* save */
+function commit(live){
+  if(selCount()===0){ toast("套装里还没有商品"); goStep(2); return; }
+  if(!S.name.trim()){ toast("请填写套装名"); goStep(3); return; }
+  var pr = pricing();
+  BUNDLES.unshift({
+    name:S.name, en:S.nameEn, type:S.type, mode:S.mode,
+    price:pr.setP, list:pr.listTotal, pct:S.pctOff,
+    count:selCount(), n:S.n, live:live
+  });
+  renderBundles();
+  closeWizard();
+  toast(live ? ('套装「'+esc(S.name)+'」已保存并上架 · 省 <b>'+rm(pr.saved)+'</b> ✿') : ('草稿「'+esc(S.name)+'」已保存'));
+}
+$("#saveBundle").addEventListener("click", function(){commit(true);});
+$("#saveDraft").addEventListener("click", function(){commit(false);});
+
+/* =========================================================
+   init
+   ========================================================= */
+renderBundles();
+</script>
+</body>
+</html>
