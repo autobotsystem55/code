@@ -153,6 +153,20 @@
       if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
       return window.sb.from('discount_codes').delete().eq('code', code);
     },
+
+    // ---- bundles / sets ----
+    allBundles: function () {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.from('bundles').select('*').order('sort', { ascending: true }).order('created_at', { ascending: true });
+    },
+    upsertBundle: function (row) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.from('bundles').upsert(row);
+    },
+    deleteBundle: function (id) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.from('bundles').delete().eq('id', id);
+    },
   };
 
   window.Auth = {
