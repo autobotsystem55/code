@@ -11,19 +11,23 @@ alter table public.products add column if not exists low_stock_threshold int    
 
 -- 2) 下单后按尺码扣减库存（仅对开启追踪的商品）------------------
 --    p_items = [{"id":"silk-dress-05","size":"M","qty":1}, ...]
+--    p_items 现在可带 color：[{"id":"silk-dress-05","size":"M","color":"驼色","qty":1}, ...]
+--    扣库存时：若该商品存在 "颜色|尺码" 的库存键就扣它，否则退回只扣 "尺码" 键（兼容旧数据）。
 create or replace function public.decrement_stock(p_items jsonb)
 returns void language plpgsql security definer set search_path = public as $$
 declare it jsonb;
 begin
   for it in select * from jsonb_array_elements(coalesce(p_items, '[]'::jsonb)) loop
     if (it->>'size') is not null then
-      update public.products
+      update public.products p
          set stock = jsonb_set(
-               coalesce(stock, '{}'::jsonb),
-               array[it->>'size'],
-               to_jsonb( greatest(0, coalesce((stock->>(it->>'size'))::int, 0) - coalesce((it->>'qty')::int, 0)) ),
+               coalesce(p.stock, '{}'::jsonb),
+               array[ case when (it->>'color') is not null and (p.stock ? ((it->>'color')||'|'||(it->>'size')))
+                           then (it->>'color')||'|'||(it->>'size') else (it->>'size') end ],
+               to_jsonb( greatest(0, coalesce( (p.stock->>( case when (it->>'color') is not null and (p.stock ? ((it->>'color')||'|'||(it->>'size')))
+                           then (it->>'color')||'|'||(it->>'size') else (it->>'size') end ))::int, 0) - coalesce((it->>'qty')::int, 0)) ),
                true )
-       where id = (it->>'id') and track_inventory = true;
+       where p.id = (it->>'id') and p.track_inventory = true;
     end if;
   end loop;
 end; $$;

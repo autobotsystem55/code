@@ -396,7 +396,7 @@
                 var stockRows = [];
                 lines.forEach(function (l) {
                   if (l.b) { (l.items || []).forEach(function (it) { stockRows.push({ id: it.id, size: it.size, qty: (it.qty || 1) * l.qty }); }); }
-                  else { stockRows.push({ id: l.id, size: l.size, qty: l.qty }); }
+                  else { stockRows.push({ id: l.id, size: l.size, color: l.color, qty: l.qty }); }
                 });
                 DB.decrementStock(stockRows);
               } catch (e) {} }

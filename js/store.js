@@ -282,16 +282,28 @@
   }
 
   /* ---------- inventory helpers ---------- */
-  window.sizeSoldOut = function (p, size) {
+  // stock value for a size (+ optional color): uses the "color|size" key when present,
+  // else falls back to the legacy size-only key (so existing products keep working).
+  function stockVal(p, size, color) {
+    var st = p.stock || {};
+    var ck = (p.colors && p.colors.length && color) ? (color + '|' + size) : null;
+    if (ck && st[ck] != null) return st[ck];
+    return st[size];
+  }
+  window.stockVal = stockVal;
+  window.sizeSoldOut = function (p, size, color) {
     if (!p || !p.trackInventory || p.continueSelling) return false;
-    var s = (p.stock || {})[size];
+    var s = stockVal(p, size, color);
     return (s != null) && Number(s) <= 0;
   };
   window.productSoldOut = function (p) {
     if (!p || !p.trackInventory || p.continueSelling) return false;
     var sizes = p.sizes || [];
     if (!sizes.length) return false;
-    return sizes.every(function (sz) { return Number((p.stock || {})[sz] || 0) <= 0; });
+    var colors = (p.colors && p.colors.length) ? p.colors.map(function (c) { return c.name; }) : [null];
+    return sizes.every(function (sz) {
+      return colors.every(function (cn) { return Number(stockVal(p, sz, cn) || 0) <= 0; });
+    });
   };
 
   /* ---------- product card ---------- */

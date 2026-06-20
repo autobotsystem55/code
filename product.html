@@ -67,8 +67,9 @@
         return '<button class="swatch ' + (i === 0 ? 'is-active' : '') + '" style="background:' + c.hex + '" data-color="' + c.name + '" title="' + c.name + '" aria-label="' + c.name + '"></button>';
       }).join('');
 
+      var firstColor = (p.colors[0] && p.colors[0].name) || null;
       var sizes = p.sizes.map(function (s) {
-        var so = window.sizeSoldOut && sizeSoldOut(p, s);
+        var so = window.sizeSoldOut && sizeSoldOut(p, s, firstColor);
         return '<button class="size' + (so ? ' size--out' : '') + '" data-size="' + s + '"' + (so ? ' disabled' : '') + '>' + s + '</button>';
       }).join('');
 
@@ -120,11 +121,20 @@
         });
       });
       // ---- colour ----
+      function paintSizes(color) {
+        root.querySelectorAll('[data-size]').forEach(function (b) {
+          var sz = b.getAttribute('data-size');
+          var so = window.sizeSoldOut && sizeSoldOut(p, sz, color);
+          b.classList.toggle('size--out', !!so); b.disabled = !!so;
+          if (so && sel.size === sz) { sel.size = null; b.classList.remove('is-active'); }
+        });
+      }
       root.querySelectorAll('[data-color]').forEach(function (b) {
         b.addEventListener('click', function () {
           sel.color = b.getAttribute('data-color');
           document.getElementById('colorName').textContent = sel.color;
           root.querySelectorAll('[data-color]').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+          paintSizes(sel.color);
         });
       });
       // ---- size ----

@@ -559,10 +559,36 @@
         '<div class="field"><label>描述 (English)</label><textarea id="f_desc">'+esc(p.description)+'</textarea></div>'+
         '<div class="field"><label>描述 (中文)</label><textarea id="f_desc_zh">'+esc(p.description_zh)+'</textarea></div>'+
         '<div class="field"><label><input type="checkbox" id="f_active"'+(p.active!==false?' checked':'')+'> 上架（取消=下架）</label></div>'+
+        '<div class="field"><label>库存设置</label>'+
+          '<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-bottom:8px">'+
+            '<label style="font-weight:400"><input type="checkbox" id="f_track"'+(p.track_inventory?' checked':'')+'> 追踪库存（不勾=永远有货）</label>'+
+            '<label style="font-weight:400"><input type="checkbox" id="f_oversell"'+(p.continue_selling?' checked':'')+'> 售罄后仍可购买</label>'+
+            '<label style="font-weight:400">低库存阈值 <input id="f_thr" type="number" min="0" value="'+(p.low_stock_threshold!=null?p.low_stock_threshold:5)+'" style="width:64px"></label>'+
+          '</div>'+
+          '<div id="invBox"></div>'+
+          '<div style="font-size:12px;color:var(--muted);margin-top:6px">勾尺码、填颜色后，下面按「颜色 × 尺码」填库存；没填颜色就只按尺码。</div>'+
+        '</div>'+
         '<div style="display:flex;gap:10px"><button class="btn" id="saveP">保存</button><button class="btn btn--ghost" id="cancelP">取消</button><span class="msg" id="pm"></span></div>'+
       '</div>';
       document.getElementById('cancelP').addEventListener('click',function(){document.getElementById('pEditor').innerHTML='';});
       document.getElementById('saveP').addEventListener('click',function(){saveProduct(id);});
+      function curSizes(){return [].map.call(document.querySelectorAll('.sz:checked'),function(c){return c.value;});}
+      function curColors(){var o=[];[].forEach.call(document.querySelectorAll('.cname'),function(i){var v2=i.value.trim();if(v2)o.push(v2);});return o;}
+      function stockOf(key,szKey){var st=p.stock||{};return (st[key]!=null)?st[key]:(st[szKey]!=null?st[szKey]:0);}
+      function invCell(key,size){return '<label style="display:inline-flex;align-items:center;gap:5px;font-weight:400;font-size:13px">'+esc(size)+' <input class="invqty" data-key="'+esc(key)+'" type="number" min="0" value="'+stockOf(key,size)+'" style="width:60px"></label>';}
+      function renderInv(){
+        var box=document.getElementById('invBox');if(!box)return;
+        var szs=curSizes();if(!szs.length){box.innerHTML='<div style="color:var(--muted);font-size:13px;padding:6px 0">请先在上面勾选尺码</div>';return;}
+        var cols=curColors();
+        if(cols.length){
+          box.innerHTML=cols.map(function(c){return '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line,#ECD9D6)"><b style="min-width:84px">'+esc(c)+'</b><div style="display:flex;gap:14px;flex-wrap:wrap">'+szs.map(function(s){return invCell(c+'|'+s,s);}).join('')+'</div></div>';}).join('');
+        } else {
+          box.innerHTML='<div style="display:flex;gap:14px;flex-wrap:wrap;padding:8px 0">'+szs.map(function(s){return invCell(s,s);}).join('')+'</div>';
+        }
+      }
+      [].forEach.call(document.querySelectorAll('.sz'),function(c){c.addEventListener('change',renderInv);});
+      [].forEach.call(document.querySelectorAll('.cname'),function(i){i.addEventListener('input',renderInv);});
+      renderInv();
       document.getElementById('pEditor').scrollIntoView({behavior:'smooth',block:'start'});
     }
     function v(id){var e=document.getElementById(id);return e?e.value.trim():'';}
@@ -575,9 +601,12 @@
       var colors=[];var ns=document.querySelectorAll('.cname'),hs=document.querySelectorAll('.chex');
       for(var i=0;i<ns.length;i++){if(ns[i].value.trim())colors.push({name:ns[i].value.trim(),hex:hs[i].value});}
       var cmp=v('f_cmp');
+      var stock={};[].forEach.call(document.querySelectorAll('.invqty'),function(inp){stock[inp.getAttribute('data-key')]=Math.max(0,parseInt(inp.value,10)||0);});
+      var fThr=parseInt(v('f_thr'),10);if(isNaN(fThr))fThr=5;
       var row={id:id||(v('f_id')||slug(name)),name:name,name_zh:v('f_name_zh')||null,category:v('f_cat'),price:price,
         compare_at:cmp?parseFloat(cmp):null,badge:v('f_badge')||null,sizes:sizes,colors:colors,
         images:[v('f_img1'),v('f_img2')].filter(Boolean),description:v('f_desc')||null,description_zh:v('f_desc_zh')||null,
+        stock:stock,track_inventory:document.getElementById('f_track').checked,continue_selling:document.getElementById('f_oversell').checked,low_stock_threshold:fThr,
         active:document.getElementById('f_active').checked,sort:parseInt(v('f_sort'),10)||0};
       document.getElementById('saveP').disabled=true;
       DB.upsertProduct(row).then(function(r){
@@ -631,9 +660,14 @@
       DB.allProducts().then(function(rr){
         if(rr.error){view.innerHTML='<p class="msg">读取失败：'+esc(rr.error.message)+'</p>';return;}
         var products=(rr.data||[]).map(function(p){
+          var st=p.stock||{}, cols=(p.colors||[]).map(function(c){return c.name;}), szs=(p.sizes||[]);
+          var sval=function(key,sz){return (st[key]!=null)?Number(st[key]):(st[sz]!=null?Number(st[sz]):0);};
+          var variants=cols.length
+            ? [].concat.apply([],cols.map(function(cn){return szs.map(function(sz){return {sz:cn+' · '+sz,q:sval(cn+'|'+sz,sz),key:cn+'|'+sz};});}))
+            : szs.map(function(sz){return {sz:sz,q:sval(sz,sz),key:sz};});
           return {id:p.id,zh:p.name_zh||p.name,en:p.name||'',code:String(p.id||'').toUpperCase(),
             thumb:imgUrl((p.images||[])[0],90),track:!!p.track_inventory,oversell:!!p.continue_selling,thr:p.low_stock_threshold||5,_open:false,
-            sizes:(p.sizes||[]).map(function(sz){return {sz:sz,q:Number((p.stock||{})[sz]||0)};})};
+            sizes:variants};
         });
         var log=[],filter='all',query='',selected={},THR_DEF=5;
         var Q=function(s){return view.querySelector(s);},QA=function(s){return [].slice.call(view.querySelectorAll(s));};
@@ -646,7 +680,7 @@
         var toastEl=document.getElementById('invToast');if(!toastEl){toastEl=document.createElement('div');toastEl.id='invToast';toastEl.className='itoast';document.body.appendChild(toastEl);}
         function toast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove('show');},1900);}
         function pushLog(dir,name,d,who){log.unshift({dir:dir,name:name,d:d,who:who||'手动调整',when:'刚刚'});if(log.length>8)log.pop();renderLog();}
-        function persist(p,cb){var st={};p.sizes.forEach(function(s){st[s.sz]=s.q;});DB.updateStock(p.id,{stock:st,track_inventory:p.track,continue_selling:p.oversell,low_stock_threshold:p.thr}).then(function(r){if(r&&r.error){toast('保存失败：'+r.error.message);cb&&cb(false);}else{cb&&cb(true);}},function(){toast('保存失败，请重试');cb&&cb(false);});}
+        function persist(p,cb){var st={};p.sizes.forEach(function(s){st[s.key]=s.q;});DB.updateStock(p.id,{stock:st,track_inventory:p.track,continue_selling:p.oversell,low_stock_threshold:p.thr}).then(function(r){if(r&&r.error){toast('保存失败：'+r.error.message);cb&&cb(false);}else{cb&&cb(true);}},function(){toast('保存失败，请重试');cb&&cb(false);});}
 
         view.innerHTML='<div class="console"><div class="maincol">'+
           '<div class="istats">'+
