@@ -40,6 +40,10 @@
       sizes: r.sizes || [],
       colors: r.colors || [],
       images: r.images || [],
+      stock: r.stock || {},
+      trackInventory: !!r.track_inventory,
+      continueSelling: !!r.continue_selling,
+      lowStockThreshold: (r.low_stock_threshold != null) ? r.low_stock_threshold : 5,
     };
   }
 
@@ -85,6 +89,16 @@
     deleteProduct: function (id) {
       if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
       return window.sb.from('products').delete().eq('id', id);
+    },
+    // update only the stock-related columns
+    updateStock: function (id, fields) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.from('products').update(fields).eq('id', id);
+    },
+    // decrement stock for purchased items (server-side, only for tracked products)
+    decrementStock: function (items) {
+      if (!window.sb) return Promise.resolve({});
+      return window.sb.rpc('decrement_stock', { p_items: items });
     },
     // true only if the logged-in user's profile has is_admin = true
     isAdmin: function () {

@@ -251,11 +251,27 @@
     document.body.style.overflow = '';
   }
 
+  /* ---------- inventory helpers ---------- */
+  window.sizeSoldOut = function (p, size) {
+    if (!p || !p.trackInventory || p.continueSelling) return false;
+    var s = (p.stock || {})[size];
+    return (s != null) && Number(s) <= 0;
+  };
+  window.productSoldOut = function (p) {
+    if (!p || !p.trackInventory || p.continueSelling) return false;
+    var sizes = p.sizes || [];
+    if (!sizes.length) return false;
+    return sizes.every(function (sz) { return Number((p.stock || {})[sz] || 0) <= 0; });
+  };
+
   /* ---------- product card ---------- */
   function productCard(p) {
     var onSale = p.compareAt && p.compareAt > p.price;
+    var soldOut = window.productSoldOut && productSoldOut(p);
     var badge = '';
-    if (p.badge) {
+    if (soldOut) {
+      badge = '<span class="card__badge is-out">' + T('badge.soldOut') + '</span>';
+    } else if (p.badge) {
       var bl = p.badge.toLowerCase();
       var blabel = bl === 'sale' ? T('badge.sale') : bl === 'new' ? T('badge.new') : p.badge;
       badge = '<span class="card__badge' + (bl === 'sale' ? ' is-sale' : '') + '">' + blabel + '</span>';

@@ -15,7 +15,7 @@
       'lang.toggle': '中文',
       'title.home': 'Code Official — Sweet, Feminine Everyday Wear',
       'title.shop': 'Shop All — Code Official',
-      'badge.sale': 'Sale', 'badge.new': 'New', 'card.quick': 'Quick add',
+      'badge.sale': 'Sale', 'badge.new': 'New', 'badge.soldOut': 'Sold out', 'card.quick': 'Quick add',
       'card.choose': 'Choose options', 'card.colours': '{n} colours', 'card.colour': '{n} colour',
       // announce
       'ann.shipping': 'Complimentary shipping over {x}',
@@ -140,7 +140,7 @@
       'lang.toggle': 'EN',
       'title.home': 'Code Official — 甜美女装 · 日常穿搭',
       'title.shop': '全部商品 — Code Official',
-      'badge.sale': '特惠', 'badge.new': '新品', 'card.quick': '快速加入',
+      'badge.sale': '特惠', 'badge.new': '新品', 'badge.soldOut': '售罄', 'card.quick': '快速加入',
       'card.choose': '选择规格', 'card.colours': '{n} 个颜色', 'card.colour': '{n} 个颜色',
       'ann.shipping': '满 {x} 免运费',
       'ann.newSeason': '每周五准时上新',

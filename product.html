@@ -57,6 +57,7 @@
 
       document.title = pName(p) + ' — ' + (STORE_CONFIG.brand || '');
       var onSale = p.compareAt && p.compareAt > p.price;
+      var soldOut = window.productSoldOut && productSoldOut(p);
 
       var thumbs = p.images.map(function (im, i) {
         return '<button class="' + (i === 0 ? 'is-active' : '') + '" data-thumb="' + i + '" aria-label="' + t('aria.thumb', { n: i + 1 }) + '"><img src="' + imgUrl(im, 200) + '" alt="" onerror="this.onerror=null;this.src=\'images/placeholder.svg\'"></button>';
@@ -67,7 +68,8 @@
       }).join('');
 
       var sizes = p.sizes.map(function (s) {
-        return '<button class="size" data-size="' + s + '">' + s + '</button>';
+        var so = window.sizeSoldOut && sizeSoldOut(p, s);
+        return '<button class="size' + (so ? ' size--out' : '') + '" data-size="' + s + '"' + (so ? ' disabled' : '') + '>' + s + '</button>';
       }).join('');
 
       var price = onSale
@@ -90,7 +92,7 @@
             '<div class="opt"><div class="opt__label">' + t('pdp.size') + ' <span><a href="#" id="sizeGuide">' + t('pdp.sizeGuide') + '</a></span></div><div class="size-row" id="sizeRow">' + sizes + '</div></div>' +
             '<div class="pdp__add">' +
               '<div class="stepper" id="qtyStep"><button data-q="-1" aria-label="' + t('aria.dec') + '">–</button><span id="qty">1</span><button data-q="1" aria-label="' + t('aria.inc') + '">+</button></div>' +
-              '<button class="btn btn--block" id="addBtn">' + t('pdp.addToBag', { x: money(p.price) }) + '</button>' +
+              '<button class="btn btn--block" id="addBtn"' + (soldOut ? ' disabled' : '') + '>' + (soldOut ? t('badge.soldOut') : t('pdp.addToBag', { x: money(p.price) })) + '</button>' +
             '</div>' +
             '<div class="pdp__acc">' +
               acc(t('pdp.details'), t('pdp.detailsBody')) +

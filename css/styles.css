@@ -226,6 +226,7 @@ h1, h2, h3, h4 { font-family: var(--serif); font-weight: 400; line-height: 1.08;
   padding: 5px 11px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; color: var(--ink);
 }
 .card__badge.is-sale { background: var(--wine); color: var(--cream); }
+.card__badge.is-out { background: var(--muted); color: var(--cream); }
 /* Image swap on hover — only where a real mouse pointer exists (desktop).
    Skipped on touch so a single tap opens the product. */
 @media (hover: hover) and (pointer: fine) {
@@ -372,6 +373,8 @@ h1, h2, h3, h4 { font-family: var(--serif); font-weight: 400; line-height: 1.08;
 .size { min-width: 48px; padding: 11px 14px; border: 1px solid var(--pink-border); border-radius: var(--radius); font-size: 13px; letter-spacing: .06em; transition: all .25s var(--ease); }
 .size:hover { border-color: var(--wine); color: var(--wine); }
 .size.is-active { background: var(--wine); color: var(--cream); border-color: var(--wine); }
+.size--out { color: var(--muted); text-decoration: line-through; opacity: .55; cursor: not-allowed; }
+.size--out:hover { border-color: var(--pink-border); color: var(--muted); }
 .pdp__add { display: grid; grid-template-columns: auto 1fr; gap: 12px; margin: 30px 0; }
 .pdp__acc { border-top: 1px solid var(--line); }
 .acc { border-bottom: 1px solid var(--line); }

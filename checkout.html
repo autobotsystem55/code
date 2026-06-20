@@ -186,7 +186,10 @@
             return DB.createOrder(orderRow);
           }).then(function (r) {
             if (r && r.error) console.warn('[Supabase] order save:', r.error.message);
-            else if (discountCode && DB.redeemDiscount) { try { DB.redeemDiscount(discountCode); } catch (e) {} }
+            else {
+              if (discountCode && DB.redeemDiscount) { try { DB.redeemDiscount(discountCode); } catch (e) {} }
+              if (DB.decrementStock) { try { DB.decrementStock(itemRows.map(function (l) { return { id: l.id, size: l.size, qty: l.qty }; })); } catch (e) {} }
+            }
           }).then(go, go);
         } else { go(); }
       });
