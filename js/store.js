@@ -254,11 +254,14 @@
       var thr = CFG.freeShippingThreshold || 0;
       var pct = thr ? Math.min(100, (sub / thr) * 100) : 100;
       var remain = Math.max(0, thr - sub);
-      shipEl.className = 'ship-bar';
-      shipEl.innerHTML = (remain > 0
-        ? '<p>' + T('cart.shipRemain', { x: money(remain) }) + '</p>'
-        : '<p>' + T('cart.shipUnlocked') + '</p>') +
-        '<div class="ship-track"><i style="width:' + pct + '%"></i></div>';
+      if (remain > 0) {
+        shipEl.className = 'ship-bar';
+        shipEl.innerHTML = '<p>' + T('cart.shipRemain', { x: money(remain) }) + '</p>' +
+          '<div class="ship-track"><i style="width:' + pct + '%"></i></div>';
+      } else {
+        shipEl.className = '';
+        shipEl.innerHTML = '';
+      }
     }
     if (footEl) {
       var checkoutBtn = '<a class="btn btn--block" href="checkout.html">' + T('cart.checkout') + '</a>';
