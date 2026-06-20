@@ -983,7 +983,7 @@
           }).join('');
           $$('#dTplGrid .dtpl').forEach(function(el){el.addEventListener('click',function(){
             var k=el.getAttribute('data-tpl');var t=tplOf(k);
-            if(k==='setdeal'){show('bundles');return;}   // 组合价 = 套装管理（同一功能）
+            if(k==='setdeal'){window.__newBundle=true;show('bundles');return;}   // 组合价 → 直接进新建套装
             if(!t.live){toast('「'+t.title+'」即将推出，敬请期待 ✿');return;}
             if(S.type===k){$('#dGo2').disabled=false;return;}   // 重复点同一类型：保留已填/已恢复的设置
             S.type=k;S.value=(k==='percent'?10:(k==='fixed'?5:0));
@@ -1435,6 +1435,7 @@
 
         S=freshState();
         renderBundles();
+        if(window.__newBundle){window.__newBundle=false;openWizard(null);}
       });
     }
 
