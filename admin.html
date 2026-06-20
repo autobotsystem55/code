@@ -560,6 +560,7 @@
           });
           var del=row.querySelector('[data-del]');if(del)del.addEventListener('click',function(e){e.stopPropagation();delProduct(id);});
         });
+        if(window.__editPid){var pid=window.__editPid;window.__editPid=null;var trow=view.querySelector('.erow[data-id="'+pid+'"]');if(trow){trow.classList.add('open');openProduct(pid,trow.querySelector('.eexp'));((trow)||view).scrollIntoView({behavior:'smooth',block:'start'});}}
       });
     }
     function openProduct(id,host){
@@ -769,7 +770,7 @@
           shown.forEach(function(p){
             var row=document.createElement('div');row.className='prow'+(p._open?' open':'');row.dataset.id=p.id;
             row.innerHTML='<div class="psum"><div><input type="checkbox" class="ck rowck" '+(selected[p.id]?'checked':'')+'></div>'+
-              '<div class="pcell"><img class="ithumb" src="'+p.thumb+'" onerror="this.src=\'images/placeholder.svg\'"><div style="min-width:0"><div class="pname">'+esc(p.zh)+'</div><div class="pen">'+esc(p.en)+'</div><div class="pmeta">货号 '+esc(p.code)+' · '+p.sizes.length+' 个尺码'+(p.track?'':' · 未追踪')+'</div></div></div>'+
+              '<div class="pcell"><img class="ithumb" src="'+p.thumb+'" onerror="this.src=\'images/placeholder.svg\'"><div style="min-width:0"><div class="pname">'+esc(p.zh)+'</div><div class="pen">'+esc(p.en)+'</div><div class="pmeta">货号 '+esc(p.code)+' · '+p.sizes.length+' 个尺码'+(p.track?'':' · 未追踪')+'</div><button class="btn btn--ghost btn--sm editprod" data-pid="'+esc(p.id)+'" style="margin-top:7px">✏️ 编辑商品</button></div></div>'+
               '<div class="col-tot"><span class="totbox">'+total(p)+'</span> <small>件</small></div>'+
               '<div class="col-status">'+badgeFor(prodState(p))+'</div>'+
               '<div class="col-sizes"><div class="sizemini">'+sizeMini(p)+'</div></div>'+
@@ -794,7 +795,8 @@
         function bindRows(){
           QA('.prow').forEach(function(row){
             var p=findP(row.dataset.id),sum=row.querySelector('.psum');
-            sum.addEventListener('click',function(e){if(e.target.closest('.rowck'))return;p._open=!p._open;row.classList.toggle('open',p._open);});
+            sum.addEventListener('click',function(e){if(e.target.closest('.rowck')||e.target.closest('.editprod'))return;p._open=!p._open;row.classList.toggle('open',p._open);});
+            var ep=row.querySelector('.editprod');if(ep)ep.addEventListener('click',function(e){e.stopPropagation();window.__editPid=p.id;show('products');});
             row.querySelector('.rowck').addEventListener('click',function(e){e.stopPropagation();selected[p.id]=this.checked;refreshBulk();});
             [].slice.call(row.querySelectorAll('.srow')).forEach(function(sr){
               var s=p.sizes.filter(function(x){return x.sz===sr.dataset.sz;})[0];var input=sr.querySelector('.qin');
