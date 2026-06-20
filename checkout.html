@@ -104,6 +104,7 @@
           '<aside class="summary">' +
             '<h3>' + t('co.summary') + '</h3>' +
             '<div id="sumLines">' + summaryLines + '</div>' +
+            '<div id="giftLines"></div>' +
             '<p id="promoHint" style="display:none;font-size:12.5px;line-height:1.5;margin:10px 0 0;color:#6A1A32;background:#FBF0DA;border-radius:8px;padding:9px 12px"></p>' +
             '<div style="display:flex;gap:8px;margin:16px 0 2px">' +
               '<input id="discInput" placeholder="' + t('co.discPh') + '" style="flex:1;padding:11px 13px;background:var(--white);border:1px solid var(--pink-border);border-radius:var(--radius);outline:none;text-transform:uppercase">' +
@@ -121,6 +122,7 @@
 
       // ---- discount: flat codes + cart-aware promos (买一送一 / 第N件半价) ----
       var discountLabel = '';
+      var gifts = [], giftNudge = null;
       function renderTotals() {
         var effShip = freeShip ? 0 : shipping;
         total = Math.max(0, subtotal - discount) + effShip;
@@ -137,6 +139,24 @@
         if (pb) pb.textContent = demo ? t('co.place', { x: money(total) }) : t('co.proceed', { x: money(total) });
       }
       function renderSummary(perLine) { var b = document.getElementById('sumLines'); if (b) b.innerHTML = summaryHTML(perLine || {}); }
+      function giftLine(promo, g) {
+        var gp = window.findProduct ? window.findProduct(g.id) : null;
+        var gn = gp ? ((window.LANG === 'zh' && gp.name_zh) ? gp.name_zh : gp.name) : g.id;
+        return { code: promo.code, id: g.id, name: gn, qty: g.qty };
+      }
+      function renderGifts() {
+        var box = document.getElementById('giftLines'); if (!box) return;
+        if (gifts.length) {
+          box.innerHTML = gifts.map(function (g) {
+            return '<div class="summary__line"><div class="li-img" style="display:flex;align-items:center;justify-content:center;font-size:20px;background:#FBF0DA">🎁</div>' +
+              '<div><div class="li-name">' + g.name + ' × ' + g.qty + '</div><div class="li-meta">' + t('co.giftFree') + '</div></div>' +
+              '<div class="li-price" style="color:#2F7D4F">' + t('co.free') + '</div></div>';
+          }).join('');
+        } else if (giftNudge && (giftNudge.need > 0 || giftNudge.amt > 0)) {
+          box.innerHTML = '<p style="font-size:12.5px;line-height:1.5;margin:10px 0 0;color:#6A1A32;background:#FBF0DA;border-radius:8px;padding:9px 12px">🎁 ' +
+            (giftNudge.amt > 0 ? t('co.giftNudgeAmt', { x: money(giftNudge.amt), name: giftNudge.label }) : t('co.giftNudgeQty', { n: giftNudge.need, name: giftNudge.label })) + '</p>';
+        } else { box.innerHTML = ''; }
+      }
       function showHint(nudge) {
         var h = document.getElementById('promoHint'); if (!h) return;
         if (nudge && nudge.need > 0) { h.style.display = ''; h.textContent = t(nudge.more ? 'co.promoMore' : 'co.promoNudge', { n: nudge.need, name: nudge.label }); }
@@ -197,6 +217,12 @@
               }
             }
           } else if (preq === 'qty') { res.need = Math.max(0, pmin - n); }
+        } else if (promo.type === 'gift') {
+          var greq = cfg.req || 'amount', gmin = +cfg.req_min || 0, gsum = 0;
+          for (i = 0; i < n; i++) gsum += units[i].price;
+          var gmet = greq === 'qty' ? (n >= gmin) : (gsum >= gmin);
+          if (gmet && cfg.gift_id) { res.gift = { id: cfg.gift_id, qty: Math.max(1, parseInt(cfg.gift_qty, 10) || 1) }; }
+          else { res.need = (greq === 'qty') ? Math.max(0, gmin - n) : 0; res.needAmt = (greq === 'amount') ? Math.max(0, gmin - gsum) : 0; }
         }
         res.amount = Math.round(res.amount * 100) / 100;
         return res;
@@ -210,10 +236,17 @@
       function applyAuto() {
         if (!(window.DB && DB.autoDiscounts)) return;
         DB.autoDiscounts(subtotal).then(function (r) {
-          var promos = (r && r.data) || []; if (!promos.length) return;
+          var promos = (r && r.data) || []; if (!promos.length) { renderGifts(); return; }
           var best = null, nudge = null;   // pick the single most valuable auto promo (one per order)
+          gifts = []; giftNudge = null;    // gifts are separate from the one discount
           promos.forEach(function (p) {
             var cand = null;
+            if (p.type === 'gift') {
+              var gr = computeCartDiscount(p);
+              if (gr.gift) { gifts.push(giftLine(p, gr.gift)); }
+              else if (!giftNudge && (gr.need > 0 || gr.needAmt > 0)) giftNudge = { need: gr.need, amt: gr.needAmt, label: p.name || p.code };
+              return;
+            }
             if (p.type === 'bxgy' || p.type === 'nth' || p.type === 'percent') {
               var res = computeCartDiscount(p);
               cand = { kind: 'cart', benefit: res.amount, res: res, promo: p };
@@ -229,6 +262,7 @@
             if (best.kind === 'cart') { applyPromo(best.promo, best.res); }
             else { renderSummary({}); freeShip = (best.kind === 'ship'); discount = (best.kind === 'ship') ? 0 : best.amount; discountCode = best.promo.code; discountLabel = best.promo.name || best.promo.code; renderTotals(); showHint(null); }
           } else if (nudge) showHint(nudge);
+          renderGifts();
         }, function () {});
       }
       document.getElementById('discBtn').addEventListener('click', function () {
@@ -240,6 +274,14 @@
         DB.validateDiscount(code, subtotal).then(function (r) {
           btn.disabled = false; var d = r && r.data;
           if (!d) { msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); return; }
+          if (d.type === 'gift') {
+            var gres = computeCartDiscount(d);
+            if (gres.gift) {
+              if (!gifts.some(function (x) { return x.code === d.code; })) gifts.push(giftLine(d, gres.gift));
+              renderGifts(); msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.giftGot');
+            } else { msg.style.color = 'var(--wine)'; msg.textContent = t('co.discNoQual'); }
+            return;
+          }
           if (d.type === 'bxgy' || d.type === 'nth' || d.type === 'percent') {
             var res = computeCartDiscount(d);
             if (res.amount > 0) { applyPromo(d, res); msg.style.color = 'var(--green, #2F7D4F)'; msg.textContent = t('co.discOk', { x: money(res.amount) }); }
@@ -276,6 +318,7 @@
             ? { b: 1, id: l.id, name: l.name, qty: l.qty, price: l.price, items: l.items }
             : { id: l.id, name: l.name, qty: l.qty, price: l.price, size: l.size, color: l.color };
         });
+        gifts.forEach(function (g) { itemRows.push({ id: g.id, name: g.name, qty: g.qty, price: 0, gift: 1 }); });
         var customer = {
           first: f.first.value, last: f.last.value, address: f.address.value, apt: f.apt.value,
           city: f.city.value, zip: f.zip.value, country: f.country.value, phone: f.phone.value
@@ -306,6 +349,7 @@
             if (r && r.error) console.warn('[Supabase] order save:', r.error.message);
             else {
               if (discountCode && DB.redeemDiscount) { try { DB.redeemDiscount(discountCode); } catch (e) {} }
+              gifts.forEach(function (g) { if (DB.redeemDiscount) { try { DB.redeemDiscount(g.code); } catch (e) {} } });
               if (DB.decrementStock) { try {
                 var stockRows = [];
                 lines.forEach(function (l) {

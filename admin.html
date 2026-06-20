@@ -806,12 +806,12 @@
           {key:'bxgy',live:true,big:'1+1',unit:'',title:'买一送一',sub:'指定商品买一送一',en:'buy 1 free 1'},
           {key:'nth',live:true,big:'50%',unit:'OFF',title:'第 N 件优惠',sub:'每第 X 件打折',en:'every Xth item'},
           {key:'setdeal',live:false,big:sym+' 99',unit:'',title:'组合价',sub:'任选 N 件特价',en:'buy N at price'},
-          {key:'gift',live:false,big:'赠品',unit:'',title:'满额送赠品',sub:'满额送礼',en:'free gift'},
+          {key:'gift',live:true,big:'赠品',unit:'',title:'满额送赠品',sub:'满额送礼',en:'free gift'},
           {key:'addon',live:false,big:'加购',unit:'',title:'加购价',sub:'满件可加购',en:'add-on price'},
           {key:'credit',live:false,big:'购物金',unit:'',title:'消费送购物金',sub:'每消费回馈',en:'store credit'}
         ];
         function tplOf(k){return TEMPLATES.filter(function(t){return t.key===k;})[0];}
-        function typeLabel(t){return ({percent:'满额打折',fixed:'满额立减',free_shipping:'免运费',bxgy:'买一送一',nth:'第N件优惠'})[t]||t;}
+        function typeLabel(t){return ({percent:'满额打折',fixed:'满额立减',free_shipping:'免运费',bxgy:'买一送一',nth:'第N件优惠',gift:'满额送赠品'})[t]||t;}
 
         var S,editingCode=null;
         function freshState(){return {type:null,value:10,min:0,name:'',code:'',limit:'',start:'',exp:'',live:true,scopeType:'all',scopeIds:[],config:{},autoApply:false};}
@@ -867,6 +867,7 @@
               :c.type==='free_shipping'?'免运费'
               :c.type==='bxgy'?('买'+(cf.buy||1)+'送'+(cf.get||1))
               :c.type==='nth'?('第'+(cf.nth||2)+'件'+((+cf.off_pct===50)?'半价':((cf.off_pct||50)+'% off')))
+              :c.type==='gift'?('送 '+((CATALOG.filter(function(x){return x.id===cf.gift_id;})[0]||{}).zh||'赠品')+' ×'+(cf.gift_qty||1))
               :money(c.value);
             var per=(c.starts_at?fdate(c.starts_at):'即时')+' → '+(c.expires_at?fdate(c.expires_at):'长期');
             var nm=c.name?('<div class="b-name">'+esc(c.name)+'</div><div class="b-en">'+esc(c.code)+'</div>'):('<div class="b-name">'+esc(c.code)+'</div>');
@@ -894,10 +895,11 @@
             if(!t.live){toast('「'+t.title+'」即将推出，敬请期待 ✿');return;}
             if(S.type===k){$('#dGo2').disabled=false;return;}   // 重复点同一类型：保留已填/已恢复的设置
             S.type=k;S.value=(k==='percent'?10:(k==='fixed'?5:0));
-            S.scopeType='all';S.scopeIds=[];S.autoApply=(k==='bxgy'||k==='nth');  // 切换类型 → 范围重置 + 默认领取方式
+            S.scopeType='all';S.scopeIds=[];S.autoApply=(k==='bxgy'||k==='nth'||k==='gift');  // 切换类型 → 范围重置 + 默认领取方式
             if(k==='bxgy')S.config={buy:1,get:1,free_pct:100,max_per_order:''};
             else if(k==='nth')S.config={nth:2,off_pct:50,repeating:true,max_per_order:''};
             else if(k==='percent')S.config={req:'amount',req_min:0,applies_to:'order',method:'percent'};
+            else if(k==='gift')S.config={req:'amount',req_min:0,gift_id:(CATALOG[0]?CATALOG[0].id:''),gift_qty:1};
             else S.config={};
             $$('#dTplGrid .dtpl').forEach(function(x){x.classList.toggle('sel',x===el);});
             $('#dGo2').disabled=false;
@@ -905,7 +907,7 @@
         }
 
         function scopeText(){
-          if(S.type!=='bxgy'&&S.type!=='nth'&&S.type!=='percent')return '全部商品';
+          if(S.type!=='bxgy'&&S.type!=='nth'&&S.type!=='percent'&&S.type!=='gift')return '全部商品';
           if(S.scopeType==='all')return '全部商品';
           if(S.scopeType==='category')return '系列：'+((S.scopeIds||[]).join('、')||'未选');
           return '指定商品 '+((S.scopeIds||[]).length)+' 款';
@@ -915,6 +917,7 @@
           if(S.type==='percent'){var cond=(c.req==='qty')?('满 '+(c.req_min||0)+' 件'):((+c.req_min>0)?('满 '+sym+' '+c.req_min):'全场');var mt=(c.method==='fixed')?('减 '+sym+' '+(S.value||0)):((c.method==='unit_price')?('每件 '+sym+' '+(S.value||0)):((S.value||0)+'% 折扣'));var tgt=(c.applies_to||'order')==='order'?'整单':'指定商品';return cond+'，'+tgt+' '+mt+' · '+scopeText();}
           if(S.type==='fixed')return (S.min>0?('满 '+sym+' '+S.min+'，'):'')+'立减 '+sym+' '+(S.value||0);
           if(S.type==='free_shipping')return (S.min>0?('满 '+sym+' '+S.min+'，'):'')+'免运费';
+          if(S.type==='gift'){var gcond=(c.req==='qty')?('满 '+(c.req_min||0)+' 件'):((+c.req_min>0)?('满 '+sym+' '+c.req_min):'任意订单');var gp=CATALOG.filter(function(x){return x.id===c.gift_id;})[0];return gcond+'，送 '+(gp?gp.zh:'赠品')+' ×'+(c.gift_qty||1)+' · '+scopeText();}
           if(S.type==='bxgy')return '买 '+(c.buy||1)+' 送 '+(c.get||1)+'（'+((c.free_pct==null||+c.free_pct>=100)?'赠品免费':('赠品 '+c.free_pct+'% off'))+'）· '+scopeText();
           if(S.type==='nth')return '每 '+(c.nth||2)+' 件，最便宜 1 件'+((+c.off_pct===50)?'半价':('享 '+(c.off_pct||50)+'% off'))+((c.repeating!==false)?'（循环）':'')+' · '+scopeText();
           return '';
@@ -929,6 +932,7 @@
         function renderRule(){
           var t=S.type,c=S.config||{},box=$('#dRuleFields');
           if(t==='percent'){ renderPctRule(); renderScope(); updatePrev(); return; }
+          if(t==='gift'){ renderGiftRule(); renderScope(); updatePrev(); return; }
           if(t==='fixed'){
             box.innerHTML='<div class="row2"><div class="field"><label>立减金额</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dVal" type="number" min="1" step="0.01" value="'+(S.value||5)+'"></div><div class="hint">直接从小计中扣除。</div></div>'+
               '<div class="field"><label>满额门槛（0 = 不限）</label><div class="priceinput"><span class="pre">'+sym+'</span><input id="dMin" type="number" min="0" step="0.01" value="'+(S.min||0)+'"></div></div></div>';
@@ -961,7 +965,7 @@
         }
         function renderScope(){
           var box=$('#dScopeBox');if(!box)return;
-          if(S.type!=='bxgy'&&S.type!=='nth'&&S.type!=='percent'){box.innerHTML='<div class="field" style="margin-top:6px"><label>适用范围</label><div class="dscope">全部商品（按整单计算）</div></div>';return;}
+          if(S.type!=='bxgy'&&S.type!=='nth'&&S.type!=='percent'&&S.type!=='gift'){box.innerHTML='<div class="field" style="margin-top:6px"><label>适用范围</label><div class="dscope">全部商品（按整单计算）</div></div>';return;}
           var seg='<div class="field" style="margin-top:8px"><label>适用范围（参加活动的商品）</label>'+
             '<div class="seg3" id="dScopeSeg">'+
               '<button type="button" class="sopt'+(S.scopeType==='all'?' on':'')+'" data-sc="all">全部商品</button>'+
@@ -998,6 +1002,21 @@
           var rmEl=$('#dReqMin');if(rmEl)rmEl.addEventListener('input',function(){S.config.req_min=(this.value===''?'':(+this.value||0));updatePrev();});
           var vv=$('#dVal');if(vv)vv.addEventListener('input',function(){S.value=+this.value||0;updatePrev();});
         }
+        function renderGiftRule(){
+          var c=S.config||{},box=$('#dRuleFields');
+          var req=c.req||'amount';
+          box.innerHTML=
+            '<div class="field"><label>购买条件</label>'+
+              '<div class="seg3" id="dReqSeg"><button type="button" class="sopt'+(req==='qty'?' on':'')+'" data-req="qty">满件数</button><button type="button" class="sopt'+(req==='amount'?' on':'')+'" data-req="amount">满金额</button></div>'+
+              '<div class="field" style="margin-top:8px"><label>'+(req==='qty'?'最少购买件数':('最低消费门槛 '+sym))+'</label><div class="priceinput">'+(req==='amount'?('<span class="pre">'+sym+'</span>'):'')+'<input id="dReqMin" type="number" min="0" value="'+(c.req_min!=null?c.req_min:(req==='qty'?1:0))+'">'+(req==='qty'?'<span class="suf">件</span>':'')+'</div><div class="hint">'+(req==='qty'?'购物车里（指定范围内）满这么多件就送赠品。':'（指定范围内）消费满这个金额就送赠品；0 = 任意订单。')+'</div></div></div>'+
+            '<div class="row2"><div class="field"><label>赠送商品</label><select id="dGiftSel" style="width:100%;padding:10px 12px;border:1px solid var(--line,#ECD9D6);border-radius:6px;background:#fff;font:inherit;color:var(--ink,#1C1C1C)">'+(CATALOG.length?CATALOG.map(function(p){return '<option value="'+esc(p.id)+'"'+(c.gift_id===p.id?' selected':'')+'>'+esc(p.zh)+'</option>';}).join(''):'<option value="">（未读取到商品）</option>')+'</select></div>'+
+              '<div class="field"><label>赠送数量</label><div class="priceinput"><input id="dGiftQty" type="number" min="1" value="'+(c.gift_qty||1)+'"><span class="suf">件</span></div></div></div>';
+          $('#dS2title').textContent='第二步 · 设置「满额送赠品」';
+          $$('#dReqSeg .sopt').forEach(function(b){b.addEventListener('click',function(){S.config.req=b.getAttribute('data-req');renderGiftRule();updatePrev();});});
+          var rmEl=$('#dReqMin');if(rmEl)rmEl.addEventListener('input',function(){S.config.req_min=(this.value===''?'':(+this.value||0));updatePrev();});
+          var gs=$('#dGiftSel');if(gs){if(!c.gift_id&&CATALOG.length){S.config.gift_id=CATALOG[0].id;}gs.addEventListener('change',function(){S.config.gift_id=this.value;updatePrev();});}
+          var gq=$('#dGiftQty');if(gq)gq.addEventListener('input',function(){S.config.gift_qty=Math.max(1,parseInt(this.value,10)||1);updatePrev();});
+        }
 
         function renderReview(){
           var codeU=(S.code||'').toUpperCase();
@@ -1023,7 +1042,7 @@
           $$('#dSteps .step').forEach(function(s){var k=+s.getAttribute('data-step');s.classList.toggle('active',k===n);s.classList.toggle('done',k<n);});
           $$('#dSteps .step-line').forEach(function(l){l.classList.toggle('fill',+l.getAttribute('data-line')<n);});
           if(n===2){renderRule();}
-          if(n===3){$('#dName').value=S.name;$('#dCode').value=S.code;$('#dLimit').value=S.limit;$('#dStart').value=S.start;$('#dExp').value=S.exp;$('#dMinEcho').textContent=(S.type==='percent')?((S.config.req==='qty')?('满 '+(S.config.req_min||0)+' 件'):((+S.config.req_min>0)?('满 '+sym+' '+S.config.req_min):'不限')):(S.min>0?(sym+' '+S.min):'不限');$('#dLiveSw').classList.toggle('on',S.live);applyModeUI();}
+          if(n===3){$('#dName').value=S.name;$('#dCode').value=S.code;$('#dLimit').value=S.limit;$('#dStart').value=S.start;$('#dExp').value=S.exp;$('#dMinEcho').textContent=(S.type==='percent'||S.type==='gift')?((S.config.req==='qty')?('满 '+(S.config.req_min||0)+' 件'):((+S.config.req_min>0)?('满 '+sym+' '+S.config.req_min):'不限')):(S.min>0?(sym+' '+S.min):'不限');$('#dLiveSw').classList.toggle('on',S.live);applyModeUI();}
           if(n===4){pullStep3();renderReview();}
           window.scrollTo(0,0);
         }
@@ -1044,11 +1063,13 @@
           pullStep3();
           if(!S.type){toast('请先选择优惠类型');goStep(1);return;}
           var cart=(S.type==='bxgy'||S.type==='nth');
-          var cond=(S.type==='percent'); var hasCfg=cart||cond;
+          var cond=(S.type==='percent'); var isGift=(S.type==='gift'); var hasCfg=cart||cond||isGift;
           if((S.type==='percent'||S.type==='fixed')&&!(S.value>0)){toast('请填写有效的折扣值');goStep(2);return;}
           if(S.type==='bxgy'&&(!((+S.config.buy)>=1)||!((+S.config.get)>=1))){toast('买 / 送数量需 ≥ 1');goStep(2);return;}
           if(S.type==='nth'&&!((+S.config.nth)>=2)){toast('「每几件优惠」需 ≥ 2');goStep(2);return;}
           if(cond&&(S.config.req||'amount')==='qty'&&!((+S.config.req_min)>=1)){toast('「最少购买件数」需 ≥ 1');goStep(2);return;}
+          if(isGift&&!S.config.gift_id){toast('请选择赠品');goStep(2);return;}
+          if(isGift&&(S.config.req||'amount')==='qty'&&!((+S.config.req_min)>=1)){toast('「最少购买件数」需 ≥ 1');goStep(2);return;}
           if(hasCfg&&S.scopeType!=='all'&&!((S.scopeIds||[]).length)){toast('请选择参加活动的系列或商品');goStep(2);return;}
           if(!S.name){toast('请填写优惠名称');goStep(3);return;}
           if(S.autoApply&&!S.code)S.code='AUTO'+String(Date.now()).slice(-6);
@@ -1060,8 +1081,9 @@
               :{nth:Math.max(2,parseInt(cc.nth,10)||2),off_pct:Math.min(100,Math.max(1,parseInt(cc.off_pct,10)||50)),repeating:cc.repeating!==false,max_per_order:cap(cc.max_per_order)};
           }
           if(cond){var pc=S.config||{};S.config={req:(pc.req||'amount'),req_min:(+pc.req_min||0),applies_to:(pc.applies_to||'order'),method:(pc.method||'percent')};if(S.config.method==='unit_price')S.config.applies_to='product';}
-          var pmin=cond?((S.config.req==='amount')?(+S.config.req_min||0):0):(+S.min||0);
-          var row={code:S.code.toUpperCase(),name:S.name,type:S.type,value:((S.type==='free_shipping'||cart)?0:(+S.value||0)),
+          if(isGift){var gg=S.config||{};S.config={req:(gg.req||'amount'),req_min:(+gg.req_min||0),gift_id:gg.gift_id||'',gift_qty:Math.max(1,parseInt(gg.gift_qty,10)||1)};}
+          var pmin=(cond||isGift)?((S.config.req==='amount')?(+S.config.req_min||0):0):(+S.min||0);
+          var row={code:S.code.toUpperCase(),name:S.name,type:S.type,value:((S.type==='free_shipping'||cart||isGift)?0:(+S.value||0)),
             min_subtotal:pmin,usage_limit:S.limit?parseInt(S.limit,10):null,
             starts_at:S.start?new Date(S.start+'T00:00:00').toISOString():null,
             expires_at:S.exp?new Date(S.exp+'T23:59:59').toISOString():null,active:!!live,

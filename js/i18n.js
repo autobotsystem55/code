@@ -152,6 +152,7 @@
       'co.discOk': '−{x} applied', 'co.discBad': 'Invalid or expired code', 'co.discNa': 'Discounts unavailable right now', 'co.discShip': 'Free shipping applied',
       'co.promoNudge': 'Add {n} more eligible item(s) to unlock {name}', 'co.discNoQual': 'Your cart does not meet this offer yet',
       'co.promoMore': 'Add {n} more for another {name}', 'co.discShipNone': 'Shipping is already free',
+      'co.giftFree': 'Free gift · ships with order', 'co.giftGot': '🎁 Free gift added', 'co.giftNudgeQty': 'Add {n} more to get a free {name}', 'co.giftNudgeAmt': 'Spend {x} more to get a free {name}',
       'co.empty': 'Your bag is empty.', 'co.continue': 'Continue shopping',
       // success
       'ok.confirmed': 'Order confirmed', 'ok.thanks': 'Thank you.',
@@ -288,6 +289,7 @@
       'co.discOk': '已减 {x}', 'co.discBad': '优惠码无效或已过期', 'co.discNa': '暂不可用优惠码', 'co.discShip': '已享免运费',
       'co.promoNudge': '再加 {n} 件指定商品即可享「{name}」', 'co.discNoQual': '购物车未满足该优惠条件',
       'co.promoMore': '再加 {n} 件可再享一次「{name}」', 'co.discShipNone': '运费已是免费',
+      'co.giftFree': '免费赠品 · 随单附送', 'co.giftGot': '🎁 已获赠品', 'co.giftNudgeQty': '再加 {n} 件即可获赠「{name}」', 'co.giftNudgeAmt': '再消费 {x} 即可获赠「{name}」',
       'co.empty': '购物袋是空的。', 'co.continue': '继续选购',
       'ok.confirmed': '订单已确认', 'ok.thanks': '感谢你的购买。',
       'ok.line': '订单已提交——确认邮件正发往 <b>{x}</b>。',
