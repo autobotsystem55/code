@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>购物袋 · 结账预览 (Demo B) · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFFAF1; --cream2:#FAF6F3; --blush:#F2E4D9; --pink:#E9C9CC;
+    --pink-soft:#F6E4E6; --pink-border:#DAB0B7; --wine:#82213E; --wine-deep:#6A1A32;
+    --ink:#1C1C1C; --ink-soft:#3E3E3E; --muted:#6F635C; --line:#ECD9D6;
+    --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6B12; --amber-bg:#FBF0DA; --white:#fff;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"DM Sans",-apple-system,sans-serif;
+    background:
+      radial-gradient(circle at 20% 15%, #F7E9E2 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, #F1DFD9 0%, transparent 50%),
+      var(--cream2);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{font-family:"DM Serif Display",Georgia,serif; font-weight:400;}
+
+  /* backdrop store hint */
+  .store-hint{
+    position:fixed; inset:0; display:flex; flex-direction:column;
+    align-items:flex-start; justify-content:flex-start; padding:40px 48px;
+    pointer-events:none;
+  }
+  .store-hint .logo{font-family:"DM Serif Display",Georgia,serif; font-size:26px; letter-spacing:.5px; color:var(--wine);}
+  .store-hint .tag{font-size:12px; color:var(--muted); letter-spacing:3px; text-transform:uppercase; margin-top:4px;}
+
+  /* overlay */
+  .overlay{
+    position:fixed; inset:0; background:rgba(40,22,28,.42);
+    backdrop-filter:blur(2px); display:flex; justify-content:flex-end; z-index:50;
+  }
+
+  /* drawer */
+  .drawer{
+    width:420px; max-width:100%; height:100%; background:var(--cream);
+    display:flex; flex-direction:column; box-shadow:-18px 0 50px rgba(60,20,30,.22);
+    animation:slideIn .42s cubic-bezier(.22,.61,.36,1);
+  }
+  @keyframes slideIn{from{transform:translateX(40px); opacity:.4;} to{transform:translateX(0); opacity:1;}}
+
+  /* header */
+  .dhead{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 22px 16px; border-bottom:1px solid var(--line);
+  }
+  .dhead .title{display:flex; align-items:baseline; gap:10px;}
+  .dhead h2{font-size:24px; color:var(--ink);}
+  .dhead .count{font-size:12.5px; color:var(--muted); letter-spacing:.5px;}
+  .close{
+    border:none; background:transparent; cursor:pointer; font-size:13px;
+    color:var(--ink-soft); display:flex; align-items:center; gap:5px; padding:6px;
+    border-radius:4px; transition:color .15s;
+  }
+  .close:hover{color:var(--wine);}
+
+  /* free shipping bar */
+  .ship-bar{padding:14px 22px 16px; background:var(--green-bg); border-bottom:1px solid #d3e7da;}
+  .ship-bar .row{display:flex; align-items:center; gap:7px; font-size:13px; font-weight:600; color:var(--green);}
+  .ship-bar .tick{
+    width:17px; height:17px; border-radius:50%; background:var(--green); color:#fff;
+    display:inline-flex; align-items:center; justify-content:center; font-size:10px; flex:none;
+  }
+  .track{height:6px; border-radius:99px; background:#cfe5d6; margin-top:9px; overflow:hidden;}
+  .track > i{display:block; height:100%; background:linear-gradient(90deg,var(--green),#3f9c63); border-radius:99px;}
+
+  /* items */
+  .items{flex:1; overflow-y:auto; padding:6px 22px;}
+  .item{display:flex; gap:14px; padding:18px 0; border-bottom:1px solid var(--line); position:relative;}
+  .item:last-child{border-bottom:none;}
+  .thumb{
+    width:78px; height:96px; border-radius:6px; flex:none; position:relative; overflow:hidden;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);
+  }
+  .thumb.camel{background:linear-gradient(150deg,#C9A07A,#B0855E);}
+  .thumb.cream{background:linear-gradient(150deg,#F3EAD8,#E4D6BD);}
+  .thumb .ph{position:absolute; bottom:7px; left:7px; font-size:10px; color:rgba(255,255,255,.85); letter-spacing:1px;}
+  .thumb.cream .ph{color:rgba(90,70,40,.5);}
+  .badge-half{
+    position:absolute; top:6px; right:6px; background:var(--wine); color:var(--cream);
+    font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px; letter-spacing:.5px;
+  }
+  .idetail{flex:1; min-width:0; display:flex; flex-direction:column;}
+  .idetail .name{font-size:14.5px; font-weight:600; color:var(--ink); line-height:1.3;}
+  .idetail .variant{font-size:12px; color:var(--muted); margin-top:3px;}
+  .idetail .price{font-size:14px; font-weight:600; color:var(--ink); margin-top:auto;}
+  .ifoot{display:flex; align-items:center; justify-content:space-between; margin-top:10px;}
+  .stepper{display:inline-flex; align-items:center; border:1px solid var(--pink-border); border-radius:4px; overflow:hidden;}
+  .stepper button{
+    width:28px; height:28px; border:none; background:var(--white); cursor:pointer;
+    font-size:15px; color:var(--wine); line-height:1; transition:background .15s;
+  }
+  .stepper button:hover{background:var(--pink-soft);}
+  .stepper button:disabled{color:#c9b8b2; cursor:not-allowed;}
+  .stepper .qv{min-width:30px; text-align:center; font-size:13px; font-weight:600; background:var(--white);}
+  .remove{
+    border:none; background:transparent; cursor:pointer; font-size:12px; color:var(--muted);
+    text-decoration:underline; text-underline-offset:2px; padding:4px;
+  }
+  .remove:hover{color:var(--wine);}
+
+  .empty{padding:60px 22px; text-align:center; color:var(--muted); font-size:14px; display:none;}
+  .empty .serif{font-size:20px; color:var(--ink); display:block; margin-bottom:8px;}
+
+  /* footer */
+  .foot{
+    border-top:1px solid var(--line); background:var(--cream2);
+    padding:16px 22px 18px; box-shadow:0 -8px 22px rgba(80,30,40,.06);
+  }
+  .summary{font-size:13.5px;}
+  .sline{display:flex; align-items:center; justify-content:space-between; padding:5px 0;}
+  .sline .lbl{color:var(--ink-soft); display:flex; align-items:center; gap:7px;}
+  .sline .amt{color:var(--ink); font-variant-numeric:tabular-nums; font-weight:500;}
+  .sline.deduct .lbl{color:var(--wine);}
+  .sline.deduct .amt{color:var(--wine); font-weight:600;}
+  .sline.free .lbl{color:var(--green);}
+  .sline.free .amt{color:var(--green); font-weight:600; display:flex; align-items:center; gap:4px;}
+  .minitag{
+    font-size:9.5px; font-weight:600; letter-spacing:.5px; padding:1px 5px; border-radius:3px;
+    background:var(--pink-soft); color:var(--wine); border:1px solid var(--pink-border);
+  }
+  .dotted{border:none; border-top:1px dashed var(--pink-border); margin:9px 0;}
+  .total-line{display:flex; align-items:baseline; justify-content:space-between; padding:2px 0 4px;}
+  .total-line .lbl{font-size:14px; color:var(--ink); font-weight:600;}
+  .total-line .amt{font-family:"DM Serif Display",Georgia,serif; font-size:30px; color:var(--wine-deep); font-variant-numeric:tabular-nums; line-height:1;}
+  .saved-pill{
+    display:inline-flex; align-items:center; gap:5px; background:var(--green-bg); color:var(--green);
+    font-size:12px; font-weight:600; padding:4px 10px; border-radius:99px; margin-top:4px;
+  }
+
+  /* nudge */
+  .nudge{
+    margin:13px 0 4px; background:var(--amber-bg); border:1px solid #ecd9af; border-radius:6px;
+    padding:10px 12px;
+  }
+  .nudge .ntop{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--amber); font-weight:600;}
+  .nudge .spark{font-size:13px;}
+  .ntrack{height:5px; border-radius:99px; background:#eedfbe; margin-top:8px; overflow:hidden;}
+  .ntrack > i{display:block; height:100%; width:65%; background:linear-gradient(90deg,#c98f1f,var(--amber)); border-radius:99px;}
+
+  /* checkout button */
+  .checkout{
+    width:100%; border:none; border-radius:0; background:var(--wine); color:var(--cream);
+    font-family:"DM Sans",sans-serif; font-size:15px; font-weight:600; letter-spacing:.5px;
+    padding:15px; margin-top:13px; cursor:pointer; transition:background .18s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .checkout:hover{background:var(--wine-deep);}
+  .checkout .sep{opacity:.55; font-weight:400;}
+  .foot-note{text-align:center; font-size:11px; color:var(--muted); margin-top:9px;}
+
+  .demo-flag{
+    position:absolute; top:14px; left:16px; font-size:10px; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--muted); background:rgba(255,255,255,.7);
+    padding:3px 8px; border-radius:3px; z-index:60;
+  }
+
+  @media(max-width:440px){
+    .drawer{width:100%;}
+    .store-hint{padding:24px;}
+    .total-line .amt{font-size:26px;}
+  }
+</style>
+</head>
+<body>
+  <div class="store-hint">
+    <div class="logo">Code Official</div>
+    <div class="tag">Boutique</div>
+  </div>
+
+  <div class="demo-flag">设计 Demo</div>
+
+  <div class="overlay">
+    <aside class="drawer" role="dialog" aria-label="购物袋">
+      <!-- header -->
+      <div class="dhead">
+        <div class="title">
+          <h2>购物袋</h2>
+          <span class="count" id="count">2 件</span>
+        </div>
+        <button class="close" type="button" onclick="alert('演示用：关闭抽屉')">关闭 ✕</button>
+      </div>
+
+      <!-- free shipping bar -->
+      <div class="ship-bar">
+        <div class="row"><span class="tick">✓</span> 已享免运费</div>
+        <div class="track"><i style="width:100%"></i></div>
+      </div>
+
+      <!-- items -->
+      <div class="items" id="items">
+        <!-- item 1 -->
+        <div class="item" data-id="coat" data-price="248">
+          <div class="thumb camel"><span class="ph">CAMEL</span></div>
+          <div class="idetail">
+            <div class="name">羊毛混纺大衣</div>
+            <div class="variant">Camel · S</div>
+            <div class="price" data-price-line>RM 248</div>
+            <div class="ifoot">
+              <div class="stepper">
+                <button type="button" onclick="step('coat',-1)" aria-label="减少">−</button>
+                <span class="qv" data-qty>1</span>
+                <button type="button" onclick="step('coat',1)" aria-label="增加">+</button>
+              </div>
+              <button class="remove" type="button" onclick="removeItem('coat')">移除</button>
+            </div>
+          </div>
+        </div>
+        <!-- item 2 -->
+        <div class="item" data-id="cardigan" data-price="145">
+          <div class="thumb cream">
+            <span class="ph">CREAM</span>
+            <span class="badge-half">半价</span>
+          </div>
+          <div class="idetail">
+            <div class="name">罗纹针织开衫</div>
+            <div class="variant">Cream · XS</div>
+            <div class="price" data-price-line>RM 145</div>
+            <div class="ifoot">
+              <div class="stepper">
+                <button type="button" onclick="step('cardigan',-1)" aria-label="减少">−</button>
+                <span class="qv" data-qty>1</span>
+                <button type="button" onclick="step('cardigan',1)" aria-label="增加">+</button>
+              </div>
+              <button class="remove" type="button" onclick="removeItem('cardigan')">移除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- empty state -->
+      <div class="empty" id="empty">
+        <span class="serif">购物袋是空的</span>
+        继续选购心仪单品吧
+      </div>
+
+      <!-- footer totals -->
+      <div class="foot" id="foot">
+        <div class="summary">
+          <div class="sline">
+            <span class="lbl">小计</span>
+            <span class="amt" id="sub">RM 393</span>
+          </div>
+          <div class="sline deduct" id="line-half">
+            <span class="lbl">第二件半价（针织） <span class="minitag">半价</span></span>
+            <span class="amt" id="amt-half">−RM 72</span>
+          </div>
+          <div class="sline free">
+            <span class="lbl">免运费</span>
+            <span class="amt"><span style="font-size:11px">✓</span> 免费（RM 0）</span>
+          </div>
+
+          <hr class="dotted">
+
+          <div class="total-line">
+            <span class="lbl">预计应付</span>
+            <span class="amt" id="total">RM 321</span>
+          </div>
+          <div class="saved-pill" id="saved">已省 RM 81</div>
+        </div>
+
+        <!-- nudge -->
+        <div class="nudge" id="nudge">
+          <div class="ntop"><span class="spark">✦</span> 再消费 <strong id="gap">RM 7</strong> 即享全单 9 折</div>
+          <div class="ntrack"><i id="nbar"></i></div>
+        </div>
+
+        <button class="checkout" type="button" onclick="alert('演示用：前往结账')">
+          去结账 <span class="sep">·</span> <span id="ck-total">RM 321</span>
+        </button>
+        <div class="foot-note">运费与税费以结账为准</div>
+      </div>
+    </aside>
+  </div>
+
+<script>
+  // ---- demo state (visual only, internally consistent) ----
+  var items = {
+    coat:     { name:'羊毛混纺大衣', price:248, qty:1 },
+    cardigan: { name:'罗纹针织开衫', price:145, qty:1, half:true } // 第二件半价 -> 这件按半价处理演示
+  };
+  var FREE_SHIP_THRESHOLD = 0; // already free
+  var NINE_TENTHS_THRESHOLD = 400; // 全单9折门槛 (演示)
+
+  function fmt(n){ return 'RM ' + n; }
+
+  function render(){
+    var sub = 0, halfDiscount = 0, anyItems = false;
+    Object.keys(items).forEach(function(id){
+      var it = items[id];
+      var row = document.querySelector('.item[data-id="'+id+'"]');
+      if(!it){ return; }
+      anyItems = true;
+      var lineTotal = it.price * it.qty;
+      sub += lineTotal;
+      // 半价：该商品一件按 50% 折扣（演示）
+      if(it.half){ halfDiscount += Math.round(it.price * 0.5); }
+      if(row){
+        row.querySelector('[data-qty]').textContent = it.qty;
+        row.querySelector('[data-price-line]').textContent = fmt(lineTotal);
+        var minus = row.querySelectorAll('.stepper button')[0];
+        if(minus){ minus.disabled = it.qty <= 1; }
+      }
+    });
+
+    // count
+    var totalQty = 0;
+    Object.keys(items).forEach(function(id){ if(items[id]) totalQty += items[id].qty; });
+
+    if(!anyItems){
+      document.getElementById('empty').style.display = 'block';
+      document.getElementById('foot').style.display = 'none';
+      document.getElementById('count').textContent = '0 件';
+      return;
+    }
+    document.getElementById('empty').style.display = 'none';
+    document.getElementById('foot').style.display = 'block';
+    document.getElementById('count').textContent = totalQty + ' 件';
+
+    var total = sub - halfDiscount;
+    var saved = halfDiscount; // 免运费此处计为 RM 0 节省（已免）
+
+    document.getElementById('sub').textContent = fmt(sub);
+
+    // half-price deduction line (omit if cardigan removed)
+    var halfLine = document.getElementById('line-half');
+    if(halfDiscount > 0 && items.cardigan){
+      halfLine.style.display = 'flex';
+      document.getElementById('amt-half').textContent = '−' + fmt(halfDiscount);
+    } else {
+      halfLine.style.display = 'none';
+    }
+
+    document.getElementById('total').textContent = fmt(total);
+    document.getElementById('ck-total').textContent = fmt(total);
+
+    var savedEl = document.getElementById('saved');
+    if(saved > 0){ savedEl.style.display = 'inline-flex'; savedEl.textContent = '已省 ' + fmt(saved); }
+    else { savedEl.style.display = 'none'; }
+
+    // nudge: 再消费 X 即享全单9折
+    var gap = NINE_TENTHS_THRESHOLD - total;
+    var nudge = document.getElementById('nudge');
+    if(gap > 0){
+      nudge.style.display = 'block';
+      document.getElementById('gap').textContent = fmt(gap);
+      var pct = Math.max(8, Math.min(100, Math.round(total / NINE_TENTHS_THRESHOLD * 100)));
+      document.getElementById('nbar').style.width = pct + '%';
+    } else {
+      nudge.style.display = 'none';
+    }
+  }
+
+  function step(id, delta){
+    var it = items[id];
+    if(!it) return;
+    it.qty = Math.max(1, it.qty + delta);
+    render();
+  }
+
+  function removeItem(id){
+    var row = document.querySelector('.item[data-id="'+id+'"]');
+    if(row){ row.parentNode.removeChild(row); }
+    items[id] = null;
+    render();
+  }
+
+  render();
+</script>
+</body>
+</html>

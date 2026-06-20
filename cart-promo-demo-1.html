@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>购物袋 · 优惠清单 (Demo A) · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFFAF1; --cream2:#FAF6F3; --blush:#F2E4D9; --pink:#E9C9CC; --pink-soft:#F6E4E6;
+  --pink-border:#DAB0B7; --wine:#82213E; --wine-deep:#6A1A32; --ink:#1C1C1C; --ink-soft:#3E3E3E;
+  --muted:#6F635C; --line:#ECD9D6; --green:#2F7D4F; --green-bg:#E3F1E8; --amber:#9A6B12;
+  --amber-bg:#FBF0DA; --white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"DM Sans",system-ui,sans-serif; color:var(--ink); background:var(--cream2);
+  -webkit-font-smoothing:antialiased;
+}
+/* ---- dimmed faux page behind the drawer ---- */
+.page-bg{
+  position:fixed; inset:0; overflow:hidden;
+  background:
+    radial-gradient(110% 80% at 12% 0%, var(--pink-soft) 0%, transparent 55%),
+    radial-gradient(120% 90% at 100% 100%, var(--blush) 0%, transparent 50%),
+    var(--cream);
+}
+.page-bg .faux{
+  padding:40px clamp(20px,5vw,80px);
+}
+.faux .brand{font-family:"DM Serif Display",Georgia,serif;font-size:26px;letter-spacing:.5px;color:var(--wine)}
+.faux .nav{margin-top:6px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.faux .hero{
+  margin-top:48px; height:min(60vh,520px); border:1px solid var(--line);
+  background:linear-gradient(135deg,var(--blush),var(--pink-soft)); display:flex; align-items:flex-end; padding:28px;
+}
+.faux .hero h1{font-family:"DM Serif Display",Georgia,serif;font-size:clamp(34px,6vw,72px);color:var(--wine-deep);line-height:1}
+.overlay{
+  position:fixed; inset:0; background:rgba(28,28,28,.42); backdrop-filter:blur(2px); z-index:10;
+}
+/* ---- drawer ---- */
+.drawer{
+  position:fixed; top:0; right:0; height:100%; width:420px; max-width:100%;
+  background:var(--cream); z-index:20; display:flex; flex-direction:column;
+  box-shadow:-18px 0 60px rgba(106,26,50,.18); border-left:1px solid var(--line);
+}
+.drawer__head{
+  flex:0 0 auto; display:flex; align-items:baseline; justify-content:space-between;
+  padding:24px 22px 16px; border-bottom:1px solid var(--line); background:var(--cream);
+}
+.drawer__head h2{font-family:"DM Serif Display",Georgia,serif;font-weight:400;font-size:30px;color:var(--ink)}
+.drawer__head .count{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-left:8px}
+.close{
+  background:none;border:none;cursor:pointer;font-family:"DM Sans";font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-soft);padding:6px 4px;
+}
+.close:hover{color:var(--wine)}
+/* free shipping bar */
+.ship{
+  flex:0 0 auto; margin:14px 16px 4px; padding:11px 14px; background:var(--pink-soft);
+  border:1px solid var(--pink-border); display:flex; flex-direction:column; gap:8px;
+}
+.ship__row{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--wine-deep)}
+.ship__row .tick{
+  width:18px;height:18px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;
+  font-size:11px;flex:0 0 auto;
+}
+.ship__track{height:5px;background:var(--cream);border:1px solid var(--pink-border);overflow:hidden}
+.ship__fill{height:100%;width:100%;background:linear-gradient(90deg,var(--pink),var(--wine))}
+/* body */
+.drawer__body{flex:1 1 auto;overflow-y:auto;padding:8px 16px 18px}
+.item{display:flex;gap:14px;padding:18px 2px;border-bottom:1px solid var(--line)}
+.item__thumb{width:74px;height:92px;flex:0 0 auto;border:1px solid var(--line)}
+.item__thumb.camel{background:linear-gradient(135deg,#C89A6A,#A97B49)}
+.item__thumb.cream{background:linear-gradient(135deg,#F3EBDD,#E4D7C2)}
+.item__info{flex:1 1 auto;display:flex;flex-direction:column;min-width:0}
+.item__name{font-size:14px;font-weight:600;color:var(--ink);line-height:1.3}
+.item__name small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px;letter-spacing:.02em}
+.item__bottom{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--pink-border)}
+.stepper button{
+  width:30px;height:30px;background:var(--white);border:none;cursor:pointer;font-size:16px;color:var(--wine);
+  display:grid;place-items:center;font-family:"DM Sans"
+}
+.stepper button:hover{background:var(--pink-soft)}
+.stepper .qty{min-width:30px;text-align:center;font-size:13px;font-weight:600}
+.item__price{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap}
+.item__remove{
+  background:none;border:none;cursor:pointer;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding:4px 0;margin-top:4px;align-self:flex-start;text-decoration:underline;text-underline-offset:3px
+}
+.item__remove:hover{color:var(--wine)}
+/* ---- promotions section ---- */
+.promos{margin-top:18px;border:1px solid var(--line);background:var(--cream2);padding:14px 14px 12px}
+.promos__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.promos__head .t{font-family:"DM Serif Display",Georgia,serif;font-size:19px;color:var(--ink)}
+.promos__head .en{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.promo{
+  display:flex;align-items:flex-start;gap:11px;padding:11px 12px;margin-bottom:8px;background:var(--white);
+  border:1px solid var(--line);
+}
+.promo:last-of-type{margin-bottom:0}
+.promo__icon{
+  width:24px;height:24px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;
+}
+.promo__body{flex:1 1 auto;min-width:0}
+.promo__name{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.35}
+.promo__name small{font-weight:400;color:var(--muted);font-size:11px}
+.promo__sub{font-size:12px;margin-top:3px;line-height:1.4}
+.promo__tag{flex:0 0 auto;align-self:center;font-size:12.5px;font-weight:700;white-space:nowrap}
+/* applied (green) */
+.promo.applied{border-color:#BFE0CC;background:linear-gradient(0deg,var(--green-bg),var(--green-bg))}
+.promo.applied .promo__icon{background:var(--green);color:#fff}
+.promo.applied .promo__sub{color:var(--green)}
+.promo.applied .promo__tag{color:var(--green)}
+/* available (dashed / muted, amber nudge) */
+.promo.avail{border-style:dashed;border-color:var(--pink-border);background:var(--white);position:relative;padding-left:14px}
+.promo.avail::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pink-border)}
+.promo.avail .promo__icon{background:var(--blush);color:var(--wine)}
+.promo.avail .promo__sub{color:var(--amber);font-weight:600;background:var(--amber-bg);display:inline-block;padding:2px 8px;margin-top:5px}
+.promo.avail .promo__name{color:var(--ink-soft)}
+.promo.avail .promo__tag{color:var(--wine);font-size:11px;letter-spacing:.06em}
+/* saved summary */
+.promos__saved{
+  display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:11px;
+  border-top:1px dashed var(--pink-border);
+}
+.promos__saved .lab{font-size:12px;letter-spacing:.06em;color:var(--muted)}
+.promos__saved .val{font-family:"DM Sans";font-size:17px;font-weight:700;color:var(--green)}
+/* ---- footer ---- */
+.drawer__foot{flex:0 0 auto;border-top:1px solid var(--line);background:var(--cream);padding:16px 16px 18px}
+.foot__line{display:flex;align-items:baseline;justify-content:space-between;font-size:14px;color:var(--ink-soft)}
+.foot__line.sub{font-weight:600;color:var(--ink);font-size:16px}
+.foot__line .est{font-size:12px;color:var(--green);font-weight:600}
+.foot__note{font-size:11px;color:var(--muted);margin:8px 0 13px;line-height:1.5}
+.checkout{
+  display:block;width:100%;border:none;border-radius:0;background:var(--wine);color:var(--cream);
+  font-family:"DM Sans";font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  padding:15px;cursor:pointer;transition:background .15s;
+}
+.checkout:hover{background:var(--wine-deep)}
+/* demo note */
+.demo-note{
+  position:fixed;left:16px;bottom:14px;z-index:30;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--wine);background:var(--cream);border:1px solid var(--pink-border);padding:6px 11px;
+}
+@media(max-width:480px){
+  .drawer{width:100%;border-left:none}
+  .demo-note{left:8px;bottom:8px}
+}
+</style>
+</head>
+<body>
+
+<!-- faux dimmed storefront behind drawer -->
+<div class="page-bg" aria-hidden="true">
+  <div class="faux">
+    <div class="brand">Code Official</div>
+    <div class="nav">新品 · 针织 · 大衣 · 配饰</div>
+    <div class="hero"><h1>Autumn<br>Atelier</h1></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" aria-hidden="true"></div>
+
+<aside class="drawer" role="dialog" aria-label="购物袋">
+  <!-- header -->
+  <header class="drawer__head">
+    <div><h2>购物袋<span class="count" id="hdCount">2 件</span></h2></div>
+    <button class="close" id="closeBtn" type="button">关闭 ✕</button>
+  </header>
+
+  <!-- free shipping bar (met → 100%) -->
+  <div class="ship">
+    <div class="ship__row"><span class="tick">✓</span> 已享免运费 · 满 RM200 免运</div>
+    <div class="ship__track"><div class="ship__fill"></div></div>
+  </div>
+
+  <!-- body -->
+  <div class="drawer__body">
+    <div id="items"></div>
+
+    <!-- PROMOTIONS -->
+    <section class="promos" id="promos">
+      <div class="promos__head">
+        <span class="t">优惠</span>
+        <span class="en">Promotions</span>
+      </div>
+
+      <!-- applied -->
+      <div class="promo applied">
+        <span class="promo__icon">✓</span>
+        <div class="promo__body">
+          <div class="promo__name">满 RM200 免运费 <small>· 已达标</small></div>
+          <div class="promo__sub">标准运费已豁免</div>
+        </div>
+        <span class="promo__tag">省 RM9</span>
+      </div>
+
+      <div class="promo applied">
+        <span class="promo__icon">✓</span>
+        <div class="promo__body">
+          <div class="promo__name">针织系列 · 第二件半价</div>
+          <div class="promo__sub">开衫已享 50% off</div>
+        </div>
+        <span class="promo__tag">−RM72</span>
+      </div>
+
+      <!-- available / nudge -->
+      <div class="promo avail">
+        <span class="promo__icon">◌</span>
+        <div class="promo__body">
+          <div class="promo__name">罗纹针织开衫 · 买一送一</div>
+          <div class="promo__sub">再加 1 件即享</div>
+        </div>
+        <span class="promo__tag">未达标</span>
+      </div>
+
+      <div class="promo avail">
+        <span class="promo__icon">◌</span>
+        <div class="promo__body">
+          <div class="promo__name">满 RM400 享全单 9 折</div>
+          <div class="promo__sub">再消费 RM7</div>
+        </div>
+        <span class="promo__tag">未达标</span>
+      </div>
+
+      <!-- total savings -->
+      <div class="promos__saved">
+        <span class="lab">本单已省</span>
+        <span class="val">已省 RM81</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- footer -->
+  <footer class="drawer__foot">
+    <div class="foot__line sub"><span>小计</span><span id="subVal">RM 393</span></div>
+    <div class="foot__line"><span>优惠后预计</span><span class="est" id="estVal">RM 312</span></div>
+    <p class="foot__note">运费与税费将在结账时计算。</p>
+    <button class="checkout" type="button">去结账 · Checkout</button>
+  </footer>
+</aside>
+
+<div class="demo-note">设计 Demo</div>
+
+<script>
+(function(){
+  // sample cart lines
+  var lines = [
+    {id:1, name:"羊毛混纺大衣", en:"Camel · S",  price:248, qty:1, swatch:"camel"},
+    {id:2, name:"罗纹针织开衫", en:"Cream · XS", price:145, qty:1, swatch:"cream"}
+  ];
+  var SAVED = 81; // demo: static savings figure shown in promo list
+
+  var itemsEl = document.getElementById('items');
+  var subEl   = document.getElementById('subVal');
+  var estEl   = document.getElementById('estVal');
+  var hdCount = document.getElementById('hdCount');
+
+  function money(n){ return "RM " + n; }
+
+  function render(){
+    itemsEl.innerHTML = "";
+    var sub = 0, count = 0;
+    lines.forEach(function(l){
+      sub += l.price * l.qty;
+      count += l.qty;
+      var row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML =
+        '<div class="item__thumb '+l.swatch+'"></div>'+
+        '<div class="item__info">'+
+          '<div class="item__name">'+l.name+'<small>'+l.en+'</small></div>'+
+          '<button class="item__remove" data-rm="'+l.id+'" type="button">移除</button>'+
+          '<div class="item__bottom">'+
+            '<div class="stepper">'+
+              '<button data-dec="'+l.id+'" type="button">−</button>'+
+              '<span class="qty">'+l.qty+'</span>'+
+              '<button data-inc="'+l.id+'" type="button">+</button>'+
+            '</div>'+
+            '<span class="item__price">'+money(l.price * l.qty)+'</span>'+
+          '</div>'+
+        '</div>';
+      itemsEl.appendChild(row);
+    });
+    subEl.textContent = money(sub);
+    estEl.textContent = money(Math.max(sub - SAVED, 0));
+    hdCount.textContent = count + " 件";
+  }
+
+  // event delegation
+  document.querySelector('.drawer__body').addEventListener('click', function(e){
+    var t = e.target;
+    var inc = t.getAttribute('data-inc');
+    var dec = t.getAttribute('data-dec');
+    var rm  = t.getAttribute('data-rm');
+    if(inc){ var a = find(inc); if(a){ a.qty++; render(); } }
+    else if(dec){ var b = find(dec); if(b){ b.qty = Math.max(1, b.qty-1); render(); } }
+    else if(rm){ lines = lines.filter(function(l){ return String(l.id) !== rm; }); render(); }
+  });
+  function find(id){ for(var i=0;i<lines.length;i++){ if(String(lines[i].id)===String(id)) return lines[i]; } return null; }
+
+  // harmless close (demo)
+  function dismiss(){
+    document.querySelector('.drawer').style.transition = 'transform .25s ease';
+    document.querySelector('.drawer').style.transform = 'translateX(100%)';
+    document.getElementById('overlay').style.opacity = '0';
+  }
+  document.getElementById('closeBtn').addEventListener('click', dismiss);
+  document.getElementById('overlay').addEventListener('click', dismiss);
+
+  render();
+})();
+</script>
+</body>
+</html>
