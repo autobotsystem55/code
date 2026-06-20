@@ -120,14 +120,14 @@ begin
 end; $$;
 grant execute on function public.validate_discount(text, numeric) to anon, authenticated;
 
--- 结账页自动获取「自动套用」的购物车级优惠（买一送一 / 第N件半价）
+-- 结账页自动获取所有「自动套用」的优惠（满额打折 / 立减 / 免运费 / 买一送一 / 第N件半价）
 drop function if exists public.auto_discounts(numeric);
 create or replace function public.auto_discounts(p_subtotal numeric default 0)
 returns table(code text, name text, type text, value numeric, config jsonb, scope_type text, scope_ids text[], min_subtotal numeric)
 language sql security definer set search_path = public as $$
   select code, name, type, value, config, scope_type, scope_ids, min_subtotal
   from public.discount_codes
-  where active = true and auto_apply = true and type in ('bxgy','nth')
+  where active = true and auto_apply = true
     and (starts_at  is null or starts_at  <= now())
     and (expires_at is null or expires_at >  now())
     and (usage_limit is null or used_count < usage_limit)

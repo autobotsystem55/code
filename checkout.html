@@ -195,14 +195,26 @@
         if (!(window.DB && DB.autoDiscounts)) return;
         DB.autoDiscounts(subtotal).then(function (r) {
           var promos = (r && r.data) || []; if (!promos.length) return;
-          var bestP = null, bestR = null, nudge = null;
+          var best = null, nudge = null;   // pick the single most valuable auto promo (one per order)
           promos.forEach(function (p) {
-            var res = computeCartDiscount(p);
-            if (res.amount > 0 && (!bestR || res.amount > bestR.amount)) { bestP = p; bestR = res; }
-            if (res.eligible > 0 && res.need > 0 && (!nudge || res.need < nudge.need)) nudge = { need: res.need, label: p.name || p.code };
+            var cand = null;
+            if (p.type === 'bxgy' || p.type === 'nth') {
+              var res = computeCartDiscount(p);
+              cand = { kind: 'cart', benefit: res.amount, res: res, promo: p };
+              if (res.eligible > 0 && res.need > 0 && (!nudge || res.need < nudge.need)) nudge = { need: res.need, label: p.name || p.code };
+            } else if (p.type === 'percent') {
+              var a1 = Math.round(subtotal * (+p.value || 0) / 100 * 100) / 100; cand = { kind: 'flat', benefit: a1, amount: a1, promo: p };
+            } else if (p.type === 'fixed') {
+              var a2 = Math.max(0, Math.min(subtotal, +p.value || 0)); cand = { kind: 'flat', benefit: a2, amount: a2, promo: p };
+            } else if (p.type === 'free_shipping') {
+              cand = { kind: 'ship', benefit: (shipping > 0 ? shipping : 0), promo: p };
+            }
+            if (cand && cand.benefit > 0 && (!best || cand.benefit > best.benefit)) best = cand;
           });
-          if (bestR) applyPromo(bestP, bestR);
-          else if (nudge) showHint(nudge);
+          if (best) {
+            if (best.kind === 'cart') { applyPromo(best.promo, best.res); }
+            else { renderSummary({}); freeShip = (best.kind === 'ship'); discount = (best.kind === 'ship') ? 0 : best.amount; discountCode = best.promo.code; discountLabel = best.promo.name || best.promo.code; renderTotals(); showHint(null); }
+          } else if (nudge) showHint(nudge);
         }, function () {});
       }
       document.getElementById('discBtn').addEventListener('click', function () {

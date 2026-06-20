@@ -814,7 +814,7 @@
         function typeLabel(t){return ({percent:'满额打折',fixed:'满额立减',free_shipping:'免运费',bxgy:'买一送一',nth:'第N件优惠'})[t]||t;}
 
         var S,editingCode=null;
-        function freshState(){return {type:null,value:10,min:0,name:'',code:'',limit:'',start:'',exp:'',live:true,scopeType:'all',scopeIds:[],config:{}};}
+        function freshState(){return {type:null,value:10,min:0,name:'',code:'',limit:'',start:'',exp:'',live:true,scopeType:'all',scopeIds:[],config:{},autoApply:false};}
 
         var now=Date.now();
         var activeN=rows.filter(function(c){return c.active&&(!c.expires_at||new Date(c.expires_at).getTime()>now);}).length;
@@ -844,9 +844,10 @@
               '<div id="dScopeBox"></div>'+
               '<div class="dprev" id="dPrev2">—</div></div>'+
               '<div class="wfoot"><button type="button" class="btn btn--quiet btn--lg" data-dback="1">← 上一步</button><div class="right"><button type="button" class="btn btn--lg" data-dgo="3">下一步 · 优惠码 →</button></div></div></div>'+
-            '<div class="stepwrap" data-pane="3"><div class="wcard"><h2>第三步 · 优惠码 &amp; 排期</h2><p class="lede">设置优惠名称、顾客结账输入的优惠码，以及使用次数和有效期。</p>'+
+            '<div class="stepwrap" data-pane="3"><div class="wcard"><h2>第三步 · 领取方式 &amp; 排期</h2><p class="lede">选择顾客如何享受优惠（自动套用或输码），并设置名称、使用次数和有效期。</p>'+
+              '<div class="field"><label>领取方式</label><div class="seg3" id="dModeSeg"><button type="button" class="sopt" data-mode="auto">自动套用（无需码）</button><button type="button" class="sopt" data-mode="code">优惠码</button></div><div class="hint" id="dModeHint" style="margin-top:6px"></div></div>'+
               '<div class="row2"><div class="field"><label>优惠名称 *</label><input id="dName" type="text" placeholder="例：新季会员 9 折"></div>'+
-                '<div class="field"><label>优惠码 *（顾客结账输入）</label><div style="display:flex;gap:8px"><input id="dCode" type="text" style="flex:1;text-transform:uppercase" placeholder="WELCOME10"><button type="button" class="btn btn--quiet btn--sm" id="dGen">生成</button></div></div></div>'+
+                '<div class="field"><label id="dCodeLabel">优惠码 *（顾客结账输入）</label><div style="display:flex;gap:8px"><input id="dCode" type="text" style="flex:1;text-transform:uppercase" placeholder="WELCOME10"><button type="button" class="btn btn--quiet btn--sm" id="dGen">生成</button></div></div></div>'+
               '<div class="row2"><div class="field"><label>使用次数上限（留空 = 不限）</label><input id="dLimit" type="number" min="0" placeholder="不限"></div>'+
                 '<div class="field"><label>满额门槛</label><div class="dscope" id="dMinEcho">—</div></div></div>'+
               '<div class="row2"><div class="field"><label>开始日期（留空 = 立即）</label><input id="dStart" type="date"></div>'+
@@ -893,7 +894,7 @@
             if(!t.live){toast('「'+t.title+'」即将推出，敬请期待 ✿');return;}
             if(S.type===k){$('#dGo2').disabled=false;return;}   // 重复点同一类型：保留已填/已恢复的设置
             S.type=k;S.value=(k==='percent'?10:(k==='fixed'?5:0));
-            S.scopeType='all';S.scopeIds=[];                     // 切换类型 → 适用范围重置
+            S.scopeType='all';S.scopeIds=[];S.autoApply=(k==='bxgy'||k==='nth');  // 切换类型 → 范围重置 + 默认领取方式
             if(k==='bxgy')S.config={buy:1,get:1,free_pct:100,max_per_order:''};
             else if(k==='nth')S.config={nth:2,off_pct:50,repeating:true,max_per_order:''};
             else S.config={};
@@ -918,6 +919,12 @@
           return '';
         }
         function updatePrev(){var p=$('#dPrev2');if(p)p.innerHTML='顾客看到：<b>'+esc(ruleText())+'</b>';}
+        function applyModeUI(){
+          $$('#dModeSeg .sopt').forEach(function(b){b.classList.toggle('on',(b.getAttribute('data-mode')==='auto')===!!S.autoApply);});
+          var lbl=$('#dCodeLabel'),h=$('#dModeHint');
+          if(S.autoApply){if(lbl)lbl.textContent='活动代码（可留空，自动生成）';if(h)h.textContent='满足条件时自动打折，顾客无需输入优惠码。';}
+          else{if(lbl)lbl.textContent='优惠码 *（顾客结账输入）';if(h)h.textContent='顾客需在结账页输入此优惠码才享优惠。';}
+        }
         function renderRule(){
           var t=S.type,c=S.config||{},box=$('#dRuleFields');
           if(t==='percent'){
@@ -982,13 +989,14 @@
             '<div class="rev-line"><span class="k">类型</span><span class="v">'+typeLabel(S.type)+'</span></div>'+
             '<div class="rev-line"><span class="k">规则</span><span class="v">'+esc(ruleText())+'</span></div>'+
             '<div class="rev-line"><span class="k">适用范围</span><span class="v">'+esc(scopeText())+'</span></div></div>'+
-            '<div class="rev-block"><h4>优惠码 &amp; 排期 <button data-djump="3">修改</button></h4>'+
+            '<div class="rev-block"><h4>领取方式 &amp; 排期 <button data-djump="3">修改</button></h4>'+
+            '<div class="rev-line"><span class="k">领取方式</span><span class="v">'+(S.autoApply?'自动套用（无需码）':'优惠码')+'</span></div>'+
             '<div class="rev-line"><span class="k">名称</span><span class="v">'+(esc(S.name)||'—')+'</span></div>'+
-            '<div class="rev-line"><span class="k">优惠码</span><span class="v" style="font-weight:700;letter-spacing:.04em">'+(esc(codeU)||'—')+'</span></div>'+
+            '<div class="rev-line"><span class="k">'+(S.autoApply?'活动代码':'优惠码')+'</span><span class="v" style="font-weight:700;letter-spacing:.04em">'+(esc(codeU)||'—')+'</span></div>'+
             '<div class="rev-line"><span class="k">使用上限</span><span class="v">'+(S.limit?(S.limit+' 次'):'不限')+'</span></div>'+
             '<div class="rev-line"><span class="k">有效期</span><span class="v">'+(S.start||'即时')+' → '+(S.exp||'长期')+'</span></div>'+
             '<div class="rev-line"><span class="k">状态</span><span class="v">'+(S.live?'<span class="bpill green">● 立即启用</span>':'<span class="bpill off">○ 草稿</span>')+'</span></div></div>'+
-            '<div class="rev-banner"><div><div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">顾客优惠</div><div class="big">'+esc(ruleText())+'</div></div><div style="font-size:14px;color:var(--green)">凭码 '+(esc(codeU)||'—')+'</div></div>';
+            '<div class="rev-banner"><div><div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">顾客优惠</div><div class="big">'+esc(ruleText())+'</div></div><div style="font-size:14px;color:var(--green)">'+(S.autoApply?'自动套用':('凭码 '+(esc(codeU)||'—')))+'</div></div>';
           $$('#dReview [data-djump]').forEach(function(b){b.addEventListener('click',function(){goStep(+b.getAttribute('data-djump'));});});
         }
 
@@ -999,7 +1007,7 @@
           $$('#dSteps .step').forEach(function(s){var k=+s.getAttribute('data-step');s.classList.toggle('active',k===n);s.classList.toggle('done',k<n);});
           $$('#dSteps .step-line').forEach(function(l){l.classList.toggle('fill',+l.getAttribute('data-line')<n);});
           if(n===2){renderRule();}
-          if(n===3){$('#dName').value=S.name;$('#dCode').value=S.code;$('#dLimit').value=S.limit;$('#dStart').value=S.start;$('#dExp').value=S.exp;$('#dMinEcho').textContent=S.min>0?(sym+' '+S.min):'不限';$('#dLiveSw').classList.toggle('on',S.live);}
+          if(n===3){$('#dName').value=S.name;$('#dCode').value=S.code;$('#dLimit').value=S.limit;$('#dStart').value=S.start;$('#dExp').value=S.exp;$('#dMinEcho').textContent=S.min>0?(sym+' '+S.min):'不限';$('#dLiveSw').classList.toggle('on',S.live);applyModeUI();}
           if(n===4){pullStep3();renderReview();}
           window.scrollTo(0,0);
         }
@@ -1009,7 +1017,7 @@
             S.type=(['percent','fixed','free_shipping','bxgy','nth'].indexOf(c.type)>=0)?c.type:'fixed';
             S.value=c.value!=null?c.value:0;S.min=c.min_subtotal||0;S.name=c.name||'';S.code=c.code||'';
             S.limit=c.usage_limit==null?'':c.usage_limit;S.start=c.starts_at?c.starts_at.slice(0,10):'';S.exp=c.expires_at?c.expires_at.slice(0,10):'';S.live=c.active!==false;
-            S.config=Object.assign({},c.config||{});S.scopeType=c.scope_type||'all';S.scopeIds=(c.scope_ids||[]).slice();
+            S.config=Object.assign({},c.config||{});S.scopeType=c.scope_type||'all';S.scopeIds=(c.scope_ids||[]).slice();S.autoApply=!!c.auto_apply;
           }}
           $('#dLanding').classList.add('off');$('#dWizard').classList.add('on');
           renderTpls();$('#dGo2').disabled=!S.type;goStep(1);window.scrollTo(0,0);
@@ -1025,7 +1033,8 @@
           if(S.type==='nth'&&!((+S.config.nth)>=2)){toast('「每几件优惠」需 ≥ 2');goStep(2);return;}
           if(cart&&S.scopeType!=='all'&&!((S.scopeIds||[]).length)){toast('请选择参加活动的系列或商品');goStep(2);return;}
           if(!S.name){toast('请填写优惠名称');goStep(3);return;}
-          if(!S.code){toast('请填写优惠码');goStep(3);return;}
+          if(S.autoApply&&!S.code)S.code='AUTO'+String(Date.now()).slice(-6);
+          if(!S.autoApply&&!S.code){toast('请填写优惠码');goStep(3);return;}
           var cap=function(v){return (v===''||v==null)?null:Math.max(1,parseInt(v,10)||1);};
           if(cart){var cc=S.config||{};
             S.config=S.type==='bxgy'
@@ -1036,7 +1045,7 @@
             min_subtotal:+S.min||0,usage_limit:S.limit?parseInt(S.limit,10):null,
             starts_at:S.start?new Date(S.start+'T00:00:00').toISOString():null,
             expires_at:S.exp?new Date(S.exp+'T23:59:59').toISOString():null,active:!!live,
-            config:cart?S.config:{},scope_type:cart?S.scopeType:'all',scope_ids:cart?(S.scopeIds||[]):[],auto_apply:cart};
+            config:cart?S.config:{},scope_type:cart?S.scopeType:'all',scope_ids:cart?(S.scopeIds||[]):[],auto_apply:!!S.autoApply};
           $('#dSave').disabled=true;$('#dDraft').disabled=true;
           DB.upsertDiscount(row).then(function(rr){
             if(rr&&rr.error){toast('保存失败：'+rr.error.message);$('#dSave').disabled=false;$('#dDraft').disabled=false;return;}
@@ -1051,6 +1060,7 @@
         $$('[data-dback]').forEach(function(b){b.addEventListener('click',function(){goStep(+b.getAttribute('data-dback'));});});
         $('#dGen').addEventListener('click',function(){var base=({free_shipping:'SHIP',fixed:'SAVE',percent:'OFF',bxgy:'BOGO',nth:'NTH'})[S.type]||'SAVE';var code=base+(100+(+String(Date.now()).slice(-3))%900);$('#dCode').value=code;S.code=code;});
         $('#dLiveSw').addEventListener('click',function(){S.live=!S.live;this.classList.toggle('on',S.live);});
+        $$('#dModeSeg .sopt').forEach(function(b){b.addEventListener('click',function(){S.autoApply=(b.getAttribute('data-mode')==='auto');applyModeUI();});});
         $('#dDraft').addEventListener('click',function(){commit(false);});
         $('#dSave').addEventListener('click',function(){commit(true);});
 
