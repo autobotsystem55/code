@@ -261,10 +261,15 @@
         '<div class="ship-track"><i style="width:' + pct + '%"></i></div>';
     }
     if (footEl) {
+      var checkoutBtn = '<a class="btn btn--block" href="checkout.html">' + T('cart.checkout') + '</a>';
       footEl.innerHTML =
         '<div class="drawer__sub"><span>' + T('cart.subtotal') + '</span><b>' + money(sub) + '</b></div>' +
-        '<small>' + T('cart.taxNote') + '</small>' +
-        '<a class="btn btn--block" href="checkout.html">' + T('cart.checkout') + '</a>';
+        '<small>' + T('cart.taxNote') + '</small>' + checkoutBtn;
+      loadAutoPromos(function (promos) {
+        if (cartSubtotal() !== sub) return;   // cart changed since fetch → skip stale render
+        footEl.innerHTML = receiptHTML(sub, cartReceipt(lines, sub, promos)) +
+          '<small style="display:block;margin-top:8px">' + T('cart.taxNote') + '</small>' + checkoutBtn;
+      });
     }
   }
   window.updateCartUI = updateCartUI;
@@ -305,6 +310,115 @@
       return colors.every(function (cn) { return Number(stockVal(p, sz, cn) || 0) <= 0; });
     });
   };
+
+  /* ---------- cart promo engine (MUST stay in sync with checkout.html computeCartDiscount) ---------- */
+  function _dInScope(promo, line) {
+    if (promo.scope_type === 'all' || !promo.scope_type) return true;
+    var p = window.findProduct ? window.findProduct(line.id) : null; if (!p) return false;
+    if (promo.scope_type === 'category') return (promo.scope_ids || []).indexOf(p.category) >= 0;
+    if (promo.scope_type === 'product') return (promo.scope_ids || []).indexOf(line.id) >= 0;
+    return false;
+  }
+  function _dUnits(promo, lines) {
+    var units = [];
+    (lines || []).forEach(function (l) {
+      if (l.b) return;
+      if (window.findProduct && !window.findProduct(l.id)) return;
+      if (!_dInScope(promo, l)) return;
+      for (var k = 0; k < (l.qty || 0); k++) units.push({ key: l.key, price: l.price || 0 });
+    });
+    units.sort(function (a, b) { return a.price - b.price; });
+    return units;
+  }
+  function _mark(res, key, label) { var m = res.perLine[key] || { n: 0, label: label }; m.n++; m.label = label; res.perLine[key] = m; }
+  function _pctLabel(off) { return off === 50 ? '半价' : ((Math.round((100 - off) / 10 * 10) / 10) + ' 折'); }
+  function computeCartDiscount(promo, lines, subtotal) {
+    var cfg = promo.config || {}, units = _dUnits(promo, lines), n = units.length, i;
+    var res = { amount: 0, perLine: {}, eligible: n, need: 0 };
+    if (promo.type === 'bxgy') {
+      var buy = Math.max(1, parseInt(cfg.buy, 10) || 1), get = Math.max(1, parseInt(cfg.get, 10) || 1);
+      var fpct = (cfg.free_pct != null && +cfg.free_pct > 0) ? +cfg.free_pct : 100;
+      var gsize = buy + get, free = Math.floor(n / gsize) * get;
+      var cap = cfg.max_per_order ? parseInt(cfg.max_per_order, 10) : Infinity; if (free > cap) free = cap;
+      for (i = 0; i < free; i++) { res.amount += units[i].price * fpct / 100; _mark(res, units[i].key, fpct >= 100 ? '免费' : '赠品价'); }
+      res.need = n > 0 ? ((gsize - n % gsize) % gsize) : 0;
+    } else if (promo.type === 'nth') {
+      var nth = Math.max(2, parseInt(cfg.nth, 10) || 2);
+      var opct = (cfg.off_pct != null && +cfg.off_pct > 0) ? +cfg.off_pct : 50;
+      var rep = cfg.repeating !== false;
+      var g = Math.floor(n / nth); if (!rep) g = Math.min(g, 1);
+      var cap2 = cfg.max_per_order ? parseInt(cfg.max_per_order, 10) : Infinity; if (g > cap2) g = cap2;
+      for (i = 0; i < g; i++) { res.amount += units[i].price * opct / 100; _mark(res, units[i].key, _pctLabel(opct)); }
+      res.need = (!rep && n >= nth) ? 0 : (n > 0 ? ((nth - n % nth) % nth) : 0);
+    } else if (promo.type === 'percent') {
+      var preq = cfg.req || 'amount', pmin = +cfg.req_min || 0;
+      var pord = (cfg.applies_to || 'order') === 'order', pm = cfg.method || 'percent', pv = +promo.value || 0;
+      var inSum = 0; for (i = 0; i < n; i++) inSum += units[i].price;
+      var met = preq === 'qty' ? (n >= pmin) : (inSum >= pmin);
+      if (met) {
+        if (pord) {
+          res.amount = (pm === 'fixed') ? Math.min(pv, subtotal) : Math.round(subtotal * pv / 100 * 100) / 100;
+        } else {
+          for (i = 0; i < n; i++) {
+            var up = units[i].price, dd = (pm === 'unit_price') ? Math.max(0, up - pv) : (pm === 'fixed') ? Math.min(up, pv) : (up * pv / 100);
+            if (dd > 0) { res.amount += dd; _mark(res, units[i].key, pm === 'unit_price' ? ('RM ' + pv) : (pm === 'fixed' ? ('减 ' + pv) : (pv + '% off'))); }
+          }
+        }
+      } else if (preq === 'qty') { res.need = Math.max(0, pmin - n); }
+    } else if (promo.type === 'gift') {
+      var greq = cfg.req || 'amount', gmin = +cfg.req_min || 0, gsum = 0;
+      for (i = 0; i < n; i++) gsum += units[i].price;
+      var gmet = greq === 'qty' ? (n >= gmin) : (gsum >= gmin);
+      if (gmet && cfg.gift_id) { res.gift = { id: cfg.gift_id, qty: Math.max(1, parseInt(cfg.gift_qty, 10) || 1) }; }
+      else { res.need = (greq === 'qty') ? Math.max(0, gmin - n) : 0; res.needAmt = (greq === 'amount') ? Math.max(0, gmin - gsum) : 0; }
+    } else if (promo.type === 'addon') {
+      var areq = cfg.req || 'amount', amin = +cfg.req_min || 0, asum = 0;
+      for (i = 0; i < n; i++) asum += units[i].price;
+      var amet = areq === 'qty' ? (n >= amin) : (asum >= amin);
+      if (amet && cfg.addon_id) { res.addon = { id: cfg.addon_id, price: +cfg.addon_price || 0, qty: Math.max(1, parseInt(cfg.addon_qty, 10) || 1) }; }
+      else { res.need = (areq === 'qty') ? Math.max(0, amin - n) : 0; res.needAmt = (areq === 'amount') ? Math.max(0, amin - asum) : 0; }
+    }
+    res.amount = Math.round(res.amount * 100) / 100;
+    return res;
+  }
+  window.computeCartDiscount = computeCartDiscount;
+
+  /* ---------- cart drawer promo receipt (auto-apply preview, matches checkout) ---------- */
+  var _autoPromos = null;
+  function loadAutoPromos(cb) {
+    if (_autoPromos) { cb(_autoPromos); return; }
+    if (!(window.DB && DB.autoDiscounts)) { _autoPromos = []; cb([]); return; }
+    DB.autoDiscounts(999999).then(function (r) { _autoPromos = (r && r.data) || []; cb(_autoPromos); }, function () { _autoPromos = []; cb([]); });
+  }
+  function cartReceipt(lines, sub, promos) {
+    var thr = CFG.freeShippingThreshold || 0, flat = CFG.shippingFlat || 0;
+    var baseShip = sub >= thr ? 0 : flat;
+    var best = null, freeShipPromo = null, nudge = null, giftName = null;
+    (promos || []).filter(function (p) { return sub >= (+p.min_subtotal || 0); }).forEach(function (p) {
+      if (p.type === 'gift') { var gr = computeCartDiscount(p, lines, sub); if (gr.gift && !giftName) { var gp = window.findProduct && window.findProduct(gr.gift.id); giftName = (gp ? ((window.LANG === 'zh' && gp.name_zh) ? gp.name_zh : gp.name) : gr.gift.id) + (gr.gift.qty > 1 ? (' ×' + gr.gift.qty) : ''); } return; }
+      if (p.type === 'addon') return;
+      var cand = null;
+      if (p.type === 'bxgy' || p.type === 'nth' || p.type === 'percent') { var res = computeCartDiscount(p, lines, sub); cand = { amount: res.amount, promo: p }; if (res.eligible > 0 && res.need > 0 && (!nudge || res.need < nudge.need)) nudge = { need: res.need, label: p.name || p.code }; }
+      else if (p.type === 'fixed') { cand = { amount: Math.max(0, Math.min(sub, +p.value || 0)), promo: p }; }
+      else if (p.type === 'free_shipping') { if (baseShip > 0) freeShipPromo = p; return; }
+      if (cand && cand.amount > 0 && (!best || cand.amount > best.amount)) best = cand;
+    });
+    var discount = best ? best.amount : 0;
+    var effShip = freeShipPromo ? 0 : baseShip;
+    var savedShip = (effShip === 0 && flat > 0) ? flat : 0;
+    return { discount: discount, label: best ? (best.promo.name || best.promo.code) : '', effShip: effShip, total: Math.max(0, sub - discount) + effShip, savings: discount + savedShip, nudge: nudge, gift: giftName };
+  }
+  function receiptHTML(sub, rec) {
+    var row = function (a, b, cl) { return '<div style="display:flex;justify-content:space-between;font-size:13px;margin-top:6px"><span>' + a + '</span><span' + (cl ? ' style="' + cl + '"' : '') + '>' + b + '</span></div>'; };
+    var h = '<div style="display:flex;justify-content:space-between"><span>' + T('cart.subtotal') + '</span><b>' + money(sub) + '</b></div>';
+    if (rec.gift) h += row('🎁 ' + rec.gift, T('cart.giftFree'), 'color:var(--green,#2F7D4F)');
+    if (rec.discount > 0) h += row(rec.label, '−' + money(rec.discount), 'color:var(--wine,#82213E)');
+    h += row(T('cart.shipping'), rec.effShip === 0 ? ('<b style="color:var(--green,#2F7D4F)">' + T('cart.free') + '</b>') : money(rec.effShip));
+    h += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#ECD9D6)"><span>' + T('cart.estTotal') + '</span><b style="font-family:var(--serif);font-size:22px">' + money(rec.total) + '</b></div>';
+    if (rec.savings > 0) h += '<div style="font-size:12.5px;color:var(--green,#2F7D4F);margin-top:4px">' + T('cart.saved', { x: money(rec.savings) }) + '</div>';
+    if (rec.nudge && rec.nudge.need > 0) h += '<div style="font-size:12px;margin-top:8px;background:var(--pink-soft,#F6E4E6);color:var(--wine,#82213E);border-radius:6px;padding:8px 10px">' + T('cart.nudge', { n: rec.nudge.need, name: rec.nudge.label }) + '</div>';
+    return h;
+  }
 
   /* ---------- product card ---------- */
   function productCard(p) {
