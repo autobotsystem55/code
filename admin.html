@@ -151,10 +151,12 @@
       .setpage .card{padding:16px 14px}
       /* 商品列表隐藏额外列 */
       .plist .ecat,.plist .eprice,.plist .estatus{display:none}
-      /* 库存展开行 — 隐藏 SKU，3 列紧凑布局 */
-      .srow{grid-template-columns:1fr 106px 46px;gap:8px;padding:8px 10px}
+      /* 库存展开行 — flexbox 布局，stepper 完整显示 */
+      .srow{display:flex;align-items:center;gap:8px;padding:8px 10px}
+      .srow>div:first-child{flex:1;min-width:0}
       .srow .sku{display:none}
-      .sstat{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .srow .stepper{flex-shrink:0}
+      .srow .sstat{flex-shrink:0;font-size:11px;min-width:30px}
       /* 全局防横向滑动（body 级不截断内部内容） */
       html,body{overflow-x:hidden;max-width:100%}
     }
@@ -1228,7 +1230,7 @@
           }).join('');
           $$('#dTplGrid .dtpl').forEach(function(el){el.addEventListener('click',function(){
             var k=el.getAttribute('data-tpl');var t=tplOf(k);
-            if(k==='setdeal'){window.__newBundle=true;show('bundles');return;}   // 组合价 → 直接进新建套装
+            if(k==='setdeal'){window.__newBundle=true;window.__bundleFromDiscount=true;show('bundles');return;}   // 组合价 → 直接进新建套装
             if(!t.live){toast('「'+t.title+'」即将推出，敬请期待 ✿');return;}
             if(S.type===k){$('#dGo2').disabled=false;return;}   // 重复点同一类型：保留已填/已恢复的设置
             S.type=k;S.value=(k==='percent'?10:(k==='fixed'?5:0));
@@ -1569,7 +1571,10 @@
           $('#landing').classList.add('off');$('#wizard').classList.add('on');
           applyState();goStep(1);window.scrollTo(0,0);
         }
-        function closeWizard(){$('#wizard').classList.remove('on');$('#landing').classList.remove('off');window.scrollTo(0,0);}
+        function closeWizard(){
+          if(window.__bundleFromDiscount){window.__bundleFromDiscount=false;show('discounts');return;}
+          $('#wizard').classList.remove('on');$('#landing').classList.remove('off');window.scrollTo(0,0);
+        }
         function applyState(){
           $$('.choice').forEach(function(c){c.classList.toggle('sel',c.dataset.type===S.type);});
           $$('#pmode .opt').forEach(function(o){o.classList.toggle('sel',o.dataset.mode===S.mode);});
