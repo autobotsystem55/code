@@ -470,7 +470,7 @@ h1, h2, h3, h4 { font-family: var(--serif); font-weight: 400; line-height: 1.08;
   :root { --header-h: 62px; }
   .header__inner { grid-template-columns: auto 1fr auto; }
   .nav { display: none; }
-  .burger { display: inline-flex; }
+  .burger { display: inline-flex; margin-right: 12px; }
   .brand { text-align: left; font-size: 22px; }
   .hero { grid-template-columns: 1fr; }
   .hero__media { min-height: 58vh; order: -1; }
