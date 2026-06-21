@@ -98,7 +98,7 @@
             });
             _h+='</optgroup>';
           }else if(zone.type==='sg'){
-            _h+='<option value="sg">'+_esc(_lbl)+'</option>';
+            _h+='<optgroup label="'+_esc(_lbl)+'"><option value="sg">'+_esc(_lbl)+'</option></optgroup>';
           }else{
             _h+='<option value="'+_esc(zone.id)+'">'+_esc(_lbl)+'</option>';
           }
@@ -133,7 +133,7 @@
             });
             _h+='</optgroup>';
           }else if(zone.type==='sg'){
-            _h+='<option value="sg">'+_esc(_lbl)+'</option>';
+            _h+='<optgroup label="'+_esc(_lbl)+'"><option value="sg">'+_esc(_lbl)+'</option></optgroup>';
           }else{
             _h+='<option value="'+_esc(zone.id)+'">'+_esc(_lbl)+'</option>';
           }
