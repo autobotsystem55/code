@@ -107,20 +107,54 @@
       }
       function buildCountryOptions(){
         var isZh=window.LANG==='zh';
-        var hasMY=shippingZones.some(function(z){return z.type==='my';});
-        var hasSG=shippingZones.some(function(z){return z.type==='sg';});
         var o='<option value="">'+t('co.select')+'</option>';
-        if(useZones&&hasMY) o+='<option value="Malaysia">'+(isZh?'马来西亚 Malaysia':'Malaysia')+'</option>';
-        if(useZones&&hasSG) o+='<option value="Singapore">'+(isZh?'新加坡 Singapore':'Singapore')+'</option>';
         o+='<option value="United States">United States</option>';
         o+='<option value="United Kingdom">United Kingdom</option>';
         o+='<option value="Canada">Canada</option>';
         o+='<option value="Australia">Australia</option>';
         o+='<option value="Hong Kong">Hong Kong</option>';
-        if(!(useZones&&hasSG)) o+='<option value="Singapore">Singapore</option>';
+        o+='<option value="Singapore">Singapore</option>';
         o+='<option value="China">China</option>';
         o+='<option value="Other">'+(isZh?'其他':'Other')+'</option>';
         return o;
+      }
+      function buildCombinedOptions(codMode){
+        var isZh=window.LANG==='zh';
+        var _h='<option value="">'+_esc(isZh?'请选择…':'Select…')+'</option>';
+        shippingZones.forEach(function(zone){
+          if(codMode&&!zone.allowCOD)return;
+          var _lbl=isZh?zone.name:(zone.english||zone.name);
+          if(zone.type==='my'){
+            _h+='<optgroup label="'+_esc(_lbl)+'">';
+            (zone.states||[]).forEach(function(stKey){
+              var hit=null;for(var _k=0;_k<MY_STATES.length;_k++){if(MY_STATES[_k][0]===stKey){hit=MY_STATES[_k];break;}}
+              if(!hit)return;
+              _h+='<option value="'+stKey+'">'+(isZh?(hit[2]+' '+hit[1]):(hit[1]+' '+hit[2]))+'</option>';
+            });
+            _h+='</optgroup>';
+          }else if(zone.type==='sg'){
+            _h+='<option value="sg">'+_esc(_lbl)+'</option>';
+          }else{
+            _h+='<option value="'+_esc(zone.id)+'">'+_esc(_lbl)+'</option>';
+          }
+        });
+        _h+='<optgroup label="'+_esc(isZh?'其他国家':'Other countries')+'">';
+        _h+='<option value="United States">United States</option>';
+        _h+='<option value="United Kingdom">United Kingdom</option>';
+        _h+='<option value="Canada">Canada</option>';
+        _h+='<option value="Australia">Australia</option>';
+        _h+='<option value="Hong Kong">Hong Kong</option>';
+        _h+='<option value="China">China</option>';
+        _h+='<option value="Other">'+(isZh?'其他':'Other')+'</option>';
+        _h+='</optgroup>';
+        return _h;
+      }
+      function countryFromZone(val){
+        if(!val)return'';
+        if(val==='sg')return'Singapore';
+        for(var _i=0;_i<MY_STATES.length;_i++){if(MY_STATES[_i][0]===val)return'Malaysia';}
+        for(var _j=0;_j<shippingZones.length;_j++){var _z=shippingZones[_j];if(_z.type==='custom'&&_z.id===val)return _z.english||_z.name;}
+        return val;
       }
 
       var shipping = useZones ? 0 : (subtotal >= (STORE_CONFIG.freeShippingThreshold || 0) ? 0 : (STORE_CONFIG.shippingFlat || 0));
@@ -229,11 +263,13 @@
               '<div class="field"><label>' + t('co.apt') + '</label><input name="apt"></div>' +
               '<div class="row2"><div class="field"><label>' + t('co.city') + '</label><input name="city" required></div>' +
               '<div class="field"><label>' + t('co.zip') + '</label><input name="zip" required></div></div>' +
-              '<div class="row2"><div class="field"><label>' + t('co.country') + '</label><select name="country" required>' +
-                buildCountryOptions() +
-              '</select></div>' +
-              '<div class="field"><label>' + t('co.phone') + '</label><input name="phone" required></div></div>' +
-              (useZones ? '<div class="field"><label>' + t('co.zoneLabel') + '</label><select id="coZoneSelect" style="width:100%">' + buildZoneOptions(false) + '</select></div>' : '') +
+              (useZones
+                ? '<input type="hidden" name="country">' +
+                  '<div class="row2"><div class="field"><label>' + t('co.country') + '</label><select id="coZoneSelect" style="width:100%">' + buildCombinedOptions(false) + '</select></div>' +
+                  '<div class="field"><label>' + t('co.phone') + '</label><input name="phone" required></div></div>'
+                : '<div class="row2"><div class="field"><label>' + t('co.country') + '</label><select name="country" required>' + buildCountryOptions() + '</select></div>' +
+                  '<div class="field"><label>' + t('co.phone') + '</label><input name="phone" required></div></div>'
+              ) +
             '</fieldset>' +
             payMethodFieldset +
             paymentFieldset +
@@ -486,6 +522,8 @@
             selectedZone = findZoneForValue(this.value);
             shipping = calcZoneShipping(selectedZone);
             renderTotals();
+            var _hc = document.querySelector('input[name="country"]');
+            if (_hc) _hc.value = countryFromZone(this.value);
           });
         }
         if (hasCODZones) {
@@ -497,33 +535,13 @@
               if (cardFs) cardFs.style.display = isCOD ? 'none' : '';
               if (coZoneSel) {
                 var prev = coZoneSel.value;
-                coZoneSel.innerHTML = buildZoneOptions(isCOD);
+                coZoneSel.innerHTML = buildCombinedOptions(isCOD);
                 if (prev && coZoneSel.querySelector('option[value="' + prev + '"]')) coZoneSel.value = prev;
                 selectedZone = findZoneForValue(coZoneSel.value);
                 shipping = calcZoneShipping(selectedZone);
                 renderTotals();
               }
             });
-          });
-        }
-        // ---- country → zone auto-sync ----
-        var _countrySel = document.querySelector('[name="country"]');
-        if (_countrySel && coZoneSel) {
-          _countrySel.addEventListener('change', function () {
-            var cval = this.value;
-            var autoZone = null;
-            if (cval === 'Singapore') {
-              var _hasSG = shippingZones.some(function (z) { return z.type === 'sg'; });
-              if (_hasSG) autoZone = 'sg';
-            } else if (cval === 'Malaysia') {
-              autoZone = '';  // reset so user picks their state
-            }
-            if (autoZone !== null) {
-              coZoneSel.value = autoZone;
-              selectedZone = findZoneForValue(autoZone);
-              shipping = calcZoneShipping(selectedZone);
-              renderTotals();
-            }
           });
         }
       }
@@ -666,11 +684,13 @@
         });
         if (!ok) { toast(t('co.fill')); return; }
 
-        if (useZones && !selectedZone) {
+        if (useZones) {
           var zs = document.getElementById('coZoneSelect');
-          if (zs) { zs.classList.add('err'); zs.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-          toast(window.LANG === 'zh' ? '请选择收货地区' : 'Please select your shipping region');
-          return;
+          if (!zs || !zs.value) {
+            if (zs) { zs.classList.add('err'); zs.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            toast(window.LANG === 'zh' ? '请选择收货地区' : 'Please select your shipping region');
+            return;
+          }
         }
 
         var orderId = 'ME' + String(Date.now()).slice(-7);
