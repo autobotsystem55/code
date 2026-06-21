@@ -250,6 +250,10 @@
         ['bundlesEnabled', 'bundlesOnHome'].forEach(function (k) {
           if (d[k] !== undefined && d[k] !== null) window.STORE_CONFIG[k] = d[k];
         });
+        // shipping zones array (overrides flat-rate when present)
+        if (Array.isArray(d.shippingZones) && d.shippingZones.length) {
+          window.STORE_CONFIG.shippingZones = d.shippingZones;
+        }
       }
     }).catch(function () {});
   }

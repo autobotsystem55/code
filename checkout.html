@@ -64,7 +64,66 @@
       }
 
       var subtotal = cartSubtotal();
-      var shipping = subtotal >= (STORE_CONFIG.freeShippingThreshold || 0) ? 0 : (STORE_CONFIG.shippingFlat || 0);
+
+      // ---- zone-based shipping setup ----
+      var MY_STATES=[['johor','Johor','柔佛','wm'],['kedah','Kedah','吉打','wm'],['kelantan','Kelantan','吉兰丹','wm'],['kuala-lumpur','Kuala Lumpur','吉隆坡','wm'],['labuan','Labuan','纳闽','em'],['melaka','Melaka','马六甲','wm'],['negeri-sembilan','Negeri Sembilan','森美兰','wm'],['pahang','Pahang','彭亨','wm'],['penang','Penang','槟城','wm'],['perak','Perak','霹雳','wm'],['perlis','Perlis','玻璃市','wm'],['putrajaya','Putrajaya','布城','wm'],['sabah','Sabah','沙巴','em'],['sarawak','Sarawak','砂拉越','em'],['selangor','Selangor','雪兰莪','wm'],['terengganu','Terengganu','登嘉楼','wm']];
+      var shippingZones=(STORE_CONFIG.shippingZones||[]).filter(function(z){return z.enabled!==false;});
+      var useZones=shippingZones.length>0;
+      var selectedZone=null, isCOD=false;
+      var hasCODZones=shippingZones.some(function(z){return z.allowCOD;});
+      function _esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+      function findZoneForValue(val){
+        if(!val)return null;
+        if(val==='sg'){for(var _i=0;_i<shippingZones.length;_i++){if(shippingZones[_i].type==='sg')return shippingZones[_i];}return null;}
+        for(var _j=0;_j<shippingZones.length;_j++){var _z=shippingZones[_j];if(_z.type==='my'&&(_z.states||[]).indexOf(val)>=0)return _z;if(_z.type==='custom'&&_z.id===val)return _z;}
+        return null;
+      }
+      function calcZoneShipping(zone){
+        if(!zone)return useZones?0:(subtotal>=(STORE_CONFIG.freeShippingThreshold||0)?0:(STORE_CONFIG.shippingFlat||0));
+        var _r=Number(zone.rate)||0,_f=Number(zone.freeAt)||0;
+        return(_f>0&&subtotal>=_f)?0:_r;
+      }
+      function buildZoneOptions(codMode){
+        var isZh=window.LANG==='zh';
+        var _h='<option value="">'+_esc(isZh?'请选择州属 / 地区…':'Select state / region…')+'</option>';
+        shippingZones.forEach(function(zone){
+          if(codMode&&!zone.allowCOD)return;
+          var _lbl=isZh?zone.name:(zone.english||zone.name);
+          if(zone.type==='my'){
+            _h+='<optgroup label="'+_esc(_lbl)+'">';
+            (zone.states||[]).forEach(function(stKey){
+              var hit=null;for(var _k=0;_k<MY_STATES.length;_k++){if(MY_STATES[_k][0]===stKey){hit=MY_STATES[_k];break;}}
+              if(!hit)return;
+              _h+='<option value="'+stKey+'">'+(isZh?(hit[2]+' '+hit[1]):(hit[1]+' '+hit[2]))+'</option>';
+            });
+            _h+='</optgroup>';
+          }else if(zone.type==='sg'){
+            _h+='<option value="sg">'+_esc(_lbl)+'</option>';
+          }else{
+            _h+='<option value="'+_esc(zone.id)+'">'+_esc(_lbl)+'</option>';
+          }
+        });
+        return _h;
+      }
+      function buildCountryOptions(){
+        var isZh=window.LANG==='zh';
+        var hasMY=shippingZones.some(function(z){return z.type==='my';});
+        var hasSG=shippingZones.some(function(z){return z.type==='sg';});
+        var o='<option value="">'+t('co.select')+'</option>';
+        if(useZones&&hasMY) o+='<option value="Malaysia">'+(isZh?'马来西亚 Malaysia':'Malaysia')+'</option>';
+        if(useZones&&hasSG) o+='<option value="Singapore">'+(isZh?'新加坡 Singapore':'Singapore')+'</option>';
+        o+='<option value="United States">United States</option>';
+        o+='<option value="United Kingdom">United Kingdom</option>';
+        o+='<option value="Canada">Canada</option>';
+        o+='<option value="Australia">Australia</option>';
+        o+='<option value="Hong Kong">Hong Kong</option>';
+        if(!(useZones&&hasSG)) o+='<option value="Singapore">Singapore</option>';
+        o+='<option value="China">China</option>';
+        o+='<option value="Other">'+(isZh?'其他':'Other')+'</option>';
+        return o;
+      }
+
+      var shipping = useZones ? 0 : (subtotal >= (STORE_CONFIG.freeShippingThreshold || 0) ? 0 : (STORE_CONFIG.shippingFlat || 0));
       var discount = 0, discountCode = '', freeShip = false;
       var total = subtotal + shipping;
 
@@ -88,8 +147,21 @@
       }
       var summaryLines = summaryHTML(null);
 
+      var payMethodFieldset = (useZones && hasCODZones)
+        ? '<fieldset id="coPayMethodFs"><legend>' + t('co.payMethod') + '</legend>' +
+            '<div style="display:flex;gap:20px;padding:2px 0">' +
+              '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">' +
+                '<input type="radio" name="payMethodCo" value="online" checked style="accent-color:var(--wine,#82213E)"> ' + t('co.payOnline') +
+              '</label>' +
+              '<label style="display:flex;align-items:center;gap:7px;cursor:pointer">' +
+                '<input type="radio" name="payMethodCo" value="cod" style="accent-color:var(--wine,#82213E)"> ' + t('co.payCOD') +
+              '</label>' +
+            '</div>' +
+          '</fieldset>'
+        : '';
+
       var paymentFieldset = demo
-        ? '<fieldset><legend>' + t('co.payment') + ' <small>' + t('co.demo') + '</small></legend>' +
+        ? '<fieldset id="coDemoCard"><legend>' + t('co.payment') + ' <small>' + t('co.demo') + '</small></legend>' +
             '<div class="field"><label>' + t('co.card') + '</label><input name="card" inputmode="numeric" placeholder="4242 4242 4242 4242" required></div>' +
             '<div class="row2"><div class="field"><label>' + t('co.exp') + '</label><input name="exp" placeholder="04/28" required></div>' +
             '<div class="field"><label>' + t('co.cvc') + '</label><input name="cvc" inputmode="numeric" placeholder="123" required></div></div>' +
@@ -158,10 +230,12 @@
               '<div class="row2"><div class="field"><label>' + t('co.city') + '</label><input name="city" required></div>' +
               '<div class="field"><label>' + t('co.zip') + '</label><input name="zip" required></div></div>' +
               '<div class="row2"><div class="field"><label>' + t('co.country') + '</label><select name="country" required>' +
-                '<option value="">' + t('co.select') + '</option><option>United States</option><option>United Kingdom</option><option>Canada</option><option>Australia</option><option>Hong Kong</option><option>Singapore</option><option>China</option><option>Other</option>' +
+                buildCountryOptions() +
               '</select></div>' +
               '<div class="field"><label>' + t('co.phone') + '</label><input name="phone" required></div></div>' +
+              (useZones ? '<div class="field"><label>' + t('co.zoneLabel') + '</label><select id="coZoneSelect" style="width:100%">' + buildZoneOptions(false) + '</select></div>' : '') +
             '</fieldset>' +
+            payMethodFieldset +
             paymentFieldset +
             '<button type="submit" class="btn btn--block" id="placeBtn">' + btnLabel + '</button>' +
             '<div class="co-secure"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> ' + secureNote + '</div>' +
@@ -181,7 +255,7 @@
             '<div class="totals">' +
               '<div><span>' + t('co.subtotal') + '</span><span>' + money(subtotal) + '</span></div>' +
               '<div id="discRow" style="display:none"><span>' + t('co.discount') + ' <b id="discTag" style="color:var(--wine)"></b></span><span id="discAmt"></span></div>' +
-              '<div><span>' + t('co.shippingLbl') + '</span><span id="shipVal">' + (shipping === 0 ? t('co.free') : money(shipping)) + '</span></div>' +
+              '<div><span>' + t('co.shippingLbl') + '</span><span id="shipVal">' + (useZones ? t('co.zoneNone') : (shipping === 0 ? t('co.free') : money(shipping))) + '</span></div>' +
               '<div id="addonRow" style="display:none"><span>' + t('co.addon') + ' <b id="addonTag" style="color:var(--wine)"></b></span><span id="addonAmt"></span></div>' +
               '<div class="grand"><span>' + t('co.total') + '</span><b id="grandTotal">' + money(total) + '</b></div>' +
             '</div>' +
@@ -196,7 +270,7 @@
         var effShip = freeShip ? 0 : shipping;
         total = Math.max(0, subtotal - discount) + effShip + (addonAdded ? addonTotal : 0);
         var sv = document.getElementById('shipVal');
-        if (sv) sv.textContent = (effShip === 0 ? t('co.free') : money(effShip));
+        if (sv) sv.textContent = (useZones && !selectedZone && !freeShip) ? t('co.zoneNone') : (effShip === 0 ? t('co.free') : money(effShip));
         var row = document.getElementById('discRow');
         if (discount > 0 || (freeShip && shipping > 0)) {
           row.style.display = '';
@@ -404,6 +478,56 @@
       });
       applyAuto();
 
+      // ---- zone select + COD toggle wiring ----
+      if (useZones) {
+        var coZoneSel = document.getElementById('coZoneSelect');
+        if (coZoneSel) {
+          coZoneSel.addEventListener('change', function () {
+            selectedZone = findZoneForValue(this.value);
+            shipping = calcZoneShipping(selectedZone);
+            renderTotals();
+          });
+        }
+        if (hasCODZones) {
+          var pmInputs = document.querySelectorAll('[name="payMethodCo"]');
+          pmInputs.forEach(function (inp) {
+            inp.addEventListener('change', function () {
+              isCOD = this.value === 'cod';
+              var cardFs = document.getElementById('coDemoCard');
+              if (cardFs) cardFs.style.display = isCOD ? 'none' : '';
+              if (coZoneSel) {
+                var prev = coZoneSel.value;
+                coZoneSel.innerHTML = buildZoneOptions(isCOD);
+                if (prev && coZoneSel.querySelector('option[value="' + prev + '"]')) coZoneSel.value = prev;
+                selectedZone = findZoneForValue(coZoneSel.value);
+                shipping = calcZoneShipping(selectedZone);
+                renderTotals();
+              }
+            });
+          });
+        }
+        // ---- country → zone auto-sync ----
+        var _countrySel = document.querySelector('[name="country"]');
+        if (_countrySel && coZoneSel) {
+          _countrySel.addEventListener('change', function () {
+            var cval = this.value;
+            var autoZone = null;
+            if (cval === 'Singapore') {
+              var _hasSG = shippingZones.some(function (z) { return z.type === 'sg'; });
+              if (_hasSG) autoZone = 'sg';
+            } else if (cval === 'Malaysia') {
+              autoZone = '';  // reset so user picks their state
+            }
+            if (autoZone !== null) {
+              coZoneSel.value = autoZone;
+              selectedZone = findZoneForValue(autoZone);
+              shipping = calcZoneShipping(selectedZone);
+              renderTotals();
+            }
+          });
+        }
+      }
+
       // ---- contact: auto-sync + auth (signup / signin / logged-in) ----
       (function () {
         var cName  = document.getElementById('cName');
@@ -542,6 +666,13 @@
         });
         if (!ok) { toast(t('co.fill')); return; }
 
+        if (useZones && !selectedZone) {
+          var zs = document.getElementById('coZoneSelect');
+          if (zs) { zs.classList.add('err'); zs.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+          toast(window.LANG === 'zh' ? '请选择收货地区' : 'Please select your shipping region');
+          return;
+        }
+
         var orderId = 'ME' + String(Date.now()).slice(-7);
         var f = form;
         var effShip = freeShip ? 0 : shipping;
@@ -554,7 +685,10 @@
         if (addonAdded && addonOffer) itemRows.push({ id: addonOffer.id, name: addonOffer.name, qty: addonOffer.qty, price: addonOffer.price, addon: 1 });
         var customer = {
           first: f.first.value, last: f.last.value, address: f.address.value, apt: f.apt.value,
-          city: f.city.value, zip: f.zip.value, country: f.country.value, phone: f.phone.value
+          city: f.city.value, zip: f.zip.value, country: f.country.value, phone: f.phone.value,
+          zoneId: selectedZone ? selectedZone.id : '',
+          state: (document.getElementById('coZoneSelect') || {}).value || '',
+          paymentMethod: isCOD ? 'cod' : 'online'
         };
         localStorage.setItem('eclat_last_order', JSON.stringify({
           orderId: orderId, email: f.email.value,
@@ -573,7 +707,8 @@
             order_number: orderId, email: f.email.value, customer: customer,
             items: itemRows, subtotal: subtotal, shipping: effShip, total: total,
             discount_code: discountCode || null, discount_amount: discount || 0,
-            currency: (STORE_CONFIG.currency || 'MYR')
+            currency: (STORE_CONFIG.currency || 'MYR'),
+            payment_method: isCOD ? 'cod' : 'online'
           };
           Auth.getUser().then(function (res) {
             var u = res && res.data && res.data.user; if (u) orderRow.user_id = u.id;

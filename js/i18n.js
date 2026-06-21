@@ -193,6 +193,8 @@
       'co.promoMore': 'Add {n} more for another {name}', 'co.discShipNone': 'Shipping is already free',
       'co.giftFree': 'Free gift · ships with order', 'co.giftGot': '🎁 Free gift added', 'co.giftNudgeQty': 'Add {n} more to get a free {name}', 'co.giftNudgeAmt': 'Spend {x} more to get a free {name}',
       'co.addon': 'Add-on', 'co.addonOffer': 'Add {name} for {price} (was {normal})', 'co.addonAdd': 'Add', 'co.addonRemove': 'Remove', 'co.addonGot': '🛒 Add-on unlocked', 'co.addonNudgeQty': 'Add {n} more to unlock add-on {name}', 'co.addonNudgeAmt': 'Spend {x} more to unlock add-on {name}',
+      'co.zoneLabel': 'State / region', 'co.zoneNone': '— select region',
+      'co.payMethod': 'Payment method', 'co.payOnline': 'Online payment', 'co.payCOD': 'Cash on Delivery (COD)',
       'co.empty': 'Your bag is empty.', 'co.continue': 'Continue shopping',
       // success
       'ok.confirmed': 'Order confirmed', 'ok.thanks': 'Thank you.',
@@ -370,6 +372,8 @@
       'co.promoMore': '再加 {n} 件可再享一次「{name}」', 'co.discShipNone': '运费已是免费',
       'co.giftFree': '免费赠品 · 随单附送', 'co.giftGot': '🎁 已获赠品', 'co.giftNudgeQty': '再加 {n} 件即可获赠「{name}」', 'co.giftNudgeAmt': '再消费 {x} 即可获赠「{name}」',
       'co.addon': '加购', 'co.addonOffer': '加 {price} 换购「{name}」（原价 {normal}）', 'co.addonAdd': '加购', 'co.addonRemove': '移除', 'co.addonGot': '🛒 已解锁加购', 'co.addonNudgeQty': '再加 {n} 件即可加购「{name}」', 'co.addonNudgeAmt': '再消费 {x} 即可加购「{name}」',
+      'co.zoneLabel': '州属 / 地区', 'co.zoneNone': '— 请选择地区',
+      'co.payMethod': '付款方式', 'co.payOnline': '在线付款', 'co.payCOD': '货到付款（COD）',
       'co.empty': '购物袋是空的。', 'co.continue': '继续选购',
       'ok.confirmed': '订单已确认', 'ok.thanks': '感谢你的购买。',
       'ok.line': '订单已提交——确认邮件正发往 <b>{x}</b>。',
