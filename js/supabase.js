@@ -44,6 +44,7 @@
       trackInventory: !!r.track_inventory,
       continueSelling: !!r.continue_selling,
       lowStockThreshold: (r.low_stock_threshold != null) ? r.low_stock_threshold : 5,
+      sizeChart: r.size_chart || null,
     };
   }
 

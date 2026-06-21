@@ -474,6 +474,22 @@
     .sc-add-row button:hover{background:var(--pink-soft)}
     .sc-textarea{width:100%;min-height:60px;border:1px solid var(--line2);border-radius:5px;padding:10px 12px;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--white);resize:vertical}
     .sc-textarea:focus{outline:none;border-color:var(--wine);box-shadow:0 0 0 3px rgba(130,33,62,.10)}
+    /* product-level size chart editor */
+    .psc-section{border:1.5px solid var(--pink-border);border-radius:10px;overflow:hidden;margin-top:18px}
+    .psc-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--pink-soft);border-bottom:1.5px solid var(--pink-border)}
+    .psc-icon{width:26px;height:26px;border-radius:50%;background:var(--wine);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+    .psc-ttl{font-size:13.5px;font-weight:600;color:var(--ink)}.psc-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
+    .psc-body{padding:14px 16px 16px}
+    .psc-tglrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:var(--cream2);border:1px solid var(--line);border-radius:7px;margin-bottom:12px}
+    .psc-tglrow b{font-size:13px;display:block;color:var(--ink)}.psc-tglrow small{color:var(--muted);font-size:11.5px}
+    .psc-seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:12px}
+    .psc-seg button{flex:1;background:transparent;border:none;padding:9px 8px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;line-height:1.4;text-align:center}
+    .psc-seg button:first-child{border-right:1px solid var(--line)}
+    .psc-seg button.on{background:var(--wine);color:#fff}
+    .psc-defnote{background:#E3F1E8;border:1px solid #cbe4d4;border-radius:6px;padding:9px 12px;font-size:12.5px;color:#1C3C28;line-height:1.5}
+    .psc-units-row{display:flex;gap:14px;margin-bottom:10px}
+    .psc-units-row label{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer;color:var(--ink2)}
+    .psc-units-row input{accent-color:var(--wine)}
   </style>
 </head>
 <body>
@@ -648,6 +664,7 @@
         if(window.__editPid){var pid=window.__editPid;window.__editPid=null;var trow=view.querySelector('.erow[data-id="'+pid+'"]');if(trow){trow.classList.add('open');openProduct(pid,trow.querySelector('.eexp'));((trow)||view).scrollIntoView({behavior:'smooth',block:'start'});}}
       });
     }
+    var pScSt=null; // product-level size chart state, shared between openProduct and saveProduct
     function openProduct(id,host){
       host=host||document.getElementById('pNew');
       var p=id?data.products.filter(function(x){return x.id===id;})[0]:{sizes:[],colors:[],images:[],active:true};
@@ -677,6 +694,44 @@
           '.pedit .pnote{font-size:12px;color:var(--muted,#6F635C);margin-top:8px;line-height:1.5}'+
           '@media(max-width:880px){.pedit{flex-direction:column}.pedit .pcol-side{flex:1 1 auto;max-width:none;width:100%}.pedit .pside{position:static}}';
         document.head.appendChild(pst);}
+      // --- init per-product size chart state ---
+      (function(){
+        var psc0=p.size_chart&&typeof p.size_chart==='object'?p.size_chart:null;
+        pScSt={
+          source:psc0?'custom':'default',
+          enabled:psc0?psc0.enabled!==false:true,
+          cm:psc0?psc0.cm!==false:true,
+          inch:psc0?!!psc0.inch:true,
+          columns:(psc0&&Array.isArray(psc0.columns)&&psc0.columns.length)?psc0.columns.map(function(c){return{key:c.key||c.label||'',label:c.label||''};}):[{key:'bust',label:'胸围'},{key:'waist',label:'腰围'},{key:'hip',label:'臀围'},{key:'len',label:'衣长'}],
+          rows:(psc0&&Array.isArray(psc0.rows)&&psc0.rows.length)?psc0.rows:[{size:'XS',cm:{bust:82,waist:62,hip:86,len:58},inch:{bust:32,waist:24,hip:34,len:23}},{size:'S',cm:{bust:86,waist:66,hip:90,len:59},inch:{bust:34,waist:26,hip:35,len:23}},{size:'M',cm:{bust:90,waist:70,hip:94,len:60},inch:{bust:35,waist:28,hip:37,len:24}},{size:'L',cm:{bust:96,waist:76,hip:100,len:61},inch:{bust:38,waist:30,hip:39,len:24}},{size:'XL',cm:{bust:102,waist:82,hip:106,len:62},inch:{bust:40,waist:32,hip:42,len:24}}],
+          note:psc0?psc0.note||'':'数据为成衣平铺测量，可能有 1–2 cm 误差。'
+        };
+      })();
+      function pScUnitBlock(u){
+        var head='<thead><tr><th>尺码</th>'+pScSt.columns.map(function(c,ci){return '<th><div class="col-head"><input type="text" data-psc-col-label="'+ci+'" value="'+esc(c.label||'')+'" placeholder="测量项"><button type="button" class="col-del" data-psc-col-del="'+ci+'" title="删除">×</button></div></th>';}).join('')+'<th></th></tr></thead>';
+        var body='<tbody>'+pScSt.rows.map(function(r,ri){return '<tr><td><input type="text" data-psc-row-size="'+ri+'" value="'+esc(r.size||'')+'"></td>'+pScSt.columns.map(function(c,ci){var k=c.key||c.label||'';var val=(r[u]&&r[u][k]!=null)?r[u][k]:'';return '<td><input type="number" data-psc-cell="'+ri+'|'+ci+'|'+u+'" value="'+esc(val)+'"></td>';}).join('')+'<td><button type="button" class="row-del" data-psc-row-del="'+ri+'">🗑</button></td></tr>';}).join('')+'</tbody>';
+        return '<div class="sc-unit-block"><div class="sc-unit-head"><span class="badge">'+(u==='cm'?'CM':'INCH')+'</span>'+(u==='cm'?'厘米 (CM)':'英寸 (INCH)')+'</div><div class="sc-tblwrap"><table class="sc-tbl">'+head+body+'</table></div></div>';
+      }
+      function pScCustomHTML(){
+        return '<div class="psc-units-row"><label><input type="checkbox" id="f_scCm"'+(pScSt.cm?' checked':'')+'>厘米 cm</label><label><input type="checkbox" id="f_scIn"'+(pScSt.inch?' checked':'')+'>英寸 inch</label></div>'+
+          '<div id="f_scTables">'+(pScSt.cm?pScUnitBlock('cm'):'')+(pScSt.inch?pScUnitBlock('inch'):'')+'</div>'+
+          '<div class="sc-add-row"><button type="button" id="f_scAddRow">+ 加一行尺码</button><button type="button" id="f_scAddCol">+ 加一列测量项</button></div>'+
+          '<div class="field" style="margin-top:12px"><label class="lbl">底部备注（可选）</label><textarea class="sc-textarea" id="f_scNote" style="min-height:48px">'+esc(pScSt.note||'')+'</textarea></div>';
+      }
+      function pScSectionHTML(){
+        return '<div class="psc-section" id="pscSection">'+
+          '<div class="psc-head"><div class="psc-icon">📐</div><div><div class="psc-ttl">尺码参考表</div><div class="psc-sub">控制此商品的尺码卡片（不影响其他商品）</div></div></div>'+
+          '<div class="psc-body">'+
+            '<div class="psc-tglrow"><div><b>在此商品页显示尺码表</b><small>关闭=仅此商品不显示</small></div><div class="sw'+(pScSt.enabled?' on':'')+'" id="f_scOn" role="switch"></div></div>'+
+            '<div id="f_scBody" style="'+(pScSt.enabled?'':'opacity:.5;pointer-events:none')+'">'+
+              '<div class="psc-seg"><button type="button" id="f_scBtnDef" class="'+(pScSt.source==='default'?'on':'')+'">🌐 跟随全店默认<br><small style="font-weight:400">「设置」里统一管理</small></button>'+
+              '<button type="button" id="f_scBtnCus" class="'+(pScSt.source==='custom'?'on':'')+'">✏️ 自定义此商品<br><small style="font-weight:400">独立数据，不影响其他商品</small></button></div>'+
+              '<div id="f_scDefNote" style="display:'+(pScSt.source==='default'?'block':'none')+'"><div class="psc-defnote">✓ 使用全店默认尺码表 · 如需修改前往「设置 → 尺码参考表」</div></div>'+
+              '<div id="f_scCustom" style="display:'+(pScSt.source==='custom'?'block':'none')+'">'+pScCustomHTML()+'</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>';
+      }
       host.innerHTML='<div class="pedit">'+
         '<div class="pcol-main"><div class="panel"><h2>'+(id?'编辑商品':'上新商品')+'</h2>'+
           '<div class="row2"><div class="field"><label>商品 ID'+(id?'（不可改）':'（留空自动生成）')+'</label><input id="f_id" '+(id?'readonly':'')+' value="'+esc(p.id)+'"></div>'+
@@ -693,6 +748,7 @@
             '<div class="field"><label>备用图（可空）</label><input id="f_img2" value="'+esc(im[1])+'"></div></div>'+
           '<div class="field"><label>描述 (English)</label><textarea id="f_desc">'+esc(p.description)+'</textarea></div>'+
           '<div class="field"><label>描述 (中文)</label><textarea id="f_desc_zh">'+esc(p.description_zh)+'</textarea></div>'+
+          pScSectionHTML()+
         '</div></div>'+
         '<div class="pcol-side"><div class="pside"><h3>库存 &amp; 上架</h3>'+
           '<div class="trow first"><div class="lab">上架商品<small>取消=下架，店面不显示</small></div><div class="sw'+(p.active!==false?' on':'')+'" id="f_active" role="switch"></div></div>'+
@@ -708,6 +764,37 @@
       document.getElementById('cancelP').addEventListener('click',function(){var rw=host.closest&&host.closest('.erow');if(rw)rw.classList.remove('open');host.innerHTML='';});
       document.getElementById('saveP').addEventListener('click',function(){saveProduct(id);});
       ['f_active','f_track','f_oversell'].forEach(function(idd){var sw=document.getElementById(idd);if(sw)sw.addEventListener('click',function(){this.classList.toggle('on');});});
+      // --- wire size chart section ---
+      (function(){
+        var swOn=document.getElementById('f_scOn');
+        if(swOn) swOn.addEventListener('click',function(){pScSt.enabled=swOn.classList.toggle('on');var bd=document.getElementById('f_scBody');if(bd){bd.style.opacity=pScSt.enabled?'':'0.5';bd.style.pointerEvents=pScSt.enabled?'':'none';}});
+        function setPScSource(s){pScSt.source=s;var bd=document.getElementById('f_scBtnDef'),bc=document.getElementById('f_scBtnCus');if(bd)bd.classList.toggle('on',s==='default');if(bc)bc.classList.toggle('on',s==='custom');var dn=document.getElementById('f_scDefNote'),ce=document.getElementById('f_scCustom');if(dn)dn.style.display=s==='default'?'block':'none';if(ce)ce.style.display=s==='custom'?'block':'none';}
+        var bd=document.getElementById('f_scBtnDef'),bc=document.getElementById('f_scBtnCus');
+        if(bd)bd.addEventListener('click',function(){setPScSource('default');});
+        if(bc)bc.addEventListener('click',function(){setPScSource('custom');});
+        function renderPScTables(){var wrap=document.getElementById('f_scTables');if(wrap)wrap.innerHTML=(pScSt.cm?pScUnitBlock('cm'):'')+(pScSt.inch?pScUnitBlock('inch'):'');}
+        var cmCb=document.getElementById('f_scCm'),inCb=document.getElementById('f_scIn');
+        if(cmCb)cmCb.addEventListener('change',function(){pScSt.cm=cmCb.checked;renderPScTables();});
+        if(inCb)inCb.addEventListener('change',function(){pScSt.inch=inCb.checked;renderPScTables();});
+        var sec=document.getElementById('pscSection');
+        if(sec){
+          sec.addEventListener('click',function(e){
+            var rd=e.target.closest('[data-psc-row-del]'),cd=e.target.closest('[data-psc-col-del]');
+            if(rd){pScSt.rows.splice(+rd.dataset.pscRowDel,1);renderPScTables();}
+            else if(cd){var idx=+cd.dataset.pscColDel,col=pScSt.columns[idx],k=col&&(col.key||col.label);pScSt.columns.splice(idx,1);pScSt.rows.forEach(function(r){if(r.cm&&k)delete r.cm[k];if(r.inch&&k)delete r.inch[k];});renderPScTables();}
+          });
+          sec.addEventListener('input',function(e){
+            var t=e.target;
+            if(t.dataset.pscCell){var pts=t.dataset.pscCell.split('|'),ri=+pts[0],ci=+pts[1],u=pts[2],key=pScSt.columns[ci]&&(pScSt.columns[ci].key||pScSt.columns[ci].label);if(key){if(!pScSt.rows[ri][u])pScSt.rows[ri][u]={};pScSt.rows[ri][u][key]=t.value;}}
+            else if(t.dataset.pscRowSize!=null)pScSt.rows[+t.dataset.pscRowSize].size=t.value;
+            else if(t.dataset.pscColLabel!=null)pScSt.columns[+t.dataset.pscColLabel].label=t.value;
+          });
+        }
+        var addR=document.getElementById('f_scAddRow');
+        if(addR)addR.addEventListener('click',function(){var nr={size:''};if(pScSt.cm){nr.cm={};pScSt.columns.forEach(function(c){nr.cm[c.key||c.label||'']='';});}if(pScSt.inch){nr.inch={};pScSt.columns.forEach(function(c){nr.inch[c.key||c.label||'']='';});}pScSt.rows.push(nr);renderPScTables();});
+        var addC=document.getElementById('f_scAddCol');
+        if(addC)addC.addEventListener('click',function(){var label=prompt('新列名称（如：袖长）','袖长')||'新列';var newKey='col_'+Math.floor(Math.random()*1e6);pScSt.columns.push({key:newKey,label:label});pScSt.rows.forEach(function(r){if(r.cm)r.cm[newKey]='';if(r.inch)r.inch[newKey]='';});renderPScTables();});
+      })();
       function curSizes(){return [].map.call(document.querySelectorAll('.sz:checked'),function(c){return c.value;});}
       function curColors(){var o=[],ns=document.querySelectorAll('.cname'),hs=document.querySelectorAll('.chex');for(var i=0;i<ns.length;i++){var v2=ns[i].value.trim();if(v2)o.push({name:v2,hex:(hs[i]&&hs[i].value)||'#cccccc'});}return o;}
       function stockOf(key,szKey){var st=p.stock||{};return (st[key]!=null)?st[key]:(st[szKey]!=null?st[szKey]:0);}
@@ -743,11 +830,27 @@
       var cmp=v('f_cmp');
       var stock={};[].forEach.call(document.querySelectorAll('.invqty'),function(inp){stock[inp.getAttribute('data-key')]=Math.max(0,parseInt(inp.value,10)||0);});
       var fThr=parseInt(v('f_thr'),10);if(isNaN(fThr))fThr=5;
+      // collect per-product size chart
+      var scOut=null;
+      if(pScSt){
+        var noteEl=document.getElementById('f_scNote');
+        if(noteEl)pScSt.note=noteEl.value;
+        if(pScSt.source==='custom'){
+          scOut={enabled:pScSt.enabled,cm:!!pScSt.cm,inch:!!pScSt.inch,
+            columns:pScSt.columns.map(function(c){return{key:c.key||c.label,label:c.label};}),
+            rows:pScSt.rows.map(function(r){var nr={size:r.size};if(pScSt.cm)nr.cm=r.cm||{};if(pScSt.inch)nr.inch=r.inch||{};return nr;}),
+            note:pScSt.note||''};
+        } else {
+          // source=default: store null to fall back to global, but respect the enabled toggle
+          scOut=pScSt.enabled?null:{enabled:false};
+        }
+      }
       var row={id:id||(v('f_id')||slug(name)),name:name,name_zh:v('f_name_zh')||null,category:v('f_cat'),price:price,
         compare_at:cmp?parseFloat(cmp):null,badge:v('f_badge')||null,sizes:sizes,colors:colors,
         images:[v('f_img1'),v('f_img2')].filter(Boolean),description:v('f_desc')||null,description_zh:v('f_desc_zh')||null,
         stock:stock,track_inventory:document.getElementById('f_track').classList.contains('on'),continue_selling:document.getElementById('f_oversell').classList.contains('on'),low_stock_threshold:fThr,
-        active:document.getElementById('f_active').classList.contains('on'),sort:parseInt(v('f_sort'),10)||0};
+        active:document.getElementById('f_active').classList.contains('on'),sort:parseInt(v('f_sort'),10)||0,
+        size_chart:scOut};
       document.getElementById('saveP').disabled=true;
       DB.upsertProduct(row).then(function(r){
         document.getElementById('saveP').disabled=false;
@@ -1799,7 +1902,7 @@
             tRow('s_bun','在店面显示套装组合','导航入口 + 套装页 /bundles.html',bun)+
             tRow('s_bunHome','在首页显示套装板块','需先开启上面的总开关',bunHome)+
             '<div class="bundle-note">关掉总开关：顾客完全看不到套装。每个套装还能在「套装」区单独上架/下架。</div>')+
-          card(IC.ruler,'尺码参考表 <span class="cardhead-en">Size Chart</span>','在每个商品页 「加入购物袋」 下方显示尺码表',
+          card(IC.ruler,'尺码参考表 <span class="cardhead-en">Size Chart</span>','全店默认模板 — 商品编辑里可单独覆盖',
             scCardHTML())+
           '</div>'+
           '<div class="savebar"><div class="savebar-inner"><div class="save-hint"><span class="saved-pill" id="savedPill"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>已保存，店面已生效</span><span class="msg2" id="sm">改动后记得点「保存设置」生效。</span></div><button class="btn-primary" id="saveS">保存设置</button></div></div>'+
