@@ -533,6 +533,24 @@
     .psc-units-row{display:flex;gap:14px;margin-bottom:10px}
     .psc-units-row label{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer;color:var(--ink2)}
     .psc-units-row input{accent-color:var(--wine)}
+
+    /* ===== 手机端覆盖（放在所有静态规则之后才能生效）===== */
+    @media(max-width:860px){
+      .srow{display:flex!important;align-items:center;gap:8px;padding:8px 10px}
+      .srow>div:first-child{flex:1;min-width:0}
+      .srow .sku{display:none!important}
+      .srow .stepper{flex-shrink:0}
+      .srow .sstat{flex-shrink:0;font-size:11px;min-width:28px}
+      .istats{grid-template-columns:repeat(2,1fr)!important}
+      .console{grid-template-columns:1fr!important}
+      .rail{position:static!important}
+      .ph{display:none!important}
+      .psum{grid-template-columns:24px 1fr 60px 22px!important}
+      .psum .col-status,.psum .col-sizes{display:none!important}
+      .exp-grid{grid-template-columns:1fr!important}
+      .setpage .grid{grid-template-columns:1fr!important}
+      .setpage .cards{columns:1!important}
+    }
   </style>
 </head>
 <body>
@@ -764,7 +782,8 @@
           '.pedit .cell .sd{width:8px;height:8px;border-radius:50%;flex:none}'+
           '.pedit .sd.ok{background:var(--green,#2F7D4F)}.pedit .sd.low{background:var(--amber,#9A6B12)}.pedit .sd.out{background:#C0392B}'+
           '.pedit .pnote{font-size:12px;color:var(--muted,#6F635C);margin-top:8px;line-height:1.5}'+
-          '@media(max-width:880px){.pedit{flex-direction:column}.pedit .pcol-side{flex:1 1 auto;max-width:none;width:100%}.pedit .pside{position:static}}';
+          '@media(max-width:880px){.pedit{flex-direction:column}.pedit .pcol-side{flex:1 1 auto;max-width:none;width:100%}.pedit .pside{position:static}}'+
+          '@media(max-width:600px){.plist .eexp{padding:12px 8px;overflow:hidden}.pedit .pcol-main .panel{padding:14px 10px;margin-bottom:14px}.pedit .pcol-main .panel h2{font-size:18px}.pedit{gap:12px}}';
         document.head.appendChild(pst);}
       // --- init per-product size chart state ---
       (function(){
