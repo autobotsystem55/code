@@ -154,7 +154,6 @@
       mLink('shop.html?category=Dresses',   T('nav.dresses')) +
       mLink('bundles.html',                 T('nav.bundles'), 'nav-bundles');
     var mAcct =
-      mLink('index.html',   T('nav.home')) +
       mLink('account.html', T('acc.title'));
 
     var mobileMenuHtml =
