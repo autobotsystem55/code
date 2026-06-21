@@ -90,7 +90,7 @@
             '<div class="pdp__price">' + price + '</div>' +
             '<p class="pdp__desc">' + pDesc(p) + '</p>' +
             '<div class="opt"><div class="opt__label">' + t('pdp.colour') + ' <span id="colorName">' + p.colors[0].name + '</span></div><div class="swatch-row">' + swatches + '</div></div>' +
-            '<div class="opt"><div class="opt__label">' + t('pdp.size') + ' <span><a href="#" id="sizeGuide">' + t('pdp.sizeGuide') + '</a></span></div><div class="size-row" id="sizeRow">' + sizes + '</div></div>' +
+            '<div class="opt"><div class="opt__label">' + t('pdp.size') + '</div><div class="size-row" id="sizeRow">' + sizes + '</div></div>' +
             '<div class="pdp__add">' +
               '<div class="stepper" id="qtyStep"><button data-q="-1" aria-label="' + t('aria.dec') + '">–</button><span id="qty">1</span><button data-q="1" aria-label="' + t('aria.inc') + '">+</button></div>' +
               '<button class="btn btn--block" id="addBtn"' + (soldOut ? ' disabled' : '') + '>' + (soldOut ? t('badge.soldOut') : t('pdp.addToBag', { x: money(p.price) })) + '</button>' +
@@ -111,7 +111,6 @@
       var sel = { color: p.colors[0].name, size: p.sizes.length === 1 ? p.sizes[0] : null, qty: 1 };
       if (p.sizes.length === 1) root.querySelector('.size').classList.add('is-active');
 
-      root.querySelector('#sizeGuide').addEventListener('click', function (e) { e.preventDefault(); toast(t('pdp.sizeGuideMsg')); });
 
       // ---- gallery thumbs ----
       root.querySelectorAll('[data-thumb]').forEach(function (b) {
