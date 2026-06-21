@@ -16,6 +16,7 @@
   <script src="js/i18n.js?v=4"></script>
   <script src="js/pixel.js"></script>
   <style>
+    /* ── mobile: tab bar (unchanged) ── */
     .acc-tabs{display:flex;border-bottom:2px solid var(--line);margin:0 0 24px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
     .acc-tabs::-webkit-scrollbar{display:none}
     .acc-tab{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:10px 18px;font-size:13px;font-family:inherit;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:.03em;transition:color .15s}
@@ -31,6 +32,34 @@
     .acc-status{display:inline-block;margin-left:8px;font-size:11px;background:var(--pink-soft,#F6E4E6);color:var(--wine);border-radius:20px;padding:1px 8px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
     .acc-news-row{display:flex;align-items:center;gap:9px;margin:14px 0 0;font-size:13px;cursor:pointer;user-select:none}
     .acc-news-row input[type="checkbox"]{width:16px;height:16px;flex:0 0 auto;accent-color:var(--wine,#82213E);cursor:pointer}
+
+    /* ── desktop: sidebar layout ── */
+    @media(min-width:901px){
+      #account{max-width:900px!important;margin-left:auto!important;margin-right:auto!important}
+      .acc-desktop-shell{display:grid;grid-template-columns:210px 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg,#fff);min-height:520px}
+      .acc-sidebar{background:var(--cream,#FAF6F3);padding:28px 18px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+      .acc-sidebar-avatar{width:54px;height:54px;border-radius:50%;background:var(--pink-soft,#F6E4E6);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:var(--wine,#82213E);margin:0 auto 10px;flex-shrink:0}
+      .acc-sidebar-name{font-size:14.5px;font-weight:600;text-align:center;color:var(--ink,#1C1C1C);margin-bottom:2px}
+      .acc-sidebar-email{font-size:12px;color:var(--muted,#888);text-align:center;margin-bottom:16px}
+      .acc-sidebar-divider{height:1px;background:var(--line,#E8E0D8);margin:6px 0}
+      .acc-sidebar-nav{background:none;border:none;border-radius:6px;padding:9px 12px;font-size:13px;font-family:inherit;font-weight:600;color:var(--muted,#888);cursor:pointer;white-space:nowrap;letter-spacing:.03em;transition:background .15s,color .15s;display:flex;align-items:center;gap:9px;width:100%;text-align:left}
+      .acc-sidebar-nav:hover{background:var(--bg,#fff);color:var(--ink,#1C1C1C)}
+      .acc-sidebar-nav.active{background:var(--bg,#fff);color:var(--wine,#82213E)}
+      .acc-sidebar-nav svg{flex-shrink:0;opacity:.6}
+      .acc-sidebar-nav.active svg{opacity:1}
+      .acc-sidebar-signout{margin-top:auto;padding-top:14px}
+      .acc-sidebar-signout button{background:none;border:none;font-size:12.5px;font-family:inherit;color:var(--muted,#888);cursor:pointer;padding:8px 12px;display:flex;align-items:center;gap:7px;width:100%;border-radius:6px;letter-spacing:.02em}
+      .acc-sidebar-signout button:hover{color:var(--ink,#1C1C1C);background:var(--bg,#fff)}
+      .acc-content{padding:32px 36px;overflow-y:auto}
+      .acc-mobile-header{display:none}
+      .acc-tabs{display:none}
+    }
+    @media(max-width:900px){
+      .acc-desktop-shell{display:contents}
+      .acc-sidebar{display:none}
+      .acc-content{display:contents}
+      .acc-sidebar-signout{display:none}
+    }
   </style>
 </head>
 <body>
@@ -41,6 +70,7 @@
       <span class="eyebrow" data-i18n="acc.signInTitle">Sign in</span>
       <h1 data-i18n="acc.title">My Account</h1>
     </div>
+    <div id="acc-debug" style="font-size:11px;color:#888;text-align:center;margin-bottom:8px"></div>
     <div id="account" style="max-width:460px;margin:0 auto 90px"></div>
   </main>
 
@@ -237,22 +267,13 @@
         function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
         var displayName = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || '';
 
-        root.innerHTML =
-          '<div style="text-align:center;margin-bottom:28px">' +
-            '<p class="eyebrow">' + t('acc.welcome') + '</p>' +
-            '<h2 style="font-size:24px;margin:6px 0 4px">' + esc(displayName || user.email) + '</h2>' +
-            '<p class="muted" style="font-size:13px">' + esc(user.email) + '</p>' +
-            '<button class="btn btn--ghost" id="signOutBtn" style="margin-top:14px">' + t('acc.signOut') + '</button>' +
-          '</div>' +
+        var initials = (displayName || user.email || '?').charAt(0).toUpperCase();
+        var isDesktop = window.innerWidth > 900;
+        var dbg = document.getElementById('acc-debug');
+        if (dbg) dbg.textContent = 'viewport: ' + window.innerWidth + 'px — layout: ' + (isDesktop ? 'DESKTOP sidebar' : 'MOBILE tabs');
 
-          '<nav class="acc-tabs">' +
-            '<button class="acc-tab acc-tab--active" data-tab="profile">'  + t('acc.tabProfile')  + '</button>' +
-            '<button class="acc-tab" data-tab="address">' + t('acc.tabAddress') + '</button>' +
-            '<button class="acc-tab" data-tab="security">' + t('acc.tabSecurity') + '</button>' +
-            '<button class="acc-tab" data-tab="orders">'   + t('acc.tabOrders')   + '</button>' +
-          '</nav>' +
-
-          // ── Profile ──
+        // ── shared panels HTML ──
+        var panelsHTML =
           '<div id="acc-panel-profile" class="acc-panel">' +
             '<h3 class="acc-panel-title">' + t('acc.tabProfile') + '</h3>' +
             '<form id="profileForm" novalidate>' +
@@ -268,8 +289,6 @@
               '<p class="acc-save-msg" id="profileMsg"></p>' +
             '</form>' +
           '</div>' +
-
-          // ── Address ──
           '<div id="acc-panel-address" class="acc-panel" style="display:none">' +
             '<h3 class="acc-panel-title">' + t('acc.addrTitle') + '</h3>' +
             '<form id="addressForm" novalidate>' +
@@ -296,8 +315,6 @@
               '<p class="acc-save-msg" id="addressMsg"></p>' +
             '</form>' +
           '</div>' +
-
-          // ── Security ──
           '<div id="acc-panel-security" class="acc-panel" style="display:none">' +
             '<h3 class="acc-panel-title">' + t('acc.tabSecurity') + '</h3>' +
             '<form id="securityForm" novalidate>' +
@@ -311,29 +328,89 @@
               '<p class="acc-save-msg" id="secMsg"></p>' +
             '</form>' +
           '</div>' +
-
-          // ── Orders ──
           '<div id="acc-panel-orders" class="acc-panel" style="display:none">' +
             '<h3 class="acc-panel-title">' + t('acc.tabOrders') + '</h3>' +
             '<div id="ordersList"><p class="muted" style="padding:14px 0">…</p></div>' +
           '</div>';
 
-        // sign out
-        document.getElementById('signOutBtn').addEventListener('click', function () {
-          Auth.signOut().then(function () { location.reload(); });
-        });
+        if (isDesktop) {
+          // ── desktop: sidebar layout ──
+          root.style.maxWidth = '900px';
+          root.innerHTML =
+            '<div class="acc-desktop-shell">' +
+              '<aside class="acc-sidebar">' +
+                '<div class="acc-sidebar-avatar">' + initials + '</div>' +
+                '<div class="acc-sidebar-name">' + esc(displayName || user.email) + '</div>' +
+                '<div class="acc-sidebar-email">' + esc(user.email) + '</div>' +
+                '<div class="acc-sidebar-divider"></div>' +
+                '<button class="acc-sidebar-nav active" data-tab="profile">' +
+                  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>' +
+                  t('acc.tabProfile') + '</button>' +
+                '<button class="acc-sidebar-nav" data-tab="address">' +
+                  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>' +
+                  t('acc.tabAddress') + '</button>' +
+                '<button class="acc-sidebar-nav" data-tab="security">' +
+                  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
+                  t('acc.tabSecurity') + '</button>' +
+                '<button class="acc-sidebar-nav" data-tab="orders">' +
+                  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
+                  t('acc.tabOrders') + '</button>' +
+                '<div class="acc-sidebar-signout">' +
+                  '<button id="signOutBtn">' +
+                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>' +
+                    t('acc.signOut') + '</button>' +
+                '</div>' +
+              '</aside>' +
+              '<div class="acc-content">' + panelsHTML + '</div>' +
+            '</div>';
 
-        // tab switching
-        var ordersLoaded = false;
-        root.querySelectorAll('.acc-tab').forEach(function (tab) {
-          tab.addEventListener('click', function () {
-            root.querySelectorAll('.acc-tab').forEach(function (b) { b.classList.remove('acc-tab--active'); });
-            root.querySelectorAll('.acc-panel').forEach(function (p) { p.style.display = 'none'; });
-            this.classList.add('acc-tab--active');
-            document.getElementById('acc-panel-' + this.dataset.tab).style.display = '';
-            if (this.dataset.tab === 'orders' && !ordersLoaded) { ordersLoaded = true; loadOrders(); }
+          document.getElementById('signOutBtn').addEventListener('click', function () {
+            Auth.signOut().then(function () { location.reload(); });
           });
-        });
+
+          var ordersLoaded = false;
+          root.querySelectorAll('.acc-sidebar-nav').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              root.querySelectorAll('.acc-sidebar-nav').forEach(function (b) { b.classList.remove('active'); });
+              this.classList.add('active');
+              root.querySelectorAll('.acc-panel').forEach(function (p) { p.style.display = 'none'; });
+              document.getElementById('acc-panel-' + this.dataset.tab).style.display = '';
+              if (this.dataset.tab === 'orders' && !ordersLoaded) { ordersLoaded = true; loadOrders(); }
+            });
+          });
+
+        } else {
+          // ── mobile: original tab layout ──
+          root.innerHTML =
+            '<div style="text-align:center;margin-bottom:28px">' +
+              '<p class="eyebrow">' + t('acc.welcome') + '</p>' +
+              '<h2 style="font-size:24px;margin:6px 0 4px">' + esc(displayName || user.email) + '</h2>' +
+              '<p class="muted" style="font-size:13px">' + esc(user.email) + '</p>' +
+              '<button class="btn btn--ghost" id="signOutBtn" style="margin-top:14px">' + t('acc.signOut') + '</button>' +
+            '</div>' +
+            '<nav class="acc-tabs">' +
+              '<button class="acc-tab acc-tab--active" data-tab="profile">'  + t('acc.tabProfile')  + '</button>' +
+              '<button class="acc-tab" data-tab="address">' + t('acc.tabAddress') + '</button>' +
+              '<button class="acc-tab" data-tab="security">' + t('acc.tabSecurity') + '</button>' +
+              '<button class="acc-tab" data-tab="orders">'   + t('acc.tabOrders')   + '</button>' +
+            '</nav>' +
+            panelsHTML;
+
+          document.getElementById('signOutBtn').addEventListener('click', function () {
+            Auth.signOut().then(function () { location.reload(); });
+          });
+
+          var ordersLoaded = false;
+          root.querySelectorAll('.acc-tab').forEach(function (tab) {
+            tab.addEventListener('click', function () {
+              root.querySelectorAll('.acc-tab').forEach(function (b) { b.classList.remove('acc-tab--active'); });
+              root.querySelectorAll('.acc-panel').forEach(function (p) { p.style.display = 'none'; });
+              this.classList.add('acc-tab--active');
+              document.getElementById('acc-panel-' + this.dataset.tab).style.display = '';
+              if (this.dataset.tab === 'orders' && !ordersLoaded) { ordersLoaded = true; loadOrders(); }
+            });
+          });
+        }
 
         // load profile & address from DB
         if (window.DB && DB.getProfile) {
