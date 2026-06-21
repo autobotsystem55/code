@@ -142,6 +142,7 @@
         b.addEventListener('click', function () {
           sel.size = b.getAttribute('data-size');
           root.querySelectorAll('[data-size]').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+          paintCurrentSizeRow();
         });
       });
       // ---- qty ----
