@@ -76,7 +76,7 @@
             '<div class="field" id="nameField" style="display:none"><label>' + t('acc.name') + '</label><input name="name" autocomplete="name"></div>' +
             '<div class="field" id="phoneField" style="display:none">' +
               '<label>' + t('acc.phone') + '</label>' +
-              '<input name="phone" type="tel" placeholder="' + t('acc.phonePh') + '" autocomplete="tel">' +
+              '<input name="phone" type="tel" placeholder="' + t('acc.phonePh') + '" autocomplete="tel" required>' +
               '<p id="phoneErr" style="display:none;font-size:12px;color:var(--wine);margin:4px 0 0"></p>' +
             '</div>' +
             // identifier: "Email" in signup, "Email or phone" in signin
@@ -158,17 +158,39 @@
           };
 
           if (mode === 'signup') {
-            // validate phone if provided
             var rawPhone = form.phone.value.trim();
-            if (rawPhone && !validMyOrSg(rawPhone)) {
+            var pe = document.getElementById('phoneErr');
+            pe.style.display = 'none';
+            // phone is required
+            if (!rawPhone) {
               btn.disabled = false;
-              var pe = document.getElementById('phoneErr');
+              pe.textContent = t('acc.phoneRequired'); pe.style.display = '';
+              return;
+            }
+            // phone must be MY or SG
+            if (!validMyOrSg(rawPhone)) {
+              btn.disabled = false;
               pe.textContent = t('acc.phoneErr'); pe.style.display = '';
               return;
             }
-            var normPhone = rawPhone ? normalizePhone(rawPhone) : '';
-            Auth.signUp(identifier, pw, form.name.value.trim(), normPhone)
-              .then(done, function () { done({ error: {} }); });
+            var normPhone = normalizePhone(rawPhone);
+            // check phone not already taken before creating account
+            var doSignup = function () {
+              Auth.signUp(identifier, pw, form.name.value.trim(), normPhone)
+                .then(done, function () { done({ error: {} }); });
+            };
+            if (window.DB && DB.emailByPhone) {
+              DB.emailByPhone(normPhone).then(function (r) {
+                if (r.data && r.data.email) {
+                  btn.disabled = false;
+                  pe.textContent = t('acc.phoneTaken'); pe.style.display = '';
+                  return;
+                }
+                doSignup();
+              }, doSignup); // if lookup itself fails, proceed (don't block signup)
+            } else {
+              doSignup();
+            }
 
           } else {
             // sign-in: email or phone
