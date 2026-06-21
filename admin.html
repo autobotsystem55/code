@@ -106,17 +106,40 @@
     .bars .bar{flex:1;background:var(--pink);border-radius:4px 4px 0 0;position:relative;min-height:3px}
     .bars .bar span{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted)}
 
+    /* ---------- hamburger ---------- */
+    .mob-bar{display:none}
+    .ham{width:40px;height:40px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:6px;background:var(--white);cursor:pointer;flex-shrink:0}
+    .ham span{display:block;width:18px;height:2px;background:var(--ink2);border-radius:2px;transition:.2s}
+    .ham.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    .ham.open span:nth-child(2){opacity:0}
+    .ham.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+    .mob-drawer{display:none;position:fixed;inset:0;z-index:200}
+    .mob-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+    .mob-panel{position:absolute;top:0;left:0;bottom:0;width:260px;background:var(--cream2);display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;box-shadow:4px 0 24px rgba(0,0,0,.12)}
+    .mob-panel.slide-in{transform:translateX(0)}
+    .mob-panel .mpbrand{font-family:var(--serif);font-size:22px;padding:22px 20px 18px;border-bottom:1px solid var(--line)}
+    .mob-panel .mpbrand sup{font-size:.42em;color:var(--wine)}
+    .mob-panel .mpnav{display:flex;flex-direction:column;padding:8px 12px;gap:2px;flex:1;overflow-y:auto}
+    .mob-panel .mpnav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:13px 14px;font-size:15px;color:var(--ink2);border-radius:6px;transition:.18s}
+    .mob-panel .mpnav button:hover{background:var(--blush)}
+    .mob-panel .mpnav button.on{background:var(--wine);color:var(--cream)}
+    .mob-panel .mpnav button.on svg{stroke:var(--cream)}
+    .mob-panel .mpnav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6}
+    .mob-panel .mpfoot{padding:14px 16px 28px;border-top:1px solid var(--line);font-size:13px;display:flex;gap:14px}
+    .mob-panel .mpfoot a,.mob-panel .mpfoot button{color:var(--muted)}
+    .mob-panel .mpfoot a:hover,.mob-panel .mpfoot button:hover{color:var(--wine)}
+
     @media(max-width:860px){
       .shell{grid-template-columns:1fr}
-      .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:none;border-bottom:1px solid var(--line)}
-      .side .brand{padding:16px 18px;font-size:20px}
-      .nav{flex-direction:row;flex-wrap:wrap;flex:1}
-      .nav button{padding:8px 11px}
-      .side-foot{margin:0;border-top:none;padding:10px 16px;display:flex;gap:12px}
+      .side{display:none}
+      .mob-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--cream2);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
+      .mob-bar .mb-brand{font-family:var(--serif);font-size:20px}
+      .mob-bar .mb-brand sup{font-size:.42em;color:var(--wine)}
+      .mob-drawer{display:block}
       .stats{grid-template-columns:repeat(2,1fr)}
       .row2{grid-template-columns:1fr}
-      .topbar,.view{padding-left:18px;padding-right:18px}
-      .topbar h1{font-size:24px}
+      .topbar{display:none}
+      .view{padding-left:16px;padding-right:16px;padding-top:18px}
     }
 
     /* ===== inventory console (design C) ===== */
@@ -570,23 +593,53 @@
     // ---------- app shell ----------
     var NAV=[['dash','概览',ICON.dash],['products','商品',ICON.box],['inventory','库存',ICON.inv],['orders','订单',ICON.bag],['customers','顾客',ICON.user],['discounts','优惠券',ICON.tag],['shipping','运费 & 自提',ICON.truck],['settings','设置',ICON.gear]];
     function renderApp(u){
-      root.innerHTML='<div class="shell">'+
-        '<aside class="side">'+
-          '<div class="brand">'+esc(CFG.brand||'Code Official')+' <sup>✿</sup></div>'+
-          '<nav class="nav" id="nav">'+NAV.map(function(n){return '<button data-s="'+n[0]+'">'+n[2]+'<span>'+n[1]+'</span></button>';}).join('')+'</nav>'+
-          '<div class="side-foot"><a href="index.html" target="_blank">↗ 查看店面</a><button id="signout">退出登录</button></div>'+
-        '</aside>'+
-        '<main class="main">'+
-          '<div class="topbar"><h1 id="title">概览</h1><div class="who">'+esc(u.email)+'</div></div>'+
-          '<div class="view" id="view"><p class="muted">载入中…</p></div>'+
-        '</main></div>';
+      var brandName=esc(CFG.brand||'Code Official');
+      var navHTML=NAV.map(function(n){return '<button data-s="'+n[0]+'">'+n[2]+'<span>'+n[1]+'</span></button>';}).join('');
+      root.innerHTML=
+        '<div class="mob-bar">'+
+          '<div class="mb-brand">'+brandName+' <sup>✿</sup></div>'+
+          '<button class="ham" id="ham"><span></span><span></span><span></span></button>'+
+        '</div>'+
+        '<div class="mob-drawer" id="mob-drawer">'+
+          '<div class="mob-overlay" id="mob-overlay"></div>'+
+          '<div class="mob-panel" id="mob-panel">'+
+            '<div class="mpbrand">'+brandName+' <sup>✿</sup></div>'+
+            '<nav class="mpnav" id="mob-nav">'+navHTML+'</nav>'+
+            '<div class="mpfoot"><a href="index.html" target="_blank">↗ 查看店面</a><button id="mob-signout">退出登录</button></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="shell">'+
+          '<aside class="side">'+
+            '<div class="brand">'+brandName+' <sup>✿</sup></div>'+
+            '<nav class="nav" id="nav">'+navHTML+'</nav>'+
+            '<div class="side-foot"><a href="index.html" target="_blank">↗ 查看店面</a><button id="signout">退出登录</button></div>'+
+          '</aside>'+
+          '<main class="main">'+
+            '<div class="topbar"><h1 id="title">概览</h1><div class="who">'+esc(u.email)+'</div></div>'+
+            '<div class="view" id="view"><p class="muted">载入中…</p></div>'+
+          '</main>'+
+        '</div>';
       view=document.getElementById('view');
+
+      // desktop signout
       document.getElementById('signout').addEventListener('click',function(){Auth.signOut().then(function(){location.reload();});});
       document.getElementById('nav').addEventListener('click',function(e){var b=e.target.closest('[data-s]');if(b)show(b.getAttribute('data-s'));});
+
+      // mobile drawer
+      var ham=document.getElementById('ham');
+      var drawer=document.getElementById('mob-drawer');
+      var panel=document.getElementById('mob-panel');
+      function openDrawer(){ham.classList.add('open');drawer.style.display='block';setTimeout(function(){panel.classList.add('slide-in');},10);}
+      function closeDrawer(){ham.classList.remove('open');panel.classList.remove('slide-in');setTimeout(function(){drawer.style.display='none';},220);}
+      ham.addEventListener('click',function(){panel.classList.contains('slide-in')?closeDrawer():openDrawer();});
+      document.getElementById('mob-overlay').addEventListener('click',closeDrawer);
+      document.getElementById('mob-signout').addEventListener('click',function(){Auth.signOut().then(function(){location.reload();});});
+      document.getElementById('mob-nav').addEventListener('click',function(e){var b=e.target.closest('[data-s]');if(b){show(b.getAttribute('data-s'));closeDrawer();}});
+
       show('dash');
     }
     function show(s){
-      document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-s')===s);});
+      document.querySelectorAll('#nav button, #mob-nav button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-s')===s);});
       var titles={dash:'概览',products:'商品',inventory:'库存',orders:'订单',customers:'顾客',discounts:'优惠券',bundles:'组合价 · 套装',shipping:'运费 & 自提',settings:'设置'};
       document.getElementById('title').textContent=titles[s];
       view.innerHTML='<p class="muted">载入中…</p>';
