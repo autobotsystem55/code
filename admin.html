@@ -1714,8 +1714,6 @@
             '<div class="grid">'+
               fT('s_cur','货币代码 (MYR/HKD/USD)',esc(g('currency','MYR')))+
               fT('s_sym','货币符号 (RM/HK$/$)',esc(sym))+
-              fAffix('s_free','免运门槛',sym,g('freeShippingThreshold',150))+
-              fAffix('s_ship','统一运费',sym,g('shippingFlat',10))+
             '</div>')+
           card(IC.track,'广告追踪','Facebook / Meta 像素追踪',
             '<div class="grid"><div class="field full"><label class="lbl">Facebook Pixel ID</label><input type="text" id="s_pixel" value="'+esc(pix)+'" placeholder="纯数字，如 1234567890123456"><div class="help">在 Meta「事件管理工具」里复制（一串数字）。</div></div></div>')+
@@ -1743,7 +1741,6 @@
         document.getElementById('saveS').addEventListener('click',function(){
           var out={brand:v('s_brand'),tagline:v('s_tag'),email:v('s_email'),defaultLang:document.getElementById('s_lang').value,
             currency:v('s_cur'),currencySymbol:v('s_sym'),pixelId:v('s_pixel'),
-            freeShippingThreshold:parseFloat(v('s_free'))||0,shippingFlat:parseFloat(v('s_ship'))||0,
             paymentMode:curMode,paymentLink:curMode==='demo'?'':v('s_link'),
             bundlesEnabled:document.getElementById('s_bun').classList.contains('on'),bundlesOnHome:document.getElementById('s_bunHome').classList.contains('on')};
           var btn=document.getElementById('saveS'),pill=document.getElementById('savedPill'),hint=document.getElementById('sm');
