@@ -1719,11 +1719,12 @@
             '</div>'+
             zones.map(function(z,i){return accHTML(z,i);}).join('')+
             '<div class="sh-add"><button id="shAdd">+ 新增运费区</button></div>'+
-            '<div style="margin-top:18px;display:flex;justify-content:flex-end;align-items:center;gap:10px">'+
+            '<p class="muted" style="margin-top:18px;margin-bottom:0;font-size:12px">提示：目前结账页仍使用「设置」里的统一运费做演示；分区运费数据已保存，后续可接入结账自动按州属计费。</p>'+
+            '<div style="margin-top:14px;border-top:0.5px solid var(--border);padding:12px 0 4px;display:flex;align-items:center;gap:10px">'+
+              '<button class="btn btn--ghost" id="shDiscard">放弃更改</button>'+
+              '<button class="btn" id="shSave" style="flex:1">保存运费设置</button>'+
               '<span class="sh-saved" id="shSaved"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>已保存</span>'+
-              '<button class="btn" id="shSave">保存运费设置</button>'+
             '</div>'+
-            '<p class="muted" style="margin-top:10px;font-size:12px">提示：目前结账页仍使用「设置」里的统一运费做演示；分区运费数据已保存，后续可接入结账自动按州属计费。</p>'+
           '</div>';
           bind();
         }
@@ -1813,6 +1814,13 @@
             render();
           });
           document.getElementById('shSave').addEventListener('click',saveZones);
+          document.getElementById('shDiscard').addEventListener('click',function(){
+            DB.getSettings().then(function(r){
+              var s=(r&&r.data&&r.data.data)||{};
+              zones=Array.isArray(s.shippingZones)&&s.shippingZones.length?JSON.parse(JSON.stringify(s.shippingZones)):defaultZones();
+              render();
+            });
+          });
         }
         function pull(idx){
           var acc=document.querySelector('.sh-acc[data-i="'+idx+'"]');
