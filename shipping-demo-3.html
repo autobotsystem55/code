@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运费 & 自提 · Demo 3（折叠式）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFFAF1;--cream2:#FAF6F3;--white:#fff;
+  --wine:#82213E;--wine-deep:#6A1A32;--pink:#E9C9CC;--blush:#F2E4D9;
+  --ink:#1C1C1C;--ink2:#3E3E3E;--muted:#6F635C;--line:#ECD9D6;--line2:#E2DCD8;
+  --green:#2F7D4F;--green-bg:#E3F1E8;
+  --serif:'DM Serif Display',Georgia,serif;--sans:'DM Sans',-apple-system,Segoe UI,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--ink);background:var(--cream);font-size:15px;line-height:1.6}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit;font-size:14px;color:inherit}
+h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:1.1}
+.muted{color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--wine);color:var(--cream);padding:10px 18px;font-size:13px;font-weight:500;border:1px solid var(--wine);transition:.2s}
+.btn:hover{background:var(--wine-deep)}
+.btn--ghost{background:transparent;color:var(--wine)}
+.btn--ghost:hover{background:var(--wine);color:var(--cream)}
+.btn--sm{padding:7px 13px;font-size:12px}
+
+.shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+.side{background:var(--cream2);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side .brand{font-family:var(--serif);font-size:24px;padding:24px 24px 20px}
+.side .brand sup{font-size:.42em;color:var(--wine)}
+.nav{display:flex;flex-direction:column;padding:6px 12px;gap:2px}
+.nav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:11px 14px;font-size:14px;color:var(--ink2);border-radius:6px;transition:.18s}
+.nav button:hover{background:var(--blush)}
+.nav button.on{background:var(--wine);color:var(--cream)}
+.nav button.on svg{stroke:var(--cream)}
+.nav svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6}
+.nav .new{margin-left:auto;font-size:10px;letter-spacing:.06em;background:var(--pink);color:var(--wine);padding:2px 7px;border-radius:999px}
+.nav button.on .new{background:rgba(255,255,255,.22);color:var(--cream)}
+.side-foot{margin-top:auto;padding:16px 16px 22px;border-top:1px solid var(--line);font-size:13px}
+.side-foot a,.side-foot button{display:block;color:var(--muted);padding:6px 8px}
+
+.main{min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 30px;border-bottom:1px solid var(--line);background:var(--cream)}
+.topbar h1{font-size:30px}
+.topbar .who{font-size:13px;color:var(--muted)}
+.view{padding:26px 30px 70px;max-width:920px}
+
+/* mini stats */
+.mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.mstat{background:var(--white);border:1px solid var(--line);padding:14px 18px}
+.mstat .n{font-family:var(--serif);font-size:26px;line-height:1;color:var(--wine)}
+.mstat .l{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+/* accordion */
+.acc{background:var(--white);border:1px solid var(--line);margin-bottom:14px;transition:.2s;overflow:hidden}
+.acc:hover{border-color:var(--pink)}
+.acc.open{border-color:var(--wine)}
+.acc .head{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:18px;align-items:center;padding:18px 22px;cursor:pointer;transition:.18s}
+.acc .head:hover{background:var(--cream2)}
+.acc.open .head{background:var(--cream2);border-bottom:1px solid var(--line)}
+.flag{width:36px;height:24px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;letter-spacing:0;flex-shrink:0}
+.flag.my{background:#cc0001}
+.flag.sg{background:linear-gradient(180deg,#ED2939 50%,#fff 50%);color:#ED2939;border:1px solid var(--line2)}
+.acc .nm{font-weight:500;font-size:15px}
+.acc .nm .en{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
+.acc .nm .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.acc .fee{font-family:var(--serif);font-size:22px;color:var(--wine);text-align:right;min-width:90px}
+.acc .fee small{font-family:var(--sans);font-size:11px;color:var(--muted);display:block;margin-top:1px;letter-spacing:.04em}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:999px;background:var(--green-bg);color:var(--green);font-weight:500}
+.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.off{background:var(--line2);color:var(--muted)}
+.pill.off::before{background:var(--muted)}
+.caret{width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;transition:.2s}
+.acc.open .caret{transform:rotate(180deg);stroke:var(--wine)}
+
+.acc .body{display:none;padding:22px 22px 24px}
+.acc.open .body{display:block}
+
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:600}
+.field input{width:100%;padding:10px 12px;background:var(--white);border:1px solid var(--line2);outline:none}
+.field input:focus{border-color:var(--wine)}
+.rate-input{position:relative}
+.rate-input .cur{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);font-weight:500}
+.rate-input input{padding-left:48px}
+.subgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;padding:4px 0}
+.subgrid label{display:flex;align-items:center;gap:9px;font-size:13px;padding:4px 0;cursor:pointer}
+.subgrid input{width:15px;height:15px;accent-color:var(--wine);cursor:pointer}
+.subgrid label.dim{color:var(--muted)}
+.h{font-size:12px;font-weight:600;color:var(--ink2);margin:0 0 8px;letter-spacing:.04em}
+.toggle{display:flex;align-items:flex-start;gap:9px;padding:7px 0;font-size:13px;cursor:pointer}
+.toggle input{margin-top:3px;accent-color:var(--wine);width:15px;height:15px;cursor:pointer}
+.toggle .ts{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+.acc .foot{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.acc .foot .del{font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.acc .foot .del:hover{color:var(--wine)}
+.acc .foot .right{display:flex;gap:8px}
+
+/* add new */
+.addbar{margin-top:6px;display:flex;justify-content:center}
+.addbar button{display:inline-flex;align-items:center;gap:7px;padding:11px 22px;border:1px dashed var(--line2);color:var(--muted);background:var(--white);font-size:13px;transition:.2s;border-radius:4px}
+.addbar button:hover{border-color:var(--wine);color:var(--wine);background:var(--cream2)}
+
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;border-right:none;border-bottom:1px solid var(--line)}
+  .side .brand{padding:16px 18px;font-size:20px}
+  .nav{flex-direction:row;flex-wrap:wrap;flex:1}
+  .nav button{padding:8px 11px}
+  .side-foot{margin:0;border-top:none;padding:10px 16px;display:flex;gap:12px}
+  .acc .head{grid-template-columns:auto 1fr auto;gap:12px}
+  .acc .head .pill,.acc .head .caret{display:none}
+  .bgrid{grid-template-columns:1fr}
+  .mstats{grid-template-columns:1fr}
+  .topbar,.view{padding-left:18px;padding-right:18px}
+  .topbar h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">Code Official <sup>✿</sup></div>
+    <nav class="nav">
+      <button><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span>概览</span></button>
+      <button><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/></svg><span>商品</span></button>
+      <button><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7M3 12l9 4 9-4"/></svg><span>库存</span></button>
+      <button><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7L6 7zM9 7a3 3 0 0 1 6 0"/></svg><span>订单</span></button>
+      <button><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg><span>顾客</span></button>
+      <button><svg viewBox="0 0 24 24"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V4h9l8.6 8.6a1 1 0 0 1 0 .8z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg><span>优惠券</span></button>
+      <button class="on"><svg viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h5l2 3v3h-7zM7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg><span>运费 & 自提</span><span class="new">新</span></button>
+      <button><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>设置</span></button>
+    </nav>
+    <div class="side-foot">
+      <a href="index.html" target="_blank">↗ 查看店面</a>
+      <button>退出登录</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h1>运费 & 自提</h1>
+      <div class="who">autobot.system55@gmail.com</div>
+    </div>
+
+    <div class="view">
+
+      <div class="mstats">
+        <div class="mstat"><div class="n">3</div><div class="l">已设置地区</div></div>
+        <div class="mstat"><div class="n">RM 9 – 25</div><div class="l">运费区间</div></div>
+        <div class="mstat"><div class="n">17</div><div class="l">覆盖州属 / 国家</div></div>
+      </div>
+
+      <!-- 西马 — open by default -->
+      <div class="acc open" id="acc-wm">
+        <div class="head" onclick="toggle('acc-wm')">
+          <span class="flag my">MY</span>
+          <div>
+            <div class="nm">马来西亚西马 <span class="en">Peninsular Malaysia</span></div>
+            <div class="sub">柔佛、吉打、吉隆坡、槟城… 共 13 个州属</div>
+          </div>
+          <div class="fee">RM 9.00<small>/ 单</small></div>
+          <span class="pill">已启用</span>
+          <svg class="caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="body">
+          <div class="bgrid">
+            <div>
+              <h4 class="h">运送方式</h4>
+              <div class="field">
+                <label>运费名称</label>
+                <input type="text" value="西马运费">
+              </div>
+              <div class="field">
+                <label>每单运费</label>
+                <div class="rate-input"><span class="cur">MYR</span><input type="number" value="9" step="0.01"></div>
+              </div>
+              <div class="field">
+                <label>满额免运（可选）</label>
+                <div class="rate-input"><span class="cur">MYR</span><input type="number" value="199" step="0.01"></div>
+              </div>
+              <h4 class="h" style="margin-top:14px">付款方式</h4>
+              <label class="toggle"><input type="checkbox" checked><div>允许预付订单<span class="ts">所有付款方式（货到付款除外）</span></div></label>
+              <label class="toggle"><input type="checkbox"><div>允许货到付款（COD）<span class="ts">送达后再付款</span></div></label>
+            </div>
+            <div>
+              <h4 class="h">覆盖州属</h4>
+              <div class="subgrid">
+                <label><input type="checkbox" checked> Johor 柔佛</label>
+                <label><input type="checkbox" checked> Kedah 吉打</label>
+                <label><input type="checkbox" checked> Kelantan 吉兰丹</label>
+                <label><input type="checkbox" checked> Kuala Lumpur 吉隆坡</label>
+                <label class="dim"><input type="checkbox"> Labuan 纳闽</label>
+                <label><input type="checkbox" checked> Melaka 马六甲</label>
+                <label><input type="checkbox" checked> Negeri Sembilan 森美兰</label>
+                <label><input type="checkbox" checked> Pahang 彭亨</label>
+                <label><input type="checkbox" checked> Penang 槟城</label>
+                <label><input type="checkbox" checked> Perak 霹雳</label>
+                <label><input type="checkbox" checked> Perlis 玻璃市</label>
+                <label><input type="checkbox" checked> Putrajaya 布城</label>
+                <label class="dim"><input type="checkbox"> Sabah 沙巴</label>
+                <label class="dim"><input type="checkbox"> Sarawak 砂拉越</label>
+                <label><input type="checkbox" checked> Selangor 雪兰莪</label>
+                <label><input type="checkbox" checked> Terengganu 登嘉楼</label>
+              </div>
+            </div>
+          </div>
+          <div class="foot">
+            <button class="del">🗑 删除此运费区</button>
+            <div class="right">
+              <button class="btn btn--ghost btn--sm">取消修改</button>
+              <button class="btn btn--sm">保存修改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 东马 -->
+      <div class="acc" id="acc-em">
+        <div class="head" onclick="toggle('acc-em')">
+          <span class="flag my">MY</span>
+          <div>
+            <div class="nm">马来西亚东马 <span class="en">East Malaysia</span></div>
+            <div class="sub">沙巴、砂拉越、纳闽</div>
+          </div>
+          <div class="fee">RM 15.00<small>/ 单</small></div>
+          <span class="pill">已启用</span>
+          <svg class="caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="body">
+          <div class="bgrid">
+            <div>
+              <h4 class="h">运送方式</h4>
+              <div class="field"><label>运费名称</label><input type="text" value="东马运费"></div>
+              <div class="field"><label>每单运费</label><div class="rate-input"><span class="cur">MYR</span><input type="number" value="15" step="0.01"></div></div>
+              <div class="field"><label>满额免运（可选）</label><div class="rate-input"><span class="cur">MYR</span><input type="number" value="299" step="0.01"></div></div>
+            </div>
+            <div>
+              <h4 class="h">覆盖州属</h4>
+              <div class="subgrid">
+                <label><input type="checkbox" checked> Sabah 沙巴</label>
+                <label><input type="checkbox" checked> Sarawak 砂拉越</label>
+                <label><input type="checkbox" checked> Labuan 纳闽</label>
+              </div>
+            </div>
+          </div>
+          <div class="foot">
+            <button class="del">🗑 删除此运费区</button>
+            <div class="right">
+              <button class="btn btn--ghost btn--sm">取消修改</button>
+              <button class="btn btn--sm">保存修改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 新加坡 -->
+      <div class="acc" id="acc-sg">
+        <div class="head" onclick="toggle('acc-sg')">
+          <span class="flag sg">SG</span>
+          <div>
+            <div class="nm">新加坡 <span class="en">Singapore</span></div>
+            <div class="sub">全境</div>
+          </div>
+          <div class="fee">RM 25.00<small>/ 单</small></div>
+          <span class="pill">已启用</span>
+          <svg class="caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="body">
+          <div class="bgrid">
+            <div>
+              <h4 class="h">运送方式</h4>
+              <div class="field"><label>运费名称</label><input type="text" value="新加坡运费"></div>
+              <div class="field"><label>每单运费</label><div class="rate-input"><span class="cur">MYR</span><input type="number" value="25" step="0.01"></div></div>
+              <div class="field"><label>满额免运（可选）</label><div class="rate-input"><span class="cur">MYR</span><input type="number" value="399" step="0.01"></div></div>
+            </div>
+            <div>
+              <h4 class="h">覆盖范围</h4>
+              <div class="subgrid">
+                <label><input type="checkbox" checked> 新加坡全境</label>
+              </div>
+            </div>
+          </div>
+          <div class="foot">
+            <button class="del">🗑 删除此运费区</button>
+            <div class="right">
+              <button class="btn btn--ghost btn--sm">取消修改</button>
+              <button class="btn btn--sm">保存修改</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="addbar">
+        <button>+ 新增运费区</button>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+function toggle(id){
+  document.getElementById(id).classList.toggle('open');
+}
+</script>
+</body>
+</html>
