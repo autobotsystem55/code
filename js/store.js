@@ -231,7 +231,6 @@
               '<a href="policies.html#shipping">' + T('foot.shippingP') + '</a>' +
               '<a href="policies.html#terms">' + T('foot.terms') + '</a>' +
             '</nav>' +
-            '<div class="pay"><span>Visa</span><span>Master</span><span>Amex</span><span>PayPal</span><span>Apple Pay</span></div>' +
           '</div>' +
         '</div></footer>';
     }
