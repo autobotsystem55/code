@@ -141,6 +141,19 @@
       .view{padding-left:16px;padding-right:16px;padding-top:18px}
       .panel table th:last-child,.panel table td:last-child{display:none}
       .panel{padding:16px 14px}
+      /* 库存 */
+      .istats{grid-template-columns:repeat(2,1fr)}
+      .console{grid-template-columns:1fr}
+      .rail{position:static}
+      /* 设置 */
+      .setpage .grid{grid-template-columns:1fr}
+      .setpage .cards{columns:1}
+      .setpage .card{padding:16px 14px}
+      /* 商品列表隐藏额外列 */
+      .plist .ecat,.plist .eprice,.plist .estatus{display:none}
+      /* 防止任何内容横向撑出 */
+      .view,.panel,.erow,.esum,.eexp,.pedit,.pcol-main,.pcol-side{max-width:100%}
+      .panel{overflow-x:hidden}
     }
 
     /* ===== inventory console (design C) ===== */
@@ -481,7 +494,7 @@
     .sc-unit-block{margin-top:18px}
     .sc-unit-head{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--wine);margin-bottom:8px;display:flex;align-items:center;gap:6px}
     .sc-unit-head .badge{background:var(--pink-soft);color:var(--wine);padding:2px 8px;border-radius:4px;font-size:10px;letter-spacing:.05em}
-    .sc-tblwrap{border:1px solid var(--line2);border-radius:6px;overflow:hidden;background:var(--white)}
+    .sc-tblwrap{border:1px solid var(--line2);border-radius:6px;overflow-x:auto;background:var(--white)}
     .sc-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
     .sc-tbl th{background:var(--cream2);color:var(--wine);font-weight:600;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:8px 6px;text-align:center;border-bottom:1px solid var(--line2);position:relative}
     .sc-tbl td{padding:3px;border-bottom:1px solid var(--line2);background:var(--white)}
@@ -683,8 +696,7 @@
             '.plist .edel{border:0;background:transparent;cursor:pointer;font-size:15px;opacity:.55;flex:none}.plist .edel:hover{opacity:1}'+
             '.plist .ecaret{width:20px;height:20px;fill:none;stroke:var(--muted,#6F635C);stroke-width:2;transition:transform .2s;flex:none}'+
             '.plist .erow.open .ecaret{transform:rotate(90deg)}'+
-            '.plist .eexp{display:none;border-top:1px solid var(--line,#ECD9D6);padding:16px 14px}.plist .erow.open .eexp{display:block}'+
-            '@media(max-width:760px){.plist .ecat,.plist .eprice,.plist .estatus{display:none}}';
+            '.plist .eexp{display:none;border-top:1px solid var(--line,#ECD9D6);padding:16px 14px}.plist .erow.open .eexp{display:block}';
           document.head.appendChild(lst);}
         function rowHTML(p){
           var hasCmp=p.compare_at&&p.compare_at>p.price;
