@@ -1710,7 +1710,7 @@
               fT('s_email','联系邮箱',esc(g('email','')))+
               '<div class="field"><label class="lbl">默认语言</label><select id="s_lang"><option value=""'+(lang===''?' selected':'')+'>自动</option><option value="en"'+(lang==='en'?' selected':'')+'>English</option><option value="zh"'+(lang==='zh'?' selected':'')+'>中文</option></select></div>'+
             '</div>')+
-          card(IC.money,'货币与运费','结账显示的货币与运费规则',
+          card(IC.money,'货币','结账显示的货币设置',
             '<div class="grid">'+
               fT('s_cur','货币代码 (MYR/HKD/USD)',esc(g('currency','MYR')))+
               fT('s_sym','货币符号 (RM/HK$/$)',esc(sym))+
