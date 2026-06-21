@@ -12,9 +12,30 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    @keyframes co-flash{0%{background:#FFF6D9;border-color:#E7C66A}100%{background:var(--white,#fff);border-color:var(--pink-border,#DAB0B7)}}
+    input.co-autofill{animation:co-flash 1.2s ease}
+    .co-signup-row{display:flex;align-items:flex-start;gap:10px;margin:12px 0 0;padding:11px 12px;border:1px dashed var(--pink-border,#DAB0B7);border-radius:9px;background:var(--pink-soft,#F6E4E6);cursor:pointer;user-select:none}
+    .co-signup-row input[type="checkbox"]{width:17px;height:17px;flex:0 0 auto;margin-top:2px;accent-color:var(--wine,#82213E);cursor:pointer}
+    .co-signup-row .co-su-t b{display:block;font-size:13px;color:var(--wine-deep,#6A1A32)}
+    .co-signup-row .co-su-t span{display:block;font-size:11.5px;color:var(--muted,#6F635C);margin-top:1px}
+    .co-signup-pw{margin-top:10px}
+    .co-signup-pw .pw-row{display:flex;gap:8px}
+    .co-signup-pw .pw-row input{flex:1}
+    .co-auth-err{font-size:12px;color:var(--wine,#82213E);margin:5px 0 0}
+    .co-pw-field{margin-top:10px}
+    .co-signup-ok{background:#E3F1E8;border:1px solid #BFE0CC;border-radius:9px;padding:10px 13px;font-size:13px;color:#2F7D4F;font-weight:600;margin-top:10px;display:flex;align-items:center;gap:8px}
+    .co-signup-ok .co-su-tick{width:18px;height:18px;border-radius:50%;background:#2F7D4F;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex:0 0 auto}
+    .co-signout-btn{margin-left:auto;padding:4px 10px;font-size:11.5px}
+    .co-auth-toggle{font-size:12px;color:var(--muted,#6F635C);margin:8px 0 0;text-align:right}
+    .co-auth-toggle a{color:var(--wine,#82213E);font-weight:600;text-decoration:none}
+    .co-auth-toggle a:hover{text-decoration:underline}
+    .co-news-row{display:flex;align-items:center;gap:9px;margin:13px 0 0;font-size:13px;color:var(--ink,#1C1C1C);cursor:pointer;user-select:none}
+    .co-news-row input[type="checkbox"]{width:16px;height:16px;flex:0 0 auto;accent-color:var(--wine,#82213E);cursor:pointer}
+  </style>
 
   <script src="js/config.js"></script>
-  <script src="js/i18n.js"></script>
+  <script src="js/i18n.js?v=2"></script>
   <script src="js/pixel.js"></script>
 </head>
 <body>
@@ -82,7 +103,52 @@
         '<div class="checkout">' +
           '<form class="co-form" id="coForm" novalidate>' +
             '<fieldset><legend>' + t('co.contact') + '</legend>' +
+              '<div class="field"><label>' + t('co.name') + '</label><input id="cName" autocomplete="off" placeholder="—"></div>' +
               '<div class="field"><label>' + t('co.email') + '</label><input type="email" name="email" placeholder="you@email.com" required></div>' +
+              '<div class="field"><label>' + t('co.phone') + '</label><input id="cPhone" autocomplete="off" placeholder="—"></div>' +
+
+              // newsletter opt-in
+              '<label class="co-news-row"><input type="checkbox" id="coNewsChk" checked><span>' + t('co.newsletter') + '</span></label>' +
+
+              // ── auth section (3 states) ──────────────────────────────────
+              '<div id="coAuthSection">' +
+
+                // state A – guest (default)
+                '<div id="coAuthGuest">' +
+                  // signup row
+                  '<label class="co-signup-row" id="coSignupRow"><input type="checkbox" id="coSignupChk"><span class="co-su-t"><b>' + t('co.signupTitle') + '</b><span>' + t('co.signupSub') + '</span></span></label>' +
+                  '<div id="coSignupPwBox" style="display:none">' +
+                    '<div class="field co-pw-field"><label>' + t('co.signupPwLabel') + '</label>' +
+                      '<div class="pw-row"><input type="password" id="coSignupPw" placeholder="' + t('co.signupPwPh') + '" minlength="6"><button type="button" class="btn" id="coSignupBtn">' + t('co.signupDo') + '</button></div>' +
+                      '<p class="co-auth-err" id="coSignupErr" style="display:none"></p>' +
+                    '</div>' +
+                  '</div>' +
+                  // signin row (hidden until toggled)
+                  '<label class="co-signup-row" id="coSigninRow" style="display:none"><input type="checkbox" id="coSigninChk"><span class="co-su-t"><b>' + t('co.signinTitle') + '</b><span>' + t('co.signinSub') + '</span></span></label>' +
+                  '<div id="coSigninPwBox" style="display:none">' +
+                    '<div class="field co-pw-field"><label>' + t('co.signinPwLabel') + '</label>' +
+                      '<div class="pw-row"><input type="password" id="coSigninPw" placeholder="' + t('co.signinPwPh') + '"><button type="button" class="btn" id="coSigninBtn">' + t('co.signinDo') + '</button></div>' +
+                      '<p class="co-auth-err" id="coSigninErr" style="display:none"></p>' +
+                    '</div>' +
+                  '</div>' +
+                  // mode toggle link
+                  '<p class="co-auth-toggle" id="coAuthToggle"><span id="coToggleLabel">' + t('co.haveAccount') + '</span> <a href="#" id="coToggleLink">' + t('co.toSignin') + '</a></p>' +
+                '</div>' +
+
+                // state B – signed in
+                '<div id="coAuthLoggedIn" style="display:none">' +
+                  '<div class="co-signup-ok">' +
+                    '<span class="co-su-tick">✓</span><span id="coSignedInLabel"></span>' +
+                    '<button type="button" id="coSignOutBtn" class="btn btn--ghost co-signout-btn">' + t('co.signOut') + '</button>' +
+                  '</div>' +
+                '</div>' +
+
+                // success banners
+                '<div class="co-signup-ok" id="coSignupOk" style="display:none"><span class="co-su-tick">✓</span><span>' + t('co.signupOk') + '</span></div>' +
+                '<div class="co-signup-ok" id="coSigninOk" style="display:none"><span class="co-su-tick">✓</span><span>' + t('co.signinOk') + '</span></div>' +
+
+              '</div>' +
+              // ─────────────────────────────────────────────────────────────
             '</fieldset>' +
             '<fieldset><legend>' + t('co.shipping') + '</legend>' +
               '<div class="row2"><div class="field"><label>' + t('co.first') + '</label><input name="first" required></div>' +
@@ -337,6 +403,132 @@
         }, function () { btn.disabled = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); });
       });
       applyAuto();
+
+      // ---- contact: auto-sync + auth (signup / signin / logged-in) ----
+      (function () {
+        var cName  = document.getElementById('cName');
+        var cPhone = document.getElementById('cPhone');
+        var fFirst = document.querySelector('[name="first"]');
+        var fLast  = document.querySelector('[name="last"]');
+        var fPhone = document.querySelector('[name="phone"]');
+        var fEmail = document.querySelector('[name="email"]');
+
+        // ── auto-sync shipping → contact ──────────────────────────────
+        function flash(el) { el.classList.remove('co-autofill'); void el.offsetWidth; el.classList.add('co-autofill'); }
+        function syncContact() {
+          var nm = [fFirst.value.trim(), fLast.value.trim()].filter(Boolean).join(' ');
+          if (nm !== cName.value) { cName.value = nm; if (nm) flash(cName); }
+          var ph = fPhone.value.trim();
+          if (ph !== cPhone.value) { cPhone.value = ph; if (ph) flash(cPhone); }
+        }
+        [fFirst, fLast].forEach(function (el) { el.addEventListener('input', syncContact); });
+        fPhone.addEventListener('input', syncContact);
+
+        // ── check if already logged in ───────────────────────────────
+        if (window.Auth && Auth.getUser) {
+          Auth.getUser().then(function (res) {
+            var u = res && res.data && res.data.user;
+            if (!u) return;
+            // logged-in state
+            document.getElementById('coAuthGuest').style.display = 'none';
+            var li = document.getElementById('coAuthLoggedIn');
+            li.style.display = '';
+            document.getElementById('coSignedInLabel').textContent = t('co.signedInAs', { x: u.email });
+            // pre-fill email from account
+            if (fEmail && !fEmail.value) fEmail.value = u.email;
+            // pre-fill name from metadata
+            var nm = u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name);
+            if (nm && cName && !cName.value) cName.value = nm;
+          });
+        }
+
+        // sign-out button
+        document.getElementById('coSignOutBtn').addEventListener('click', function () {
+          if (window.Auth && Auth.signOut) Auth.signOut().then(function () { location.reload(); });
+        });
+
+        // ── mode: 'signup' | 'signin' ────────────────────────────────
+        var mode = 'signup';
+        var signupRow  = document.getElementById('coSignupRow');
+        var signupPwBox = document.getElementById('coSignupPwBox');
+        var signinRow  = document.getElementById('coSigninRow');
+        var signinPwBox = document.getElementById('coSigninPwBox');
+        var toggleLabel = document.getElementById('coToggleLabel');
+        var toggleLink  = document.getElementById('coToggleLink');
+
+        function setMode(m) {
+          mode = m;
+          var isSignup = m === 'signup';
+          signupRow.style.display  = isSignup ? '' : 'none';
+          signupPwBox.style.display = (isSignup && document.getElementById('coSignupChk').checked) ? '' : 'none';
+          signinRow.style.display  = isSignup ? 'none' : '';
+          signinPwBox.style.display = (!isSignup && document.getElementById('coSigninChk').checked) ? '' : 'none';
+          toggleLabel.textContent  = isSignup ? t('co.haveAccount') : t('co.noAccount');
+          toggleLink.textContent   = isSignup ? t('co.toSignin')    : t('co.toSignup');
+          if (!isSignup) { document.getElementById('coSigninChk').checked = true; signinPwBox.style.display = ''; document.getElementById('coSigninPw').focus(); }
+        }
+
+        toggleLink.addEventListener('click', function (e) {
+          e.preventDefault(); setMode(mode === 'signup' ? 'signin' : 'signup');
+        });
+
+        // ── signup checkbox ──────────────────────────────────────────
+        document.getElementById('coSignupChk').addEventListener('change', function () {
+          signupPwBox.style.display = this.checked ? '' : 'none';
+          if (this.checked) document.getElementById('coSignupPw').focus();
+        });
+
+        document.getElementById('coSignupBtn').addEventListener('click', function () {
+          var pw = document.getElementById('coSignupPw').value;
+          var email = fEmail ? fEmail.value.trim() : '';
+          var name  = cName ? cName.value.trim() : '';
+          var errEl = document.getElementById('coSignupErr');
+          var btn   = this;
+          errEl.style.display = 'none';
+          if (pw.length < 6) { document.getElementById('coSignupPw').focus(); return; }
+          if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { fEmail.classList.add('err'); fEmail.focus(); return; }
+          btn.disabled = true;
+          if (window.Auth && Auth.signUp) {
+            Auth.signUp(email, pw, name).then(function (res) {
+              btn.disabled = false;
+              if (res && res.error) { errEl.textContent = t('co.signupErr'); errEl.style.display = ''; return; }
+              document.getElementById('coAuthGuest').style.display = 'none';
+              document.getElementById('coSignupOk').style.display = 'flex';
+            }, function () { btn.disabled = false; errEl.textContent = t('co.signupErr'); errEl.style.display = ''; });
+          }
+        });
+
+        // ── signin checkbox + button ─────────────────────────────────
+        document.getElementById('coSigninChk').addEventListener('change', function () {
+          signinPwBox.style.display = this.checked ? '' : 'none';
+          if (this.checked) document.getElementById('coSigninPw').focus();
+        });
+
+        document.getElementById('coSigninBtn').addEventListener('click', function () {
+          var pw = document.getElementById('coSigninPw').value;
+          var email = fEmail ? fEmail.value.trim() : '';
+          var errEl = document.getElementById('coSigninErr');
+          var btn   = this;
+          errEl.style.display = 'none';
+          if (!pw) { document.getElementById('coSigninPw').focus(); return; }
+          if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { fEmail.classList.add('err'); fEmail.focus(); return; }
+          btn.disabled = true;
+          if (window.Auth && Auth.signIn) {
+            Auth.signIn(email, pw).then(function (res) {
+              btn.disabled = false;
+              if (res && res.error) { errEl.textContent = t('co.signinErr'); errEl.style.display = ''; return; }
+              // fill name from user metadata
+              var u = res && res.data && res.data.user;
+              if (u) {
+                var nm = u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name);
+                if (nm && cName && !cName.value) { cName.value = nm; flash(cName); }
+              }
+              document.getElementById('coAuthGuest').style.display = 'none';
+              document.getElementById('coSigninOk').style.display = 'flex';
+            }, function () { btn.disabled = false; errEl.textContent = t('co.signinErr'); errEl.style.display = ''; });
+          }
+        });
+      })();
 
       // ---- submit ----
       document.getElementById('coForm').addEventListener('submit', function (e) {
