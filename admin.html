@@ -151,9 +151,13 @@
       .setpage .card{padding:16px 14px}
       /* 商品列表隐藏额外列 */
       .plist .ecat,.plist .eprice,.plist .estatus{display:none}
+      /* 库存展开行 — 隐藏 SKU 列，三列布局 */
+      .srow{grid-template-columns:1fr 106px auto;gap:8px;padding:8px 10px}
+      .srow .sku{display:none}
+      .sstat{max-width:52px;font-size:10px;overflow:hidden;text-overflow:ellipsis}
       /* 防止任何内容横向撑出 */
       .view,.panel,.erow,.esum,.eexp,.pedit,.pcol-main,.pcol-side{max-width:100%}
-      .panel{overflow-x:hidden}
+      .main,.view{overflow-x:hidden}
     }
 
     /* ===== inventory console (design C) ===== */
