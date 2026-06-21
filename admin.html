@@ -132,7 +132,8 @@
     @media(max-width:860px){
       .shell{grid-template-columns:1fr}
       .side{display:none}
-      .mob-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--cream2);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
+      .mob-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--cream2);border-bottom:1px solid var(--line);position:fixed;top:0;left:0;right:0;z-index:100}
+      .shell{padding-top:69px}
       .mob-bar .mb-brand{font-family:var(--serif);font-size:20px}
       .mob-bar .mb-brand sup{font-size:.42em;color:var(--wine)}
       .stats{grid-template-columns:repeat(2,1fr)}
