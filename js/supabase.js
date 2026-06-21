@@ -178,6 +178,26 @@
       if (!window.sb) return Promise.resolve({ data: null, error: { message: 'not configured' } });
       return window.sb.from('profiles').select('email').eq('phone', phone).maybeSingle();
     },
+
+    // current user's full profile row
+    getProfile: function () {
+      if (!window.sb) return Promise.resolve({ data: null, error: { message: 'not configured' } });
+      return window.sb.auth.getUser().then(function (res) {
+        var u = res && res.data && res.data.user;
+        if (!u) return { data: null, error: { message: 'not signed in' } };
+        return window.sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
+      });
+    },
+
+    // update any columns on the current user's profile row
+    updateProfile: function (fields) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.auth.getUser().then(function (res) {
+        var u = res && res.data && res.data.user;
+        if (!u) return { error: { message: 'not signed in' } };
+        return window.sb.from('profiles').update(fields).eq('id', u.id);
+      });
+    },
   };
 
   window.Auth = {
@@ -202,6 +222,10 @@
       return window.sb.auth.signInWithPassword({ email: email, password: password });
     },
     signOut: function () { return window.sb.auth.signOut(); },
+    updatePassword: function (newPassword) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.auth.updateUser({ password: newPassword });
+    },
     getUser: function () {
       return window.sb ? window.sb.auth.getUser() : Promise.resolve({ data: { user: null } });
     },

@@ -13,8 +13,24 @@
   <link rel="stylesheet" href="css/styles.css">
 
   <script src="js/config.js"></script>
-  <script src="js/i18n.js?v=3"></script>
+  <script src="js/i18n.js?v=4"></script>
   <script src="js/pixel.js"></script>
+  <style>
+    .acc-tabs{display:flex;border-bottom:2px solid var(--line);margin:0 0 24px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .acc-tab{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:10px 18px;font-size:13px;font-family:inherit;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:.03em;transition:color .15s}
+    .acc-tab:hover{color:var(--ink)}
+    .acc-tab--active{color:var(--wine);border-bottom-color:var(--wine)}
+    .acc-panel-title{font-family:var(--serif,serif);font-size:20px;margin:0 0 20px}
+    .acc-save-msg{font-size:12.5px;margin:8px 0 0;min-height:18px}
+    .acc-order{border-bottom:1px solid var(--line)}
+    .acc-order-row{display:flex;justify-content:space-between;align-items:center;padding:15px 0;gap:12px}
+    .acc-order-detail{padding:0 0 16px;font-size:13.5px}
+    .acc-order-items{display:flex;flex-direction:column;gap:4px;margin:0 0 8px}
+    .acc-order-item{display:flex;justify-content:space-between;padding:2px 0}
+    .acc-status{display:inline-block;margin-left:8px;font-size:11px;background:var(--pink-soft,#F6E4E6);color:var(--wine);border-radius:20px;padding:1px 8px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+    .acc-news-row{display:flex;align-items:center;gap:9px;margin:14px 0 0;font-size:13px;cursor:pointer;user-select:none}
+    .acc-news-row input[type="checkbox"]{width:16px;height:16px;flex:0 0 auto;accent-color:var(--wine,#82213E);cursor:pointer}
+  </style>
 </head>
 <body>
   <div id="site-header"></div>
@@ -215,35 +231,239 @@
         });
       }
 
-      // ---------- signed-in: profile + my orders ----------
+      // ---------- signed-in: tabbed account page ----------
       function renderAccount(user) {
+        function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        var displayName = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || '';
+
         root.innerHTML =
-          '<div style="text-align:center">' +
+          '<div style="text-align:center;margin-bottom:28px">' +
             '<p class="eyebrow">' + t('acc.welcome') + '</p>' +
-            '<h2 style="font-size:28px;margin:8px 0 6px">' + (user.email || '') + '</h2>' +
+            '<h2 style="font-size:24px;margin:6px 0 4px">' + esc(displayName || user.email) + '</h2>' +
+            '<p class="muted" style="font-size:13px">' + esc(user.email) + '</p>' +
             '<button class="btn btn--ghost" id="signOutBtn" style="margin-top:14px">' + t('acc.signOut') + '</button>' +
           '</div>' +
-          '<h3 style="font-size:24px;margin:42px 0 6px">' + t('acc.myOrders') + '</h3>' +
-          '<div id="orders"><p class="muted" style="padding:14px 0">…</p></div>';
 
+          '<nav class="acc-tabs">' +
+            '<button class="acc-tab acc-tab--active" data-tab="profile">'  + t('acc.tabProfile')  + '</button>' +
+            '<button class="acc-tab" data-tab="address">' + t('acc.tabAddress') + '</button>' +
+            '<button class="acc-tab" data-tab="security">' + t('acc.tabSecurity') + '</button>' +
+            '<button class="acc-tab" data-tab="orders">'   + t('acc.tabOrders')   + '</button>' +
+          '</nav>' +
+
+          // ── Profile ──
+          '<div id="acc-panel-profile" class="acc-panel">' +
+            '<h3 class="acc-panel-title">' + t('acc.tabProfile') + '</h3>' +
+            '<form id="profileForm" novalidate>' +
+              '<div class="field"><label>' + t('acc.name') + '</label>' +
+                '<input id="pfName" name="full_name" autocomplete="name"></div>' +
+              '<div class="field"><label>' + t('acc.phone') + '</label>' +
+                '<input id="pfPhone" name="phone" type="tel" placeholder="e.g. 0123456789"></div>' +
+              '<div class="field"><label>' + t('acc.email') + '</label>' +
+                '<input value="' + esc(user.email) + '" disabled style="background:var(--cream-2,#FAF6F3);color:var(--muted)">' +
+                '<p class="muted" style="font-size:11.5px;margin:4px 0 0">' + t('acc.emailHint') + '</p></div>' +
+              '<label class="acc-news-row"><input type="checkbox" id="pfNewsletter"><span>' + t('acc.newsletter') + '</span></label>' +
+              '<button type="submit" class="btn" style="width:100%;margin-top:20px" id="profileSaveBtn">' + t('acc.saveChanges') + '</button>' +
+              '<p class="acc-save-msg" id="profileMsg"></p>' +
+            '</form>' +
+          '</div>' +
+
+          // ── Address ──
+          '<div id="acc-panel-address" class="acc-panel" style="display:none">' +
+            '<h3 class="acc-panel-title">' + t('acc.addrTitle') + '</h3>' +
+            '<form id="addressForm" novalidate>' +
+              '<div class="field"><label>' + t('acc.addrLine1') + '</label>' +
+                '<input id="adLine1" autocomplete="address-line1"></div>' +
+              '<div class="field"><label>' + t('acc.addrLine2') + '</label>' +
+                '<input id="adLine2" autocomplete="address-line2"></div>' +
+              '<div class="row2">' +
+                '<div class="field"><label>' + t('acc.addrCity') + '</label>' +
+                  '<input id="adCity" autocomplete="address-level2"></div>' +
+                '<div class="field"><label>' + t('acc.addrPostcode') + '</label>' +
+                  '<input id="adPostcode" autocomplete="postal-code"></div>' +
+              '</div>' +
+              '<div class="field"><label>' + t('acc.addrCountry') + '</label>' +
+                '<select id="adCountry" autocomplete="country-name">' +
+                  '<option value="">— ' + t('acc.addrSelect') + ' —</option>' +
+                  '<option>Malaysia</option><option>Singapore</option>' +
+                  '<option>Australia</option><option>Canada</option>' +
+                  '<option>China</option><option>Hong Kong</option>' +
+                  '<option>United Kingdom</option><option>United States</option>' +
+                  '<option>Other</option>' +
+                '</select></div>' +
+              '<button type="submit" class="btn" style="width:100%;margin-top:20px" id="addressSaveBtn">' + t('acc.saveChanges') + '</button>' +
+              '<p class="acc-save-msg" id="addressMsg"></p>' +
+            '</form>' +
+          '</div>' +
+
+          // ── Security ──
+          '<div id="acc-panel-security" class="acc-panel" style="display:none">' +
+            '<h3 class="acc-panel-title">' + t('acc.tabSecurity') + '</h3>' +
+            '<form id="securityForm" novalidate>' +
+              '<div class="field"><label>' + t('acc.currentPw') + '</label>' +
+                '<input type="password" id="secCurrent" autocomplete="current-password"></div>' +
+              '<div class="field"><label>' + t('acc.newPw') + '</label>' +
+                '<input type="password" id="secNew" autocomplete="new-password" minlength="6"></div>' +
+              '<div class="field"><label>' + t('acc.confirmPw') + '</label>' +
+                '<input type="password" id="secConfirm" autocomplete="new-password"></div>' +
+              '<button type="submit" class="btn" style="width:100%;margin-top:20px" id="secBtn">' + t('acc.changePw') + '</button>' +
+              '<p class="acc-save-msg" id="secMsg"></p>' +
+            '</form>' +
+          '</div>' +
+
+          // ── Orders ──
+          '<div id="acc-panel-orders" class="acc-panel" style="display:none">' +
+            '<h3 class="acc-panel-title">' + t('acc.tabOrders') + '</h3>' +
+            '<div id="ordersList"><p class="muted" style="padding:14px 0">…</p></div>' +
+          '</div>';
+
+        // sign out
         document.getElementById('signOutBtn').addEventListener('click', function () {
           Auth.signOut().then(function () { location.reload(); });
         });
 
-        DB.myOrders().then(function (r) {
-          var box = document.getElementById('orders');
-          var rows = (r && r.data) || [];
-          if (!rows.length) { box.innerHTML = '<p class="muted" style="padding:14px 0">' + t('acc.noOrders') + '</p>'; return; }
-          box.innerHTML = rows.map(function (o) {
-            var d = '';
-            try { d = new Date(o.created_at).toLocaleDateString(); } catch (e) {}
-            return '<div style="display:flex;justify-content:space-between;gap:12px;padding:15px 0;border-bottom:1px solid var(--line);font-size:14px">' +
-              '<div><b>#' + o.order_number + '</b><div class="muted" style="font-size:12px">' + d + '</div></div>' +
-              '<div style="text-align:right">' + money(Number(o.total)) +
-                '<div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">' + (o.status || '') + '</div></div>' +
-            '</div>';
-          }).join('');
+        // tab switching
+        var ordersLoaded = false;
+        root.querySelectorAll('.acc-tab').forEach(function (tab) {
+          tab.addEventListener('click', function () {
+            root.querySelectorAll('.acc-tab').forEach(function (b) { b.classList.remove('acc-tab--active'); });
+            root.querySelectorAll('.acc-panel').forEach(function (p) { p.style.display = 'none'; });
+            this.classList.add('acc-tab--active');
+            document.getElementById('acc-panel-' + this.dataset.tab).style.display = '';
+            if (this.dataset.tab === 'orders' && !ordersLoaded) { ordersLoaded = true; loadOrders(); }
+          });
         });
+
+        // load profile & address from DB
+        if (window.DB && DB.getProfile) {
+          DB.getProfile().then(function (r) {
+            var p = (r && r.data) || {};
+            var el = function (id) { return document.getElementById(id); };
+            if (el('pfName'))       el('pfName').value        = p.full_name || '';
+            if (el('pfPhone'))      el('pfPhone').value       = p.phone || '';
+            if (el('pfNewsletter')) el('pfNewsletter').checked = p.newsletter_opt_in !== false;
+            var a = p.default_address || {};
+            if (el('adLine1'))    el('adLine1').value    = a.line1 || '';
+            if (el('adLine2'))    el('adLine2').value    = a.line2 || '';
+            if (el('adCity'))     el('adCity').value     = a.city || '';
+            if (el('adPostcode')) el('adPostcode').value = a.postcode || '';
+            if (el('adCountry'))  el('adCountry').value  = a.country || '';
+          });
+        }
+
+        function setMsg(id, ok, text) {
+          var el = document.getElementById(id);
+          if (el) { el.style.color = ok ? 'var(--green,#2F7D4F)' : 'var(--wine,#82213E)'; el.textContent = text; }
+        }
+
+        // profile form
+        document.getElementById('profileForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          var btn = document.getElementById('profileSaveBtn');
+          btn.disabled = true; btn.textContent = t('acc.saving'); setMsg('profileMsg', true, '');
+          DB.updateProfile({
+            full_name:        document.getElementById('pfName').value.trim(),
+            phone:            document.getElementById('pfPhone').value.trim(),
+            newsletter_opt_in: document.getElementById('pfNewsletter').checked
+          }).then(function (r) {
+            btn.disabled = false; btn.textContent = t('acc.saveChanges');
+            if (r && r.error) { setMsg('profileMsg', false, t('acc.saveErr')); return; }
+            setMsg('profileMsg', true, t('acc.saved'));
+          }, function () { btn.disabled = false; btn.textContent = t('acc.saveChanges'); setMsg('profileMsg', false, t('acc.saveErr')); });
+        });
+
+        // address form
+        document.getElementById('addressForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          var btn = document.getElementById('addressSaveBtn');
+          btn.disabled = true; btn.textContent = t('acc.saving'); setMsg('addressMsg', true, '');
+          DB.updateProfile({ default_address: {
+            line1:    document.getElementById('adLine1').value.trim(),
+            line2:    document.getElementById('adLine2').value.trim(),
+            city:     document.getElementById('adCity').value.trim(),
+            postcode: document.getElementById('adPostcode').value.trim(),
+            country:  document.getElementById('adCountry').value
+          }}).then(function (r) {
+            btn.disabled = false; btn.textContent = t('acc.saveChanges');
+            if (r && r.error) { setMsg('addressMsg', false, t('acc.saveErr')); return; }
+            setMsg('addressMsg', true, t('acc.saved'));
+          }, function () { btn.disabled = false; btn.textContent = t('acc.saveChanges'); setMsg('addressMsg', false, t('acc.saveErr')); });
+        });
+
+        // security form
+        document.getElementById('securityForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          var newPw = document.getElementById('secNew').value;
+          var btn = document.getElementById('secBtn');
+          setMsg('secMsg', true, '');
+          if (newPw.length < 6) { setMsg('secMsg', false, t('acc.pwShort')); return; }
+          if (newPw !== document.getElementById('secConfirm').value) { setMsg('secMsg', false, t('acc.pwMismatch')); return; }
+          btn.disabled = true; btn.textContent = t('acc.saving');
+          Auth.signIn(user.email, document.getElementById('secCurrent').value).then(function (r) {
+            if (r && r.error) {
+              btn.disabled = false; btn.textContent = t('acc.changePw');
+              setMsg('secMsg', false, t('acc.pwWrong')); return;
+            }
+            Auth.updatePassword(newPw).then(function (ur) {
+              btn.disabled = false; btn.textContent = t('acc.changePw');
+              if (ur && ur.error) { setMsg('secMsg', false, t('acc.saveErr')); return; }
+              setMsg('secMsg', true, t('acc.pwChanged'));
+              ['secCurrent','secNew','secConfirm'].forEach(function (id) { document.getElementById(id).value = ''; });
+            }, function () { btn.disabled = false; btn.textContent = t('acc.changePw'); setMsg('secMsg', false, t('acc.saveErr')); });
+          }, function () { btn.disabled = false; btn.textContent = t('acc.changePw'); setMsg('secMsg', false, t('acc.pwWrong')); });
+        });
+
+        // orders (lazy — loaded when Orders tab is first clicked)
+        function buildDetail(o) {
+          var html = '<div class="acc-order-items">';
+          (o.items || []).forEach(function (it) {
+            var meta = [it.size, it.color].filter(Boolean).join(' · ');
+            html += '<div class="acc-order-item">' +
+              '<span>' + esc(it.name||'—') + ' × ' + (it.qty||1) +
+                (meta ? ' <span class="muted" style="font-size:11.5px">(' + esc(meta) + ')</span>' : '') + '</span>' +
+              '<span>' + money((it.price||0) * (it.qty||1)) + '</span></div>';
+          });
+          html += '</div>';
+          var c = o.customer || {};
+          var addr = [c.address, c.city, c.country].filter(Boolean).join(', ');
+          if (addr) html += '<p class="muted" style="font-size:12px;margin:6px 0 0">' + t('acc.shipTo') + ': ' +
+            esc([c.first,c.last].filter(Boolean).join(' ')) + ', ' + esc(addr) + '</p>';
+          if (o.discount_code) html += '<p class="muted" style="font-size:12px;margin:3px 0 0">Discount: ' +
+            esc(o.discount_code) + ' −' + money(o.discount_amount||0) + '</p>';
+          return html;
+        }
+
+        function loadOrders() {
+          DB.myOrders().then(function (r) {
+            var box = document.getElementById('ordersList');
+            if (!box) return;
+            var rows = (r && r.data) || [];
+            if (!rows.length) { box.innerHTML = '<p class="muted" style="padding:14px 0">' + t('acc.noOrders') + '</p>'; return; }
+            box.innerHTML = rows.map(function (o) {
+              var d = ''; try { d = new Date(o.created_at).toLocaleDateString(); } catch(e) {}
+              return '<div class="acc-order">' +
+                '<div class="acc-order-row">' +
+                  '<div><b style="font-size:14px">#' + esc(o.order_number) + '</b>' +
+                    '<span class="muted" style="font-size:12px;margin-left:10px">' + d + '</span>' +
+                    (o.status ? ' <span class="acc-status">' + esc(o.status) + '</span>' : '') + '</div>' +
+                  '<div style="display:flex;align-items:center;gap:12px">' +
+                    '<b style="font-size:14px">' + money(Number(o.total||0)) + '</b>' +
+                    '<button type="button" class="btn btn--ghost acc-expand-btn" style="padding:4px 10px;font-size:12px">' + t('acc.expand') + '</button>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="acc-order-detail" style="display:none">' + buildDetail(o) + '</div>' +
+              '</div>';
+            }).join('');
+            box.querySelectorAll('.acc-expand-btn').forEach(function (btn) {
+              btn.addEventListener('click', function () {
+                var detail = this.closest('.acc-order').querySelector('.acc-order-detail');
+                var open = detail.style.display !== 'none';
+                detail.style.display = open ? 'none' : '';
+                this.textContent = open ? t('acc.expand') : t('acc.collapse');
+              });
+            });
+          });
+        }
       }
     })();
   </script>
