@@ -782,7 +782,7 @@
           '.pedit .cell .sd{width:8px;height:8px;border-radius:50%;flex:none}'+
           '.pedit .sd.ok{background:var(--green,#2F7D4F)}.pedit .sd.low{background:var(--amber,#9A6B12)}.pedit .sd.out{background:#C0392B}'+
           '.pedit .pnote{font-size:12px;color:var(--muted,#6F635C);margin-top:8px;line-height:1.5}'+
-          '@media(max-width:880px){.pedit{flex-direction:column}.pedit .pcol-side{flex:1 1 auto;max-width:none;width:100%}.pedit .pside{position:static}}'+
+          '@media(max-width:880px){.pedit{flex-direction:column;align-items:stretch}.pedit .pcol-main,.pedit .pcol-side{flex:1 1 auto;max-width:none;width:100%;min-width:0}.pedit .pside{position:static}.pedit .panel{max-width:100%;box-sizing:border-box}}'+
           '@media(max-width:600px){.plist .eexp{padding:12px 8px}.pedit .pcol-main .panel{padding:14px 10px;margin-bottom:14px}.pedit .pcol-main .panel h2{font-size:18px}.pedit{gap:12px}}';
         document.head.appendChild(pst);}
       // --- init per-product size chart state ---
