@@ -42,4 +42,27 @@ window.STORE_CONFIG = {
      2. Paste it below, replacing YOUR_PIXEL_ID.
      Until you do, tracking is disabled automatically (no errors). */
   pixelId: 'YOUR_PIXEL_ID',
+
+  /* --- Size chart (default) ---
+     Shown on every product page between "Add to bag" and the accordions.
+     Admins edit this in the Settings page; this is just the fallback. */
+  sizeChart: {
+    enabled: true,
+    title: '',                  // empty → uses i18n default (尺码参考表 / Size reference)
+    cm: true, inch: true,       // unit tabs to expose
+    columns: [
+      { key: 'bust',  label: '胸围' },
+      { key: 'waist', label: '腰围' },
+      { key: 'hip',   label: '臀围' },
+      { key: 'len',   label: '衣长' }
+    ],
+    rows: [
+      { size: 'XS', cm: { bust: 82,  waist: 62, hip: 86,  len: 58 }, inch: { bust: 32, waist: 24, hip: 34, len: 23 } },
+      { size: 'S',  cm: { bust: 86,  waist: 66, hip: 90,  len: 59 }, inch: { bust: 34, waist: 26, hip: 35, len: 23 } },
+      { size: 'M',  cm: { bust: 90,  waist: 70, hip: 94,  len: 60 }, inch: { bust: 35, waist: 28, hip: 37, len: 24 } },
+      { size: 'L',  cm: { bust: 96,  waist: 76, hip: 100, len: 61 }, inch: { bust: 38, waist: 30, hip: 39, len: 24 } },
+      { size: 'XL', cm: { bust: 102, waist: 82, hip: 106, len: 62 }, inch: { bust: 40, waist: 32, hip: 42, len: 24 } }
+    ],
+    note: '数据为成衣平铺测量，可能有 1–2 cm 误差。'
+  }
 };

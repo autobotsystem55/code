@@ -145,6 +145,8 @@
       // pdp
       'pdp.sizeGuide': 'Size guide',
       'pdp.sizeGuideMsg': 'XS 0-2 · S 4-6 · M 8-10 · L 12-14 · XL 16-18',
+      'pdp.sizeChartTitle': 'Size reference',
+      'pdp.sizeChartCurrent': 'Currently selected',
       'pdp.colour': 'Colour', 'pdp.size': 'Size', 'pdp.addToBag': 'Add to bag — {x}',
       'pdp.selectSize': 'Please select a size',
       'pdp.details': 'Details & fit',
@@ -325,6 +327,8 @@
       'shop.style': '款', 'shop.styles': '款',
       'pdp.sizeGuide': '尺码指南',
       'pdp.sizeGuideMsg': 'XS 0-2 · S 4-6 · M 8-10 · L 12-14 · XL 16-18',
+      'pdp.sizeChartTitle': '尺码参考表',
+      'pdp.sizeChartCurrent': '已为你高亮所选尺码',
       'pdp.colour': '颜色', 'pdp.size': '尺码', 'pdp.addToBag': '加入购物袋 — {x}',
       'pdp.selectSize': '请选择尺码',
       'pdp.details': '细节与版型',

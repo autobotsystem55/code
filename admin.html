@@ -448,6 +448,32 @@
     .sh-saved{display:none;align-items:center;gap:6px;background:var(--green-bg);color:var(--green);font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;margin-left:8px}
     .sh-saved.show{display:inline-flex}
     @media(max-width:720px){.sh-bgrid{grid-template-columns:1fr}.sh-mstats{grid-template-columns:1fr}.sh-acc .head{grid-template-columns:auto 1fr auto;gap:12px}.sh-acc .head .sh-pill,.sh-acc .head .sh-caret{display:none}}
+
+    /* ===== size chart editor (settings card) ===== */
+    .sc-units-row{display:flex;gap:18px;margin:0 0 14px;flex-wrap:wrap}
+    .sc-units-row label{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer}
+    .sc-units-row input{accent-color:var(--wine);width:15px;height:15px;cursor:pointer}
+    .sc-units-pill{font-size:11px;font-weight:600;color:var(--wine);background:var(--pink-soft);border:1px solid var(--pink);padding:3px 10px;border-radius:30px;margin-left:auto}
+    .sc-unit-block{margin-top:18px}
+    .sc-unit-head{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--wine);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+    .sc-unit-head .badge{background:var(--pink-soft);color:var(--wine);padding:2px 8px;border-radius:4px;font-size:10px;letter-spacing:.05em}
+    .sc-tblwrap{border:1px solid var(--line2);border-radius:6px;overflow:hidden;background:var(--white)}
+    .sc-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+    .sc-tbl th{background:var(--cream2);color:var(--wine);font-weight:600;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:8px 6px;text-align:center;border-bottom:1px solid var(--line2);position:relative}
+    .sc-tbl td{padding:3px;border-bottom:1px solid var(--line2);background:var(--white)}
+    .sc-tbl tr:last-child td{border-bottom:none}
+    .sc-tbl input{width:100%;height:34px;border:none;background:transparent;padding:0 8px;text-align:center;font-size:13px;font-family:var(--sans);color:var(--ink2);box-shadow:none}
+    .sc-tbl input:focus{outline:1px solid var(--pink-border);background:var(--cream);border-radius:3px}
+    .sc-tbl td:first-child input{font-weight:600;color:var(--ink)}
+    .sc-tbl th .col-head{display:flex;align-items:center;gap:6px;justify-content:center}
+    .sc-tbl th .col-head input{height:24px;background:transparent;border:none;text-align:center;width:80px;color:var(--wine);font-weight:600;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase}
+    .sc-tbl th .col-del,.sc-tbl .row-del{border:none;background:none;color:var(--muted);cursor:pointer;width:22px;height:22px;border-radius:4px;font-size:13px;line-height:1;font-family:inherit;padding:0}
+    .sc-tbl th .col-del:hover,.sc-tbl .row-del:hover{background:var(--pink-soft);color:var(--wine)}
+    .sc-add-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+    .sc-add-row button{flex:1;min-width:140px;background:var(--white);border:1px dashed var(--pink-border);color:var(--wine);font-family:var(--sans);font-size:12.5px;font-weight:600;padding:9px;border-radius:5px;cursor:pointer;transition:.15s}
+    .sc-add-row button:hover{background:var(--pink-soft)}
+    .sc-textarea{width:100%;min-height:60px;border:1px solid var(--line2);border-radius:5px;padding:10px 12px;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--white);resize:vertical}
+    .sc-textarea:focus{outline:none;border-color:var(--wine);box-shadow:0 0 0 3px rgba(130,33,62,.10)}
   </style>
 </head>
 <body>
@@ -1693,8 +1719,55 @@
           money:'<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.6"/></svg>',
           track:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>',
           pay:'<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
-          bundle:'<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>'
+          bundle:'<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>',
+          ruler:'<svg viewBox="0 0 24 24"><path d="M3 17L17 3l4 4L7 21l-4-4z"/><path d="M7 17l-2-2M10 14l-2-2M13 11l-2-2M16 8l-2-2"/></svg>'
         };
+        // ---- size chart (defaults pulled from STORE_CONFIG.sizeChart, then overridden by saved settings) ----
+        var scDefault=(window.STORE_CONFIG&&STORE_CONFIG.sizeChart)||{};
+        var sc=(s.sizeChart&&typeof s.sizeChart==='object')?s.sizeChart:scDefault;
+        var scState={
+          enabled: sc.enabled!==false,
+          title: sc.title||'',
+          cm: sc.cm!==false,
+          inch: sc.inch!==false,
+          columns: (Array.isArray(sc.columns)&&sc.columns.length)?JSON.parse(JSON.stringify(sc.columns)):[{key:'bust',label:'胸围'},{key:'waist',label:'腰围'},{key:'hip',label:'臀围'},{key:'len',label:'衣长'}],
+          rows: (Array.isArray(sc.rows)&&sc.rows.length)?JSON.parse(JSON.stringify(sc.rows)):[
+            {size:'XS',cm:{bust:82,waist:62,hip:86,len:58},inch:{bust:32,waist:24,hip:34,len:23}},
+            {size:'S', cm:{bust:86,waist:66,hip:90,len:59},inch:{bust:34,waist:26,hip:35,len:23}},
+            {size:'M', cm:{bust:90,waist:70,hip:94,len:60},inch:{bust:35,waist:28,hip:37,len:24}},
+            {size:'L', cm:{bust:96,waist:76,hip:100,len:61},inch:{bust:38,waist:30,hip:39,len:24}},
+            {size:'XL',cm:{bust:102,waist:82,hip:106,len:62},inch:{bust:40,waist:32,hip:42,len:24}}
+          ],
+          note: sc.note||''
+        };
+        function scUnitBlock(u){
+          var label=u==='cm'?'厘米 (cm)':'英寸 (inch)';
+          var head='<tr><th style="min-width:64px">尺码</th>'+
+            scState.columns.map(function(c,ci){return '<th><div class="col-head"><input type="text" data-col-label="'+ci+'" value="'+esc(c.label||'')+'" placeholder="测量项"><button type="button" class="col-del" data-col-del="'+ci+'" title="删除此列">×</button></div></th>';}).join('')+
+            '<th style="width:36px"></th></tr>';
+          var body=scState.rows.map(function(r,ri){
+            var cells=scState.columns.map(function(c,ci){
+              var key=c.key||c.label||('c'+ci);
+              var v=(r[u]&&r[u][key]!=null)?r[u][key]:'';
+              return '<td><input type="text" data-cell="'+ri+'|'+ci+'|'+u+'" value="'+esc(v)+'"></td>';
+            }).join('');
+            return '<tr><td><input type="text" data-row-size="'+ri+'" value="'+esc(r.size||'')+'"></td>'+cells+'<td><button type="button" class="row-del" data-row-del="'+ri+'" title="删除此行">🗑</button></td></tr>';
+          }).join('');
+          return '<div class="sc-unit-block"><div class="sc-unit-head"><span class="badge">'+u.toUpperCase()+'</span> '+label+'</div>'+
+            '<div class="sc-tblwrap"><table class="sc-tbl"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div></div>';
+        }
+        function scCardHTML(){
+          var units=(scState.cm?scUnitBlock('cm'):'')+(scState.inch?scUnitBlock('inch'):'');
+          if(!scState.cm&&!scState.inch) units='<div class="bundle-note" style="margin-top:8px;color:var(--wine)">⚠ 至少选择一个单位 (cm 或 inch)</div>';
+          return tRow('s_scOn','在商品页显示尺码参考表','常驻卡片样式，顾客所选尺码会自动高亮',scState.enabled)+
+            '<div class="grid" style="margin-top:14px">'+
+              fT('s_scTitle','卡片标题',esc(scState.title),'留空使用默认（尺码参考表）')+
+              '<div class="field"><label class="lbl">显示单位</label><div class="sc-units-row" style="margin-top:6px"><label><input type="checkbox" id="s_scCm" '+(scState.cm?'checked':'')+'> 厘米 cm</label><label><input type="checkbox" id="s_scIn" '+(scState.inch?'checked':'')+'> 英寸 inch</label></div></div>'+
+            '</div>'+
+            '<div id="scEditWrap">'+units+'</div>'+
+            '<div class="sc-add-row"><button type="button" id="scAddRow">+ 加一行尺码</button><button type="button" id="scAddCol">+ 加一列测量项</button></div>'+
+            '<div class="field full" style="margin-top:18px"><label class="lbl">底部备注（可选）</label><textarea class="sc-textarea" id="s_scNote" placeholder="例如：数据为成衣平铺测量，可能有 1–2 cm 误差。">'+esc(scState.note||'')+'</textarea></div>';
+        }
         function card(icon,title,sub,body){return '<section class="card"><div class="card-head"><span class="ic">'+icon+'</span><div><h2>'+title+'</h2><div class="sub">'+sub+'</div></div></div>'+body+'</section>';}
         function fT(id,label,val,ph){return '<div class="field"><label class="lbl">'+label+'</label><input type="text" id="'+id+'" value="'+(val||'')+'"'+(ph?' placeholder="'+ph+'"':'')+'></div>';}
         function fAffix(id,label,pre,val){return '<div class="field"><label class="lbl">'+label+'</label><div class="input-affix"><span class="pre">'+esc(pre)+'</span><input type="number" id="'+id+'" value="'+esc(val)+'"></div></div>';}
@@ -1726,6 +1799,8 @@
             tRow('s_bun','在店面显示套装组合','导航入口 + 套装页 /bundles.html',bun)+
             tRow('s_bunHome','在首页显示套装板块','需先开启上面的总开关',bunHome)+
             '<div class="bundle-note">关掉总开关：顾客完全看不到套装。每个套装还能在「套装」区单独上架/下架。</div>')+
+          card(IC.ruler,'尺码参考表 <span class="cardhead-en">Size Chart</span>','在每个商品页 「加入购物袋」 下方显示尺码表',
+            scCardHTML())+
           '</div>'+
           '<div class="savebar"><div class="savebar-inner"><div class="save-hint"><span class="saved-pill" id="savedPill"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>已保存，店面已生效</span><span class="msg2" id="sm">改动后记得点「保存设置」生效。</span></div><button class="btn-primary" id="saveS">保存设置</button></div></div>'+
         '</div>';
@@ -1737,12 +1812,62 @@
           document.getElementById('demoNote').style.display=isDemo?'':'none';
           document.getElementById('linkLbl').textContent=curMode==='paypal'?'PayPal 链接':'Stripe Payment Link';
         });
-        ['s_bun','s_bunHome'].forEach(function(id){var sw=document.getElementById(id);sw.addEventListener('click',function(){var on=sw.classList.toggle('on');sw.setAttribute('aria-checked',on?'true':'false');});});
+        ['s_bun','s_bunHome','s_scOn'].forEach(function(id){var sw=document.getElementById(id);if(!sw)return;sw.addEventListener('click',function(){var on=sw.classList.toggle('on');sw.setAttribute('aria-checked',on?'true':'false');});});
+
+        // ---- size chart editor wiring ----
+        function renderScEdit(){
+          var w=document.getElementById('scEditWrap');if(!w)return;
+          var units=(scState.cm?scUnitBlock('cm'):'')+(scState.inch?scUnitBlock('inch'):'');
+          if(!scState.cm&&!scState.inch) units='<div class="bundle-note" style="margin-top:8px;color:var(--wine)">⚠ 至少选择一个单位 (cm 或 inch)</div>';
+          w.innerHTML=units;
+        }
+        function wireScEdit(){
+          // unit checkboxes
+          ['s_scCm','s_scIn'].forEach(function(id,i){var el=document.getElementById(id);if(!el)return;el.addEventListener('change',function(){if(i===0)scState.cm=el.checked;else scState.inch=el.checked;renderScEdit();});});
+          // add / del rows + cols
+          var addR=document.getElementById('scAddRow');if(addR)addR.addEventListener('click',function(){
+            var nr={size:''}; if(scState.cm){nr.cm={};scState.columns.forEach(function(c){nr.cm[c.key||c.label||'']='';});}
+            if(scState.inch){nr.inch={};scState.columns.forEach(function(c){nr.inch[c.key||c.label||'']='';});}
+            scState.rows.push(nr);renderScEdit();
+          });
+          var addC=document.getElementById('scAddCol');if(addC)addC.addEventListener('click',function(){
+            var newKey='c'+Date.now().toString().slice(-5);
+            scState.columns.push({key:newKey,label:'新列'});
+            scState.rows.forEach(function(r){if(r.cm)r.cm[newKey]='';if(r.inch)r.inch[newKey]='';});
+            renderScEdit();
+          });
+          // delegate input changes & deletes
+          var wrap=document.getElementById('scEditWrap');if(!wrap)return;
+          wrap.addEventListener('input',function(e){
+            var t=e.target;
+            if(t.dataset.cell){var p=t.dataset.cell.split('|'),ri=+p[0],ci=+p[1],u=p[2],key=scState.columns[ci]&&(scState.columns[ci].key||scState.columns[ci].label);
+              if(!scState.rows[ri][u])scState.rows[ri][u]={};
+              scState.rows[ri][u][key]=t.value;}
+            else if(t.dataset.rowSize!=null){scState.rows[+t.dataset.rowSize].size=t.value;}
+            else if(t.dataset.colLabel!=null){scState.columns[+t.dataset.colLabel].label=t.value;}
+          });
+          wrap.addEventListener('click',function(e){
+            var rd=e.target.closest('[data-row-del]');var cd=e.target.closest('[data-col-del]');
+            if(rd){scState.rows.splice(+rd.dataset.rowDel,1);renderScEdit();}
+            else if(cd){var idx=+cd.dataset.colDel,col=scState.columns[idx],k=col&&(col.key||col.label);
+              scState.columns.splice(idx,1);
+              scState.rows.forEach(function(r){if(r.cm&&k!=null)delete r.cm[k];if(r.inch&&k!=null)delete r.inch[k];});
+              renderScEdit();}
+          });
+        }
+        wireScEdit();
         document.getElementById('saveS').addEventListener('click',function(){
+          var scOut={enabled:document.getElementById('s_scOn').classList.contains('on'),
+            title:v('s_scTitle'),
+            cm:!!scState.cm, inch:!!scState.inch,
+            columns:scState.columns.map(function(c){return {key:c.key||c.label,label:c.label};}),
+            rows:scState.rows.map(function(r){var nr={size:r.size};if(scState.cm)nr.cm=r.cm||{};if(scState.inch)nr.inch=r.inch||{};return nr;}),
+            note:document.getElementById('s_scNote').value};
           var out={brand:v('s_brand'),tagline:v('s_tag'),email:v('s_email'),defaultLang:document.getElementById('s_lang').value,
             currency:v('s_cur'),currencySymbol:v('s_sym'),pixelId:v('s_pixel'),
             paymentMode:curMode,paymentLink:curMode==='demo'?'':v('s_link'),
-            bundlesEnabled:document.getElementById('s_bun').classList.contains('on'),bundlesOnHome:document.getElementById('s_bunHome').classList.contains('on')};
+            bundlesEnabled:document.getElementById('s_bun').classList.contains('on'),bundlesOnHome:document.getElementById('s_bunHome').classList.contains('on'),
+            sizeChart:scOut};
           var btn=document.getElementById('saveS'),pill=document.getElementById('savedPill'),hint=document.getElementById('sm');
           btn.disabled=true;
           DB.saveSettings(Object.assign({},s,out)).then(function(r){

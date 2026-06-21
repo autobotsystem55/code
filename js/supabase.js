@@ -254,6 +254,10 @@
         if (Array.isArray(d.shippingZones) && d.shippingZones.length) {
           window.STORE_CONFIG.shippingZones = d.shippingZones;
         }
+        // size chart object (full object — admin manages enabled/columns/rows/note)
+        if (d.sizeChart && typeof d.sizeChart === 'object') {
+          window.STORE_CONFIG.sizeChart = d.sizeChart;
+        }
       }
     }).catch(function () {});
   }

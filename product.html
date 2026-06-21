@@ -95,6 +95,7 @@
               '<div class="stepper" id="qtyStep"><button data-q="-1" aria-label="' + t('aria.dec') + '">–</button><span id="qty">1</span><button data-q="1" aria-label="' + t('aria.inc') + '">+</button></div>' +
               '<button class="btn btn--block" id="addBtn"' + (soldOut ? ' disabled' : '') + '>' + (soldOut ? t('badge.soldOut') : t('pdp.addToBag', { x: money(p.price) })) + '</button>' +
             '</div>' +
+            sizeChart(p) +
             '<div class="pdp__acc">' +
               acc(t('pdp.details'), t('pdp.detailsBody')) +
               acc(t('pdp.shipping'), t('pdp.shippingBody', { x: money(STORE_CONFIG.freeShippingThreshold) })) +
@@ -164,6 +165,93 @@
       function acc(q, a) {
         return '<div class="acc"><button class="acc__q">' + q + '<span>+</span></button><div class="acc__a"><p>' + a + '</p></div></div>';
       }
+
+      function sizeChart(prod) {
+        var sc = (STORE_CONFIG && STORE_CONFIG.sizeChart) || null;
+        if (!sc || sc.enabled === false) return '';
+        var cols = Array.isArray(sc.columns) ? sc.columns : [];
+        var rows = Array.isArray(sc.rows) ? sc.rows : [];
+        if (!cols.length || !rows.length) return '';
+        // units
+        var hasCm = sc.cm !== false;     // default on
+        var hasIn = !!sc.inch;
+        var unit = hasCm ? 'cm' : (hasIn ? 'inch' : 'cm');
+        function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+        function unitTabs() {
+          if (!(hasCm && hasIn)) return '';
+          return '<div class="sc-units" id="scUnits">'+
+            '<button type="button" data-u="cm" class="' + (unit==='cm'?'is-active':'') + '">cm</button>'+
+            '<button type="button" data-u="inch" class="' + (unit==='inch'?'is-active':'') + '">inch</button>'+
+          '</div>';
+        }
+        function renderTable(u) {
+          var head = '<thead><tr><th>' + t('pdp.size') + '</th>' +
+            cols.map(function(c){ return '<th>' + esc(c.label || '') + '</th>'; }).join('') + '</tr></thead>';
+          var body = '<tbody>' + rows.map(function(r){
+            return '<tr data-sz="' + esc(r.size||'') + '"><td>' + esc(r.size||'') + '</td>' +
+              cols.map(function(c){
+                var key = (c.key || c.label || '');
+                var v = ((r[u] && r[u][key]) != null) ? r[u][key] : (r[key] != null ? r[key] : '');
+                return '<td>' + esc(v) + '</td>';
+              }).join('') + '</tr>';
+          }).join('') + '</tbody>';
+          return '<table class="sc-table" id="scTable">' + head + body + '</table>';
+        }
+        var title = sc.title || t('pdp.sizeChartTitle');
+        var note = sc.note || '';
+        return '<section class="pdp__sizechart" data-current-unit="' + unit + '">' +
+          '<div class="sc-head">' +
+            '<div class="sc-ti"><span class="sc-ic">⌶</span> ' + esc(title) + '</div>' +
+            unitTabs() +
+          '</div>' +
+          '<div id="scTableWrap">' + renderTable(unit) + '</div>' +
+          (note ? '<div class="sc-note"><span class="sc-star">★</span> ' + esc(note) + '</div>' : '') +
+        '</section>';
+      }
+
+      function paintCurrentSizeRow() {
+        var rows = document.querySelectorAll('.pdp__sizechart .sc-table tbody tr[data-sz]');
+        rows.forEach(function(tr){
+          tr.classList.toggle('sc-current', !!sel.size && tr.getAttribute('data-sz') === sel.size);
+        });
+      }
+
+      // wire unit toggle (re-renders the table when switched)
+      (function wireSizeChart(){
+        var sc = (STORE_CONFIG && STORE_CONFIG.sizeChart) || null;
+        if (!sc) return;
+        var card = root.querySelector('.pdp__sizechart');
+        if (!card) return;
+        var tabs = card.querySelector('#scUnits');
+        if (tabs) {
+          tabs.addEventListener('click', function(e){
+            var b = e.target.closest('[data-u]'); if (!b) return;
+            var u = b.getAttribute('data-u');
+            tabs.querySelectorAll('button').forEach(function(x){ x.classList.toggle('is-active', x===b); });
+            card.setAttribute('data-current-unit', u);
+            // re-render table cells
+            var rows = (Array.isArray(sc.rows)?sc.rows:[]);
+            var cols = (Array.isArray(sc.columns)?sc.columns:[]);
+            card.querySelectorAll('.sc-table tbody tr[data-sz]').forEach(function(tr,i){
+              var r = rows[i] || {};
+              tr.querySelectorAll('td').forEach(function(td, ci){
+                if (ci === 0) return; // size label column
+                var c = cols[ci-1] || {};
+                var key = (c.key || c.label || '');
+                var v = ((r[u] && r[u][key]) != null) ? r[u][key] : (r[key] != null ? r[key] : '');
+                td.textContent = (v == null ? '' : String(v));
+              });
+            });
+            paintCurrentSizeRow();
+          });
+        }
+        paintCurrentSizeRow();
+      })();
+
+      // hook into size selection to highlight matching row
+      root.querySelectorAll('[data-size]').forEach(function (b) {
+        b.addEventListener('click', paintCurrentSizeRow);
+      });
 
       // ---- related ----
       var related = PRODUCTS.filter(function (x) { return x.category === p.category && x.id !== p.id; });
