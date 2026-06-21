@@ -131,6 +131,54 @@
     var bActive = (path === 'bundles.html') ? ' is-active' : '';
     navHtml += '<a href="bundles.html" class="nav-bundles' + bActive + '" style="' + (CFG.bundlesEnabled ? '' : 'display:none') + '">' + T('nav.bundles') + '</a>';
 
+    // ---------- mobile menu (sectioned, refined) ----------
+    var isZh = (window.LANG === 'zh');
+    var L = {
+      menu:    isZh ? '菜单'   : 'Menu',
+      shop:    isZh ? '选购'   : 'Shop',
+      account: isZh ? '账户'   : 'Account',
+      close:   isZh ? '关闭'   : 'Close',
+      lang:    isZh ? 'English' : '中文',
+    };
+    function mLink(href, label, extraCls) {
+      var active = (href.split('?')[0] === path) ? ' is-active' : '';
+      var cls = 'mm__link' + active + (extraCls ? ' ' + extraCls : '');
+      var style = (extraCls === 'nav-bundles' && !CFG.bundlesEnabled) ? ' style="display:none"' : '';
+      return '<a class="' + cls + '" href="' + href + '"' + style + '>' +
+        '<span>' + label + '</span><span class="mm__arrow" aria-hidden="true">→</span></a>';
+    }
+    var mShop =
+      mLink('shop.html',                    T('nav.shopAll')) +
+      mLink('shop.html?category=Outerwear', T('nav.outerwear')) +
+      mLink('shop.html?category=Knitwear',  T('nav.knitwear')) +
+      mLink('shop.html?category=Dresses',   T('nav.dresses')) +
+      mLink('bundles.html',                 T('nav.bundles'), 'nav-bundles');
+    var mAcct =
+      mLink('index.html',   T('nav.home')) +
+      mLink('account.html', T('acc.title'));
+
+    var mobileMenuHtml =
+      '<div class="mobile-menu" id="mobileMenu" aria-hidden="true">' +
+        '<div class="mm__head">' +
+          '<span class="mm__eyebrow">' + L.menu + '</span>' +
+          '<button class="mm__close" id="mmClose" aria-label="' + L.close + '">' +
+            '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+          '</button>' +
+        '</div>' +
+        '<div class="mm__scroll">' +
+          '<div class="mm__group">' +
+            '<div class="mm__label">' + L.shop + '</div>' + mShop +
+          '</div>' +
+          '<div class="mm__group">' +
+            '<div class="mm__label">' + L.account + '</div>' + mAcct +
+          '</div>' +
+        '</div>' +
+        '<div class="mm__foot">' +
+          '<button class="mm__lang" id="mmLangBtn" type="button">' + L.lang + '</button>' +
+          (CFG.email ? '<a class="mm__contact" href="mailto:' + CFG.email + '">' + CFG.email + '</a>' : '') +
+        '</div>' +
+      '</div>';
+
     var header = document.getElementById('site-header');
     if (header) {
       header.outerHTML =
@@ -140,7 +188,7 @@
         '</div></div>' +
         '<header class="header" id="siteHeader"><div class="wrap header__inner">' +
           '<nav class="nav">' + navHtml + '</nav>' +
-          '<button class="icon-btn burger" id="burger" aria-label="' + T('aria.menu') + '">' + ICON.menu + '</button>' +
+          '<button class="icon-btn burger" id="burger" aria-label="' + T('aria.menu') + '" aria-expanded="false">' + ICON.menu + '</button>' +
           '<a class="brand" href="index.html">' + brandMarkup() + '</a>' +
           '<div class="header__actions">' +
             '<button class="lang-btn" id="langBtn" aria-label="Language">' + T('lang.toggle') + '</button>' +
@@ -150,9 +198,7 @@
               '<span class="cart-count" id="cartCount">0</span></button>' +
           '</div>' +
         '</div></header>' +
-        '<div class="mobile-menu" id="mobileMenu">' + navHtml +
-          '<a href="index.html">' + T('nav.home') + '</a>' +
-          '<a href="account.html">' + T('acc.title') + '</a></div>';
+        mobileMenuHtml;
     }
 
     var footer = document.getElementById('site-footer');
@@ -275,6 +321,26 @@
     }
   }
   window.updateCartUI = updateCartUI;
+
+  /* ---------- mobile menu open/close ---------- */
+  function openMobileMenu() {
+    var m = document.getElementById('mobileMenu'); if (!m) return;
+    m.classList.add('open');
+    m.setAttribute('aria-hidden', 'false');
+    var b = document.getElementById('burger'); if (b) b.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMobileMenu() {
+    var m = document.getElementById('mobileMenu'); if (!m) return;
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+    var b = document.getElementById('burger'); if (b) b.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+  function toggleMobileMenu() {
+    var m = document.getElementById('mobileMenu'); if (!m) return;
+    if (m.classList.contains('open')) closeMobileMenu(); else openMobileMenu();
+  }
 
   /* ---------- drawer open/close ---------- */
   function openDrawer() {
@@ -503,7 +569,10 @@
       }
       if (t.closest('#cartBtn')) { openDrawer(); return; }
       if (t.closest('#drawerClose') || t.id === 'overlay') { closeDrawer(); return; }
-      if (t.closest('#burger')) { document.getElementById('mobileMenu').classList.toggle('open'); return; }
+      if (t.closest('#burger')) { toggleMobileMenu(); return; }
+      if (t.closest('#mmClose')) { closeMobileMenu(); return; }
+      if (t.closest('.mm__link')) { closeMobileMenu(); return; }
+      if (t.closest('#mmLangBtn')) { if (window.setLang) setLang(window.LANG === 'zh' ? 'en' : 'zh'); return; }
       if (t.closest('#langBtn')) { if (window.setLang) setLang(window.LANG === 'zh' ? 'en' : 'zh'); return; }
 
       var step = t.closest('[data-step]');
@@ -512,7 +581,9 @@
       if (rm) { removeItem(rm.getAttribute('data-rm')); return; }
     });
 
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { closeDrawer(); closeMobileMenu(); }
+    });
 
     var header = document.getElementById('siteHeader');
     if (header) {
