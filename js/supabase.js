@@ -172,12 +172,31 @@
       if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
       return window.sb.from('bundles').delete().eq('id', id);
     },
+
+    // look up the email linked to a phone number (for phone-based sign-in)
+    emailByPhone: function (phone) {
+      if (!window.sb) return Promise.resolve({ data: null, error: { message: 'not configured' } });
+      return window.sb.from('profiles').select('email').eq('phone', phone).maybeSingle();
+    },
   };
 
   window.Auth = {
     enabled: configured,
-    signUp: function (email, password, fullName) {
-      return window.sb.auth.signUp({ email: email, password: password, options: { data: { full_name: fullName || '' } } });
+    signUp: function (email, password, fullName, phone) {
+      return window.sb.auth.signUp({
+        email: email, password: password,
+        options: { data: { full_name: fullName || '', phone: phone || '' } }
+      }).then(function (res) {
+        if (res.data && res.data.user && window.sb) {
+          window.sb.from('profiles').upsert({
+            id: res.data.user.id,
+            email: email,
+            full_name: fullName || '',
+            phone: phone || ''
+          }).then(function () {}, function () {});
+        }
+        return res;
+      });
     },
     signIn: function (email, password) {
       return window.sb.auth.signInWithPassword({ email: email, password: password });
