@@ -487,7 +487,8 @@ h1, h2, h3, h4 { font-family: var(--serif); font-weight: 400; line-height: 1.08;
   .grid, .grid--3, .cats { grid-template-columns: repeat(2, 1fr); }
   .sec-head { flex-direction: column; align-items: flex-start; gap: 10px; }
   .row2 { grid-template-columns: 1fr; }
-  .footer__top { grid-template-columns: 1fr; gap: 30px; }
+  .footer__top { grid-template-columns: repeat(3, 1fr); gap: 28px 12px; }
+  .footer__brand { grid-column: 1 / -1; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
   .pdp__add { grid-template-columns: 1fr; }
 }
 
