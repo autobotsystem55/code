@@ -138,15 +138,6 @@
             _h+='<option value="'+_esc(zone.id)+'">'+_esc(_lbl)+'</option>';
           }
         });
-        _h+='<optgroup label="'+_esc(isZh?'其他国家':'Other countries')+'">';
-        _h+='<option value="United States">United States</option>';
-        _h+='<option value="United Kingdom">United Kingdom</option>';
-        _h+='<option value="Canada">Canada</option>';
-        _h+='<option value="Australia">Australia</option>';
-        _h+='<option value="Hong Kong">Hong Kong</option>';
-        _h+='<option value="China">China</option>';
-        _h+='<option value="Other">'+(isZh?'其他':'Other')+'</option>';
-        _h+='</optgroup>';
         return _h;
       }
       function countryFromZone(val){
