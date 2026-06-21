@@ -107,8 +107,7 @@
   ];
   function brandMarkup() {
     var b = (CFG.brand || 'STORE');
-    // small superscript flourish for flavour (matches the sweet ✿ motif)
-    return b + ' <sup>✿</sup>';
+    return b;
   }
 
   // Called after DB settings load — refresh the brand wordmark + cart (currency)
