@@ -218,8 +218,8 @@
               '<li><a href="mailto:' + (CFG.email || '') + '">' + T('foot.contact') + '</a></li></ul></div>' +
             '<div><h4>' + T('foot.studio') + '</h4><ul>' +
               '<li><a href="#">' + T('foot.story') + '</a></li>' +
-              '<li><a href="#">' + T('foot.fb') + '</a></li>' +
-              '<li><a href="#">' + T('foot.ig') + '</a></li></ul></div>' +
+              '<li><a href="https://www.facebook.com/CODE.OFFICIALco" target="_blank" rel="noopener">' + T('foot.fb') + '</a></li>' +
+              '<li><a href="https://www.instagram.com/code.officialco" target="_blank" rel="noopener">' + T('foot.ig') + '</a></li></ul></div>' +
           '</div>' +
           '<div class="footer__bottom"><small>' + T('foot.rights', { y: thisYear(), brand: (CFG.brand || '') }) + '</small>' +
             '<nav style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px">' +
