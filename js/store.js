@@ -215,13 +215,9 @@
               '<li><a href="shop.html?category=Accessories">' + T('foot.accessories') + '</a></li></ul></div>' +
             '<div><h4>' + T('foot.help') + '</h4><ul>' +
               '<li><a href="policies.html#shipping">' + T('foot.shipReturns') + '</a></li>' +
-              '<li><a href="#">' + T('foot.size') + '</a></li>' +
-              '<li><a href="#">' + T('foot.care') + '</a></li>' +
               '<li><a href="mailto:' + (CFG.email || '') + '">' + T('foot.contact') + '</a></li></ul></div>' +
             '<div><h4>' + T('foot.studio') + '</h4><ul>' +
               '<li><a href="#">' + T('foot.story') + '</a></li>' +
-              '<li><a href="#">' + T('foot.sustain') + '</a></li>' +
-              '<li><a href="#">' + T('foot.journal') + '</a></li>' +
               '<li><a href="#">' + T('foot.ig') + '</a></li></ul></div>' +
           '</div>' +
           '<div class="footer__bottom"><small>' + T('foot.rights', { y: thisYear(), brand: (CFG.brand || '') }) + '</small>' +
