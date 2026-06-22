@@ -283,7 +283,7 @@
             '<div class="totals">' +
               '<div><span>' + t('co.subtotal') + '</span><span>' + money(subtotal) + '</span></div>' +
               '<div id="discRow" style="display:none"><span>' + t('co.discount') + ' <b id="discTag" style="color:var(--wine)"></b></span><span id="discAmt"></span></div>' +
-              '<div id="creditRow" style="display:none;color:var(--wine)"><span>' + (window.LANG === 'zh' ? '积分折抵' : 'Points') + '</span><span id="creditAmt"></span></div>' +
+              '<div id="creditRow" style="display:none;color:var(--wine)"><span id="creditLabel"></span><span id="creditAmt"></span></div>' +
               '<div><span>' + t('co.shippingLbl') + '</span><span id="shipVal">' + (useZones ? t('co.zoneNone') : (shipping === 0 ? t('co.free') : money(shipping))) + '</span></div>' +
               '<div id="addonRow" style="display:none"><span>' + t('co.addon') + ' <b id="addonTag" style="color:var(--wine)"></b></span><span id="addonAmt"></span></div>' +
               '<div class="grand"><span>' + t('co.total') + '</span><b id="grandTotal">' + money(total) + '</b></div>' +
@@ -295,15 +295,20 @@
       var discountLabel = '';
       var gifts = [], giftNudge = null;
       var addonOffer = null, addonAdded = false, addonTotal = 0, addonNudge = null;
-      var creditBal = 0, creditUse = 0;   // store credit (购物金): balance + amount applied this order
+      var creditBal = 0, creditUse = 0;   // points: balance + amount (RM) applied this order
+      var vouchers = [], voucherSel = null;   // cash vouchers + the one chosen (one reward per order)
       function renderTotals() {
         var effShip = freeShip ? 0 : shipping;
-        if (creditUse > Math.max(0, subtotal - discount)) creditUse = Math.max(0, subtotal - discount);
-        total = Math.max(0, subtotal - discount - creditUse) + effShip + (addonAdded ? addonTotal : 0);
+        if (!voucherSel && creditUse > Math.max(0, subtotal - discount)) creditUse = Math.max(0, subtotal - discount);
+        var rewardDisc = voucherSel ? voucherDiscFor(voucherSel) : creditUse;   // one reward per order
+        total = Math.max(0, subtotal - discount - rewardDisc) + effShip + (addonAdded ? addonTotal : 0);
         var crow = document.getElementById('creditRow');
         if (crow) {
-          if (creditUse > 0) { crow.style.display = ''; document.getElementById('creditAmt').textContent = '−' + money(creditUse); }
-          else { crow.style.display = 'none'; }
+          if (rewardDisc > 0) {
+            crow.style.display = '';
+            document.getElementById('creditLabel').textContent = voucherSel ? (window.LANG === 'zh' ? '现金券' : 'Voucher') : (window.LANG === 'zh' ? '积分折抵' : 'Points');
+            document.getElementById('creditAmt').textContent = '−' + money(rewardDisc);
+          } else { crow.style.display = 'none'; }
         }
         var sv = document.getElementById('shipVal');
         if (sv) sv.textContent = (useZones && !selectedZone && !freeShip) ? t('co.zoneNone') : (effShip === 0 ? t('co.free') : money(effShip));
@@ -488,55 +493,91 @@
         cap = Math.min(cap, Math.max(0, subtotal - discount));   // never exceed payable merchandise
         return Math.floor(cap * 100) / 100;
       }
-      function renderCreditUI() {
+      function rewardsApplicable() {
+        return vouchers.filter(function (v) { return !v.used_at && (!v.expires_at || new Date(v.expires_at).getTime() > Date.now()); });
+      }
+      function voucherDiscFor(v) {
+        if (!v) return 0;
+        if (+v.min_spend > subtotal) return 0;
+        return Math.min(+v.amount, Math.max(0, subtotal - discount));
+      }
+      function bestReward() {
+        var opts = [];
+        rewardsApplicable().forEach(function (v) { var d = voucherDiscFor(v); if (d > 0) opts.push({ mode: 'voucher', v: v, disc: d }); });
+        var pm = creditMax(); if (pm > 0) opts.push({ mode: 'points', disc: pm });
+        opts.sort(function (a, b) { return b.disc - a.disc; });
+        return opts[0] || null;
+      }
+      // rewards picker — one per order: a cash voucher OR points
+      function renderRewards() {
         var wrap = document.getElementById('creditWrap'); if (!wrap) return;
-        if (creditBal <= 0) { wrap.style.display = 'none'; return; }
-        var rd = creditRules().redeem || {}, zh = (window.LANG === 'zh');
-        var ppr = +creditRules().pointsPerRM || 100;          // display points (internal math stays RM)
+        var apl = rewardsApplicable();
+        if (!apl.length && creditBal <= 0) { wrap.style.display = 'none'; return; }
+        var zh = (window.LANG === 'zh');
+        var ppr = +creditRules().pointsPerRM || 100;
+        var pmax = creditMax();
         function Pf(rm) { return Math.round((+rm || 0) * ppr).toLocaleString(); }
-        var minOrder = +rd.minOrder || 0, blocked = (minOrder > 0 && subtotal < minOrder);
-        var max = creditMax(), on = creditUse > 0;
-        var hint = blocked
-          ? (zh ? ('订单满 ' + money(minOrder) + ' 才能用积分') : ('Spend ' + money(minOrder) + ' to use points'))
-          : (zh ? ('本单最多可抵 ' + Pf(max) + ' 积分（≈ ' + money(max) + '）') : ('Up to ' + Pf(max) + ' pts (' + money(max) + ') off'));
-        wrap.style.display = '';
-        wrap.innerHTML =
-          '<div style="border:1px dashed var(--pink-border,#DAB0B7);background:var(--white,#fff);border-radius:8px;padding:13px 14px;margin:16px 0 2px">' +
-            '<div style="display:flex;align-items:center;gap:9px">' +
-              '<span style="width:28px;height:28px;border-radius:50%;background:var(--pink-soft,#F3E2E4);display:grid;place-items:center;font-size:14px;flex:0 0 auto">🪙</span>' +
-              '<div style="flex:1;font-size:13px;font-weight:600">' + (zh ? '使用积分' : 'Use points') +
-                '<div style="font-size:11.5px;color:var(--muted);font-weight:400">' + (zh ? '余额 ' : 'Balance ') + Pf(creditBal) + (zh ? ' 积分（≈ ' : ' pts (') + money(creditBal) + (zh ? '）' : ')') + '</div></div>' +
-              '<button type="button" id="creditToggle" aria-label="toggle" style="position:relative;width:42px;height:24px;border-radius:999px;border:none;flex:0 0 auto;cursor:pointer;transition:background .18s;background:' + (on ? 'var(--wine,#82213E)' : '#d9cfca') + '"><span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .18s;transform:translateX(' + (on ? '18px' : '0') + ')"></span></button>' +
-            '</div>' +
-            (on ?
-              '<div style="display:flex;align-items:center;gap:9px;margin-top:12px">' +
-                '<input type="number" id="creditInput" min="0" step="1" value="' + Math.round(creditUse * ppr) + '" style="flex:1;padding:9px 11px;border:1px solid var(--pink-border,#DAB0B7);border-radius:7px;font:inherit;outline:none">' +
-                '<span style="font-size:12.5px;color:var(--muted)">' + (zh ? '积分' : 'pts') + '</span>' +
-                '<button type="button" id="creditMaxBtn" style="background:none;border:none;color:var(--wine,#82213E);font-size:12px;font-weight:600;text-decoration:underline;white-space:nowrap;cursor:pointer">' + (zh ? '用最多' : 'Use max') + '</button>' +
-              '</div>' : '') +
-            '<div style="font-size:11.5px;margin-top:8px;color:' + (blocked ? 'var(--amber,#9A6B12)' : 'var(--muted)') + '">' + hint + '</div>' +
-          '</div>';
-        var tgl = document.getElementById('creditToggle');
-        if (tgl) tgl.addEventListener('click', function () {
-          creditUse = (creditUse > 0) ? 0 : creditMax();
-          renderCreditUI(); renderTotals();
+        function row(checked, val, title, sub, disabled) {
+          return '<label style="display:flex;align-items:flex-start;gap:9px;padding:9px 0;' + (disabled ? 'opacity:.5' : 'cursor:pointer') + '">' +
+            '<input type="radio" name="rwd" value="' + val + '"' + (checked ? ' checked' : '') + (disabled ? ' disabled' : '') + ' style="margin-top:3px;accent-color:var(--wine,#82213E)">' +
+            '<span style="flex:1"><span style="font-size:13px;font-weight:600">' + title + '</span>' + (sub ? '<br><span style="font-size:11.5px;color:var(--muted)">' + sub + '</span>' : '') + '</span></label>';
+        }
+        var html = '<div style="border:1px dashed var(--pink-border,#DAB0B7);background:var(--white,#fff);border-radius:8px;padding:11px 14px;margin:16px 0 2px">' +
+          '<div style="font-size:13px;font-weight:700;margin-bottom:2px">🎁 ' + (zh ? '使用回馈' : 'Rewards') + ' <span style="font-weight:400;color:var(--muted);font-size:11.5px">' + (zh ? '每单限一种' : 'one per order') + '</span></div>';
+        apl.forEach(function (v) {
+          var ok = (+v.min_spend <= subtotal);
+          var title = money(+v.amount) + ' ' + (zh ? '现金券' : 'voucher');
+          var sub = (+v.min_spend > 0) ? (zh ? ('满 ' + money(+v.min_spend) + (ok ? ' 可用' : ' 才能用')) : ('min ' + money(+v.min_spend))) : (zh ? '无门槛' : 'no minimum');
+          html += row(!!(voucherSel && voucherSel.id === v.id), 'v' + v.id, title, sub, !ok);
+        });
+        if (creditBal > 0) {
+          var psub = pmax > 0
+            ? (zh ? ('余额 ' + Pf(creditBal) + ' 积分 · 本单最多抵 ' + money(pmax)) : ('balance ' + Pf(creditBal) + ' pts · up to ' + money(pmax)))
+            : (zh ? ('余额 ' + Pf(creditBal) + ' 积分（本单暂不可用）') : ('balance ' + Pf(creditBal) + ' pts (not usable here)'));
+          html += row(!voucherSel && creditUse > 0, 'points', (zh ? '用积分' : 'Use points'), psub, pmax <= 0);
+          if (!voucherSel && creditUse > 0) {
+            html += '<div style="display:flex;align-items:center;gap:9px;margin:2px 0 6px 26px">' +
+              '<input type="number" id="creditInput" min="0" step="1" value="' + Math.round(creditUse * ppr) + '" style="flex:1;padding:8px 10px;border:1px solid var(--pink-border,#DAB0B7);border-radius:7px;font:inherit;outline:none">' +
+              '<span style="font-size:12.5px;color:var(--muted)">' + (zh ? '积分' : 'pts') + '</span>' +
+              '<button type="button" id="creditMaxBtn" style="background:none;border:none;color:var(--wine,#82213E);font-size:12px;font-weight:600;text-decoration:underline;white-space:nowrap;cursor:pointer">' + (zh ? '用最多' : 'Max') + '</button>' +
+            '</div>';
+          }
+        }
+        html += row(!voucherSel && !(creditUse > 0), 'none', (zh ? '不使用' : 'None'), '');
+        html += '</div>';
+        wrap.style.display = ''; wrap.innerHTML = html;
+        wrap.querySelectorAll('input[name="rwd"]').forEach(function (rb) {
+          rb.addEventListener('change', function () {
+            var val = this.value;
+            if (val === 'none') { voucherSel = null; creditUse = 0; }
+            else if (val === 'points') { voucherSel = null; creditUse = creditMax(); }
+            else { voucherSel = vouchers.filter(function (x) { return ('v' + x.id) === val; })[0] || null; creditUse = 0; }
+            renderRewards(); renderTotals();
+          });
         });
         var inp = document.getElementById('creditInput');
         if (inp) inp.addEventListener('input', function () {
           creditUse = Math.max(0, Math.min((parseFloat(this.value) || 0) / ppr, creditMax())); renderTotals();
         });
         var mx = document.getElementById('creditMaxBtn');
-        if (mx) mx.addEventListener('click', function () { creditUse = creditMax(); renderCreditUI(); renderTotals(); });
+        if (mx) mx.addEventListener('click', function () { creditUse = creditMax(); renderRewards(); renderTotals(); });
       }
-      function setupCredit() {
-        if (!(window.DB && DB.configured && DB.creditBalance)) return;
-        DB.creditBalance().then(function (bal) {
-          creditBal = bal || 0;
-          if (creditBal <= 0) return;
-          creditUse = creditMax();          // default to applying the maximum allowed
-          renderCreditUI();
-          renderTotals();
-        }, function () {});
+      function setupRewards() {
+        if (!(window.DB && DB.configured)) return;
+        var load = function () {
+          Promise.all([
+            DB.creditBalance ? DB.creditBalance() : Promise.resolve(0),
+            DB.myVouchers ? DB.myVouchers() : Promise.resolve({ data: [] })
+          ]).then(function (res) {
+            creditBal = res[0] || 0;
+            vouchers = (res[1] && res[1].data) || [];
+            var best = bestReward();   // auto-apply the single most valuable reward
+            if (best) { if (best.mode === 'voucher') { voucherSel = best.v; creditUse = 0; } else { voucherSel = null; creditUse = creditMax(); } }
+            renderRewards(); renderTotals();
+          }, function () {});
+        };
+        // birthday voucher granted lazily on visit (once a year, birthday month only) — then load
+        if (DB.claimBirthdayVoucher) DB.claimBirthdayVoucher().then(load, load); else load();
       }
 
       document.getElementById('discBtn').addEventListener('click', function () {
@@ -577,7 +618,7 @@
         }, function () { btn.disabled = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); });
       });
       applyAuto();
-      setupCredit();
+      setupRewards();
 
       // ---- zone select + COD toggle wiring ----
       if (useZones) {
@@ -797,9 +838,11 @@
             payment_method: isCOD ? 'cod' : 'online'
           };
           if (creditUse > 0) orderRow.credit_used = creditUse;
+          if (voucherSel) orderRow.voucher_id = voucherSel.id;
+          var zh = (window.LANG === 'zh');
 
-          // Spend store credit FIRST (server deducts atomically). Only if that
-          // succeeds do we keep the credit discount; otherwise place at full price.
+          // Spend the chosen reward FIRST (server-side, atomic). Only on success do we
+          // keep the discount; otherwise place the order at full price.
           var saveOrder = function () {
           Auth.getUser().then(function (res) {
             var u = res && res.data && res.data.user; if (u) orderRow.user_id = u.id;
@@ -821,26 +864,26 @@
             }
           }).then(go, go);
           };
+          var revertReward = function () {
+            voucherSel = null; creditUse = 0;
+            if (orderRow.credit_used != null) delete orderRow.credit_used;
+            if (orderRow.voucher_id != null) delete orderRow.voucher_id;
+            orderRow.total = total = Math.max(0, subtotal - discount) + effShip + (addonAdded ? addonTotal : 0);
+            renderRewards(); renderTotals();
+            if (btn) btn.disabled = false;
+            toast(zh ? '回馈使用失败，已移除，请再试一次' : 'Reward could not be applied — removed, please try again');
+          };
 
-          if (creditUse > 0 && DB.redeemCredit) {
-            DB.redeemCredit(creditUse, orderId).then(function (r) {
-              if (r && r.error) {
-                // couldn't spend credit → remove it and let the customer place at full price
-                creditUse = 0; if (orderRow.credit_used) delete orderRow.credit_used;
-                orderRow.total = total = Math.max(0, subtotal - discount) + effShip + (addonAdded ? addonTotal : 0);
-                renderCreditUI(); renderTotals();
-                if (btn) btn.disabled = false;
-                toast(window.LANG === 'zh' ? '购物金折抵失败，已移除，请再试一次' : 'Could not apply store credit — removed, please try again');
-                return;
-              }
+          if (voucherSel && DB.redeemVoucher) {
+            DB.redeemVoucher(voucherSel.id, orderId, subtotal).then(function (r) {
+              if (r && r.error) { revertReward(); return; }
               saveOrder();
-            }, function () {
-              creditUse = 0; if (orderRow.credit_used) delete orderRow.credit_used;
-              orderRow.total = total = Math.max(0, subtotal - discount) + effShip + (addonAdded ? addonTotal : 0);
-              renderCreditUI(); renderTotals();
-              if (btn) btn.disabled = false;
-              toast(window.LANG === 'zh' ? '购物金折抵失败，已移除，请再试一次' : 'Could not apply store credit — removed, please try again');
-            });
+            }, revertReward);
+          } else if (creditUse > 0 && DB.redeemCredit) {
+            DB.redeemCredit(creditUse, orderId).then(function (r) {
+              if (r && r.error) { revertReward(); return; }
+              saveOrder();
+            }, revertReward);
           } else { saveOrder(); }
         } else { go(); }
       });

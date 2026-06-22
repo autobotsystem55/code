@@ -193,6 +193,28 @@
       return window.sb.rpc('admin_adjust_credit', { p_user: userId, p_delta: delta, p_note: note || null });
     },
 
+    // ---- cash vouchers (现金券) ----
+    // Current user's vouchers (RLS limits to own). Empty on error.
+    myVouchers: function () {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.from('vouchers').select('*').order('created_at', { ascending: false }).limit(50);
+    },
+    // Redeem one voucher at checkout (server checks owner/used/expiry/min-spend).
+    redeemVoucher: function (id, orderNumber, subtotal) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.rpc('redeem_voucher', { p_id: id, p_order: orderNumber || null, p_subtotal: subtotal || 0 });
+    },
+    // Birthday voucher — safe to call on page load; issues at most once per year, only in the birthday month.
+    claimBirthdayVoucher: function () {
+      if (!window.sb) return Promise.resolve({ data: null, error: null });
+      return window.sb.rpc('claim_birthday_voucher');
+    },
+    // Admin: issue a voucher to a member.
+    adminIssueVoucher: function (userId, amount, minSpend, note, expiryDays) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.rpc('admin_issue_voucher', { p_user: userId, p_amount: amount, p_min: minSpend || 0, p_note: note || null, p_expiry_days: expiryDays || 0 });
+    },
+
     // ---- bundles / sets ----
     allBundles: function () {
       if (!window.sb) return Promise.resolve({ data: [], error: null });
@@ -236,18 +258,20 @@
 
   window.Auth = {
     enabled: configured,
-    signUp: function (email, password, fullName, phone) {
+    signUp: function (email, password, fullName, phone, birthday) {
       return window.sb.auth.signUp({
         email: email, password: password,
         options: { data: { full_name: fullName || '', phone: phone || '' } }
       }).then(function (res) {
         if (res.data && res.data.user && window.sb) {
-          window.sb.from('profiles').upsert({
+          var prof = {
             id: res.data.user.id,
             email: email,
             full_name: fullName || '',
             phone: phone || ''
-          }).then(function () {}, function () {});
+          };
+          if (birthday) prof.birthday = birthday;   // YYYY-MM-DD (optional)
+          window.sb.from('profiles').upsert(prof).then(function () {}, function () {});
         }
         return res;
       });
