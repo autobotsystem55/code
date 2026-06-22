@@ -1922,7 +1922,8 @@
         var sc=s.storeCredit, fresh=(sc===undefined||sc===null);
         sc=sc||{}; var sg=sc.signup||{},cb=sc.cashback||{},rd=sc.redeem||{};
         var sym=s.currencySymbol||CFG.currencySymbol||'RM';
-        // state (defaults to the merchant's chosen setup the first time)
+        // state (defaults to the merchant's chosen setup the first time).
+        // Internally everything stays in RM/%; we only DISPLAY as points (积分).
         var st={
           enabled: fresh?true:(sc.enabled!==false),
           sgOn:   fresh?true :!!sg.on,  sgAmt:(sg.amt!=null?sg.amt:10), sgWhen:sg.when||'register',
@@ -1931,42 +1932,50 @@
           minOrder:fresh?50:(rd.minOrder!=null?rd.minOrder:0),
           expiry: fresh?12:(sc.expiryMonths!=null?sc.expiryMonths:0)
         };
+        var ppr0 = fresh?100:(+sc.pointsPerRM||100);            // 积分 per RM 1 (display conversion)
+        function P(rm){ return Math.round((+rm||0)*ppr0); }      // RM → points (load-time ratio)
+        function Pf(rm){ return P(rm).toLocaleString(); }        // formatted points
+        function curPpr(){ var e=document.getElementById('scPpr'); var v=e?(+e.value||0):0; return v>0?v:ppr0; }
+        function effPpr(){ return (window.STORE_CONFIG&&STORE_CONFIG.storeCredit&&+STORE_CONFIG.storeCredit.pointsPerRM)||ppr0; }
         function sw(id,on){return '<button type="button" class="switch'+(on?' on':'')+'" data-tg="'+id+'" role="switch" aria-checked="'+(on?'true':'false')+'"><span class="knob"></span></button>';}
         function num(id,val,w){return '<input type="number" id="'+id+'" value="'+esc(val)+'" min="0" style="width:'+(w||80)+'px;padding:8px 10px;border:1px solid var(--line2);border-radius:7px;font:inherit">';}
 
+        var muted='style="color:var(--muted);font-size:12px"';
         view.innerHTML=
           '<div class="panel">'+
             '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">'+
-              '<div><h2 style="margin:0">购物金 <span style="color:var(--muted);font-size:.62em">/ Store Credit</span></h2>'+
-                '<p class="muted" style="margin:4px 0 0;font-size:13px">顾客赚购物金、结账当现金折抵。规则改完记得保存。</p></div>'+
+              '<div><h2 style="margin:0">积分 <span style="color:var(--muted);font-size:.62em">/ Points</span></h2>'+
+                '<p class="muted" style="margin:4px 0 0;font-size:13px">顾客赚积分、结账时当现金折抵。规则改完记得保存。</p></div>'+
               '<label style="display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600">总开关 '+sw('enabled',st.enabled)+'</label>'+
             '</div>'+
-            '<p class="muted" id="scEnabledNote" style="font-size:12px;margin:10px 0 0;'+(st.enabled?'display:none':'')+'">已关闭：顾客端不显示购物金、不再赚取。已有余额会保留。</p>'+
+            '<p class="muted" id="scEnabledNote" style="font-size:12px;margin:10px 0 0;'+(st.enabled?'display:none':'')+'">已关闭：顾客端不显示积分、不再赚取。已有积分会保留。</p>'+
+            '<div class="scfields" style="border:none;opacity:1;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">积分换算：'+num('scPpr',ppr0,80)+' 积分 = '+esc(sym)+' 1 <span '+muted+' id="scPprHint"></span></div>'+
+            '<p class="muted" style="font-size:11.5px;margin:2px 0 0">这决定顾客看到的积分数字多大。100 = 好心算又显得多（'+esc(sym)+'1 = 100 积分）。</p>'+
           '</div>'+
 
           '<div class="panel"><h2>① 赚取规则</h2>'+
             '<div class="screg"><div class="screg-tx"><b>注册 / 首购送</b><span>吸引新客下第一单。</span></div>'+sw('sgOn',st.sgOn)+'</div>'+
-            '<div class="scfields" id="sgFields">送 '+num('scSgAmt',st.sgAmt)+' <span class="muted">'+esc(sym)+'</span>'+
+            '<div class="scfields" id="sgFields">送 '+num('scSgAmt',P(st.sgAmt),90)+' 积分 <span '+muted+' id="scSgHint"></span>'+
               '<span style="margin-left:10px">时机：</span><span class="scseg" id="scSgWhen">'+
                 '<button type="button" data-w="register"'+(st.sgWhen==='register'?' class="on"':'')+'>注册即送</button>'+
                 '<button type="button" data-w="firstorder"'+(st.sgWhen==='firstorder'?' class="on"':'')+'>完成首单才送</button></span>'+
             '</div>'+
-            '<div class="screg" style="margin-top:6px"><div class="screg-tx"><b>消费返现</b><span>每笔订单「已付款/已发货」后回馈购物金。</span></div>'+sw('cbOn',st.cbOn)+'</div>'+
-            '<div class="scfields" id="cbFields">返 '+num('scCbRate',st.cbRate,64)+' <span class="muted">%</span>'+
-              '<span style="margin-left:10px">单笔封顶 '+num('scCbCap',st.cbCap)+' <span class="muted">'+esc(sym)+'（0=不封顶）</span></span>'+
+            '<div class="screg" style="margin-top:6px"><div class="screg-tx"><b>消费返现</b><span>每笔订单「已付款/已发货」后回馈积分。</span></div>'+sw('cbOn',st.cbOn)+'</div>'+
+            '<div class="scfields" id="cbFields">每消费 '+esc(sym)+' 1 送 '+num('scCbRate',Math.round(st.cbRate*ppr0/100),70)+' 积分 <span '+muted+' id="scCbHint"></span>'+
+              '<span style="margin-left:10px">单笔封顶 '+num('scCbCap',P(st.cbCap),90)+' 积分</span> <span '+muted+' id="scCbCapHint"></span>'+
             '</div>'+
           '</div>'+
 
           '<div class="panel"><h2>② 折抵规则</h2>'+
-            '<p class="muted" style="font-size:12.5px;margin:0 0 14px">购物金永远「当现金抵」。下面两条是可选的保护栏，填 0 即关闭。</p>'+
-            '<div class="scfields" style="border:none;opacity:1">每单最多抵 '+num('scMaxPct',st.maxPct,64)+' <span class="muted">%（0 = 不限制）</span></div>'+
-            '<div class="scfields" style="border:none;opacity:1">订单满 '+num('scMinOrder',st.minOrder)+' <span class="muted">'+esc(sym)+' 才能用（0 = 无门槛）</span></div>'+
-            '<div class="scfields" style="border:none;opacity:1">购物金有效期 '+num('scExpiry',st.expiry,64)+' <span class="muted">个月（0 = 永不过期）</span></div>'+
-            '<p class="muted" style="font-size:11.5px;margin:8px 0 0">注：有效期会显示给顾客提醒尽快使用；自动清除过期购物金属于后续可加的进阶功能。</p>'+
+            '<p class="muted" style="font-size:12.5px;margin:0 0 14px">积分永远「当现金抵」。下面两条是可选的保护栏，填 0 即关闭。</p>'+
+            '<div class="scfields" style="border:none;opacity:1">每单最多用积分抵 '+num('scMaxPct',st.maxPct,64)+' <span class="muted">% 货款（0 = 不限制）</span></div>'+
+            '<div class="scfields" style="border:none;opacity:1">订单满 '+num('scMinOrder',st.minOrder)+' <span class="muted">'+esc(sym)+' 才能用积分（0 = 无门槛）</span></div>'+
+            '<div class="scfields" style="border:none;opacity:1">积分有效期 '+num('scExpiry',st.expiry,64)+' <span class="muted">个月（0 = 永不过期）</span></div>'+
+            '<p class="muted" style="font-size:11.5px;margin:8px 0 0">注：有效期会显示给顾客提醒尽快使用；自动清除过期积分属于后续可加的进阶功能。</p>'+
             '<div style="margin-top:16px;display:flex;align-items:center;gap:12px"><button class="btn" id="scSave">保存设定</button><span class="msg" id="scMsg" style="margin:0"></span></div>'+
           '</div>'+
 
-          '<div class="panel"><div class="panel-head"><h2>③ 会员购物金</h2><button class="btn btn--ghost btn--sm" id="scReload">刷新</button></div>'+
+          '<div class="panel"><div class="panel-head"><h2>③ 会员积分</h2><button class="btn btn--ghost btn--sm" id="scReload">刷新</button></div>'+
             '<input id="scSearch" placeholder="搜索姓名 / 邮箱 / 电话…" style="width:100%;padding:10px 13px;border:1px solid var(--line2);border-radius:7px;font:inherit;margin-bottom:12px">'+
             '<div id="scMembers"><p class="muted">载入中…</p></div>'+
           '</div>';
@@ -1983,6 +1992,17 @@
         });
         document.getElementById('sgFields').classList.toggle('off',!st.sgOn);
         document.getElementById('cbFields').classList.toggle('off',!st.cbOn);
+        // live "≈ RM" hints under the points fields
+        function recalc(){
+          var ppr=curPpr(), g=function(id){return Math.max(0,+(document.getElementById(id)||{}).value||0);};
+          var set=function(id,t){var e=document.getElementById(id);if(e)e.textContent=t;};
+          set('scPprHint', ppr>0?('（'+esc(sym)+' 1 = '+ppr.toLocaleString()+' 积分）'):'');
+          set('scSgHint', '≈ '+esc(sym)+' '+(g('scSgAmt')/ppr).toFixed(2));
+          set('scCbHint', '（约 '+(Math.round(g('scCbRate')*100/ppr*100)/100)+'% 回馈）');
+          set('scCbCapHint', g('scCbCap')>0?('≈ '+esc(sym)+' '+(g('scCbCap')/ppr).toFixed(2)+' 封顶'):'不封顶');
+        }
+        ['scPpr','scSgAmt','scCbRate','scCbCap'].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener('input',recalc);});
+        recalc();
         // when segment
         document.getElementById('scSgWhen').querySelectorAll('button').forEach(function(b){
           b.addEventListener('click',function(){
@@ -1994,9 +2014,12 @@
         // save
         document.getElementById('scSave').addEventListener('click',function(){
           var nv=function(id){return Math.max(0,+document.getElementById(id).value||0);};
-          var out={enabled:st.enabled,
-            signup:{on:st.sgOn,amt:nv('scSgAmt'),when:st.sgWhen},
-            cashback:{on:st.cbOn,rate:nv('scCbRate'),cap:nv('scCbCap')},
+          var ppr=Math.max(1,nv('scPpr'));            // 积分 per RM (never 0)
+          var r2=function(x){return Math.round(x*100)/100;};
+          // Stored internally in RM/% (so the DB + triggers are unchanged); points are display-only.
+          var out={enabled:st.enabled, pointsPerRM:ppr,
+            signup:{on:st.sgOn,amt:r2(nv('scSgAmt')/ppr),when:st.sgWhen},
+            cashback:{on:st.cbOn,rate:r2(nv('scCbRate')*100/ppr),cap:r2(nv('scCbCap')/ppr)},
             redeem:{maxPct:nv('scMaxPct'),minOrder:nv('scMinOrder')},
             expiryMonths:nv('scExpiry')};
           var btn=this,msg=document.getElementById('scMsg'); btn.disabled=true; msg.style.color='';msg.textContent='保存中…';
@@ -2015,20 +2038,21 @@
           var q=(document.getElementById('scSearch').value||'').toLowerCase();
           var rows=members.filter(function(m){return !q||((m.full_name||'')+(m.email||'')+(m.phone||'')).toLowerCase().indexOf(q)>=0;});
           var box=document.getElementById('scMembers');
-          if(!members.length){box.innerHTML='<div class="empty">还没有会员，或购物金数据库尚未设置。</div>';return;}
-          box.innerHTML='<table><thead><tr><th>会员</th><th>电话</th><th>购物金余额</th><th style="text-align:right">调整</th></tr></thead><tbody>'+
+          if(!members.length){box.innerHTML='<div class="empty">还没有会员，或积分数据库尚未设置。</div>';return;}
+          box.innerHTML='<table><thead><tr><th>会员</th><th>电话</th><th>积分余额</th><th style="text-align:right">调整</th></tr></thead><tbody>'+
             rows.map(function(m){return '<tr>'+
               '<td><b>'+esc(m.full_name||'—')+'</b><div class="muted" style="font-size:11.5px">'+esc(m.email||'—')+'</div></td>'+
               '<td class="muted">'+esc(m.phone||'—')+'</td>'+
-              '<td style="font-weight:700;color:var(--wine,#82213E)">'+money(+m.balance||0)+'</td>'+
+              '<td style="font-weight:700;color:var(--wine,#82213E)">'+(Math.round((+m.balance||0)*effPpr())).toLocaleString()+' 积分<div class="muted" style="font-size:11px;font-weight:400">≈ '+money(+m.balance||0)+'</div></td>'+
               '<td style="text-align:right"><button class="btn btn--ghost btn--sm" data-adj="'+esc(m.user_id)+'" data-d="1">+ 充值</button> '+
                 '<button class="btn btn--ghost btn--sm" data-adj="'+esc(m.user_id)+'" data-d="-1">− 扣减</button></td>'+
             '</tr>';}).join('')+'</tbody></table>';
           box.querySelectorAll('[data-adj]').forEach(function(b){
             b.addEventListener('click',function(){
-              var uid=b.getAttribute('data-adj'),dir=+b.getAttribute('data-d');
-              var raw=prompt((dir>0?'充值':'扣减')+'多少购物金 ('+sym+')？','5'); if(raw===null)return;
-              var amt=parseFloat(raw); if(!(amt>0)){alert('请输入大于 0 的金额');return;}
+              var uid=b.getAttribute('data-adj'),dir=+b.getAttribute('data-d'),ppr=effPpr();
+              var raw=prompt((dir>0?'充值':'扣减')+'多少积分？','500'); if(raw===null)return;
+              var ptsv=parseFloat(raw); if(!(ptsv>0)){alert('请输入大于 0 的积分');return;}
+              var amt=Math.round(ptsv/ppr*100)/100;   // points → RM (stored internally in RM)
               var note=prompt('原因（会记进顾客流水）：',dir>0?'活动赠送':'订单退款回收'); if(note===null)return;
               DB.adminAdjustCredit(uid,dir*amt,note).then(function(rr){
                 if(rr&&rr.error){alert('操作失败：'+rr.error.message);return;}

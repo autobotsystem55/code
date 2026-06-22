@@ -283,7 +283,7 @@
             '<div class="totals">' +
               '<div><span>' + t('co.subtotal') + '</span><span>' + money(subtotal) + '</span></div>' +
               '<div id="discRow" style="display:none"><span>' + t('co.discount') + ' <b id="discTag" style="color:var(--wine)"></b></span><span id="discAmt"></span></div>' +
-              '<div id="creditRow" style="display:none;color:var(--wine)"><span>' + (window.LANG === 'zh' ? '购物金折抵' : 'Store credit') + '</span><span id="creditAmt"></span></div>' +
+              '<div id="creditRow" style="display:none;color:var(--wine)"><span>' + (window.LANG === 'zh' ? '积分折抵' : 'Points') + '</span><span id="creditAmt"></span></div>' +
               '<div><span>' + t('co.shippingLbl') + '</span><span id="shipVal">' + (useZones ? t('co.zoneNone') : (shipping === 0 ? t('co.free') : money(shipping))) + '</span></div>' +
               '<div id="addonRow" style="display:none"><span>' + t('co.addon') + ' <b id="addonTag" style="color:var(--wine)"></b></span><span id="addonAmt"></span></div>' +
               '<div class="grand"><span>' + t('co.total') + '</span><b id="grandTotal">' + money(total) + '</b></div>' +
@@ -492,23 +492,26 @@
         var wrap = document.getElementById('creditWrap'); if (!wrap) return;
         if (creditBal <= 0) { wrap.style.display = 'none'; return; }
         var rd = creditRules().redeem || {}, zh = (window.LANG === 'zh');
+        var ppr = +creditRules().pointsPerRM || 100;          // display points (internal math stays RM)
+        function Pf(rm) { return Math.round((+rm || 0) * ppr).toLocaleString(); }
         var minOrder = +rd.minOrder || 0, blocked = (minOrder > 0 && subtotal < minOrder);
         var max = creditMax(), on = creditUse > 0;
         var hint = blocked
-          ? (zh ? ('订单满 ' + money(minOrder) + ' 才能用购物金') : ('Spend ' + money(minOrder) + ' to use store credit'))
-          : (zh ? ('本单最多可抵 ' + money(max)) : ('Up to ' + money(max) + ' off this order'));
+          ? (zh ? ('订单满 ' + money(minOrder) + ' 才能用积分') : ('Spend ' + money(minOrder) + ' to use points'))
+          : (zh ? ('本单最多可抵 ' + Pf(max) + ' 积分（≈ ' + money(max) + '）') : ('Up to ' + Pf(max) + ' pts (' + money(max) + ') off'));
         wrap.style.display = '';
         wrap.innerHTML =
           '<div style="border:1px dashed var(--pink-border,#DAB0B7);background:var(--white,#fff);border-radius:8px;padding:13px 14px;margin:16px 0 2px">' +
             '<div style="display:flex;align-items:center;gap:9px">' +
               '<span style="width:28px;height:28px;border-radius:50%;background:var(--pink-soft,#F3E2E4);display:grid;place-items:center;font-size:14px;flex:0 0 auto">🪙</span>' +
-              '<div style="flex:1;font-size:13px;font-weight:600">' + (zh ? '使用购物金' : 'Use store credit') +
-                '<div style="font-size:11.5px;color:var(--muted);font-weight:400">' + (zh ? '余额 ' : 'Balance ') + money(creditBal) + '</div></div>' +
+              '<div style="flex:1;font-size:13px;font-weight:600">' + (zh ? '使用积分' : 'Use points') +
+                '<div style="font-size:11.5px;color:var(--muted);font-weight:400">' + (zh ? '余额 ' : 'Balance ') + Pf(creditBal) + (zh ? ' 积分（≈ ' : ' pts (') + money(creditBal) + (zh ? '）' : ')') + '</div></div>' +
               '<button type="button" id="creditToggle" aria-label="toggle" style="position:relative;width:42px;height:24px;border-radius:999px;border:none;flex:0 0 auto;cursor:pointer;transition:background .18s;background:' + (on ? 'var(--wine,#82213E)' : '#d9cfca') + '"><span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .18s;transform:translateX(' + (on ? '18px' : '0') + ')"></span></button>' +
             '</div>' +
             (on ?
               '<div style="display:flex;align-items:center;gap:9px;margin-top:12px">' +
-                '<input type="number" id="creditInput" min="0" step="0.5" value="' + creditUse + '" style="flex:1;padding:9px 11px;border:1px solid var(--pink-border,#DAB0B7);border-radius:7px;font:inherit;outline:none">' +
+                '<input type="number" id="creditInput" min="0" step="1" value="' + Math.round(creditUse * ppr) + '" style="flex:1;padding:9px 11px;border:1px solid var(--pink-border,#DAB0B7);border-radius:7px;font:inherit;outline:none">' +
+                '<span style="font-size:12.5px;color:var(--muted)">' + (zh ? '积分' : 'pts') + '</span>' +
                 '<button type="button" id="creditMaxBtn" style="background:none;border:none;color:var(--wine,#82213E);font-size:12px;font-weight:600;text-decoration:underline;white-space:nowrap;cursor:pointer">' + (zh ? '用最多' : 'Use max') + '</button>' +
               '</div>' : '') +
             '<div style="font-size:11.5px;margin-top:8px;color:' + (blocked ? 'var(--amber,#9A6B12)' : 'var(--muted)') + '">' + hint + '</div>' +
@@ -520,7 +523,7 @@
         });
         var inp = document.getElementById('creditInput');
         if (inp) inp.addEventListener('input', function () {
-          creditUse = Math.max(0, Math.min(parseFloat(this.value) || 0, creditMax())); renderTotals();
+          creditUse = Math.max(0, Math.min((parseFloat(this.value) || 0) / ppr, creditMax())); renderTotals();
         });
         var mx = document.getElementById('creditMaxBtn');
         if (mx) mx.addEventListener('click', function () { creditUse = creditMax(); renderCreditUI(); renderTotals(); });

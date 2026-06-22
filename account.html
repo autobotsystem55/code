@@ -334,7 +334,7 @@
             '<div id="ordersList"><p class="muted" style="padding:14px 0">…</p></div>' +
           '</div>' +
           '<div id="acc-panel-credit" class="acc-panel" style="display:none">' +
-            '<h3 class="acc-panel-title">' + L('购物金', 'Store Credit') + '</h3>' +
+            '<h3 class="acc-panel-title">' + L('积分', 'Points') + '</h3>' +
             '<div id="creditBox"><p class="muted" style="padding:14px 0">…</p></div>' +
           '</div>';
 
@@ -359,7 +359,7 @@
                   t('acc.tabSecurity') + '</button>' +
                 '<button class="acc-sidebar-nav" data-tab="credit">' +
                   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14.5" r="1.5"/></svg>' +
-                  L('购物金', 'Store Credit') + '</button>' +
+                  L('积分', 'Points') + '</button>' +
                 '<button class="acc-sidebar-nav" data-tab="orders">' +
                   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
                   t('acc.tabOrders') + '</button>' +
@@ -401,7 +401,7 @@
               '<button class="acc-tab acc-tab--active" data-tab="profile">'  + t('acc.tabProfile')  + '</button>' +
               '<button class="acc-tab" data-tab="address">' + t('acc.tabAddress') + '</button>' +
               '<button class="acc-tab" data-tab="security">' + t('acc.tabSecurity') + '</button>' +
-              '<button class="acc-tab" data-tab="credit">'   + L('购物金', 'Store Credit') + '</button>' +
+              '<button class="acc-tab" data-tab="credit">'   + L('积分', 'Points') + '</button>' +
               '<button class="acc-tab" data-tab="orders">'   + t('acc.tabOrders')   + '</button>' +
             '</nav>' +
             panelsHTML;
@@ -519,6 +519,9 @@
           var box = document.getElementById('creditBox');
           if (!box || !window.DB) return;
           var sc = (window.STORE_CONFIG && STORE_CONFIG.storeCredit) || {};
+          var ppr = (+sc.pointsPerRM) || 100;          // 积分 per RM
+          var sym = (window.STORE_CONFIG && STORE_CONFIG.currencySymbol) || 'RM';
+          function pts(rm) { return Math.round((+rm || 0) * ppr).toLocaleString(); }
           Promise.all([DB.creditBalance(), DB.creditLedger(50)]).then(function (res) {
             var bal = res[0] || 0;
             var rows = (res[1] && res[1].data) || [];
@@ -529,12 +532,12 @@
               earn += '<div style="display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line)"><span style="font-size:17px">🎁</span><span style="font-size:13px">' +
                 (sc.signup.when === 'firstorder'
                   ? L('完成首单送 ', 'Complete your first order for ')
-                  : L('注册即送 ', 'Sign up and get ')) + '<b>' + money(+sc.signup.amt) + '</b></span></div>';
+                  : L('注册即送 ', 'Sign up and get ')) + '<b>' + pts(+sc.signup.amt) + L(' 积分', ' points') + '</b></span></div>';
             if (sc.cashback && sc.cashback.on && +sc.cashback.rate > 0)
               earn += '<div style="display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line)"><span style="font-size:17px">💸</span><span style="font-size:13px">' +
-                L('每一单返 ', 'Earn ') + '<b>' + (+sc.cashback.rate) + '%</b>' + L(' 购物金', ' back as store credit') + '</span></div>';
+                L('每消费 ', 'Earn ') + sym + L(' 1 送 ', ' 1 → ') + '<b>' + Math.round((+sc.cashback.rate) * ppr / 100).toLocaleString() + L(' 积分', ' points') + '</b></span></div>';
             earn += '<div style="display:flex;gap:10px;align-items:center;padding:11px 0"><span style="font-size:17px">🛍️</span><span style="font-size:13px">' +
-              L('结账时当现金折抵货款', 'Spend it like cash at checkout') + '</span></div>';
+              L('结账时积分当现金折抵', 'Spend points like cash at checkout') + '</span></div>';
 
             var ledger = rows.length ? rows.map(function (r) {
               var pos = Number(r.delta) >= 0;
@@ -546,21 +549,22 @@
                   (r.order_number ? ' <span class="muted" style="font-size:11.5px">#' + esc(r.order_number) + '</span>' : '') + '</div>' +
                   '<div style="font-size:11.5px;color:var(--muted)">' + creditDate(r.created_at) + '</div>' + exp + '</div>' +
                 '<div style="font-weight:700;font-size:14px;' + (pos ? 'color:var(--green,#2F7D4F)' : 'color:var(--wine,#82213E)') + '">' +
-                  (pos ? '+' : '−') + money(Math.abs(Number(r.delta))) + '</div></div>';
-            }).join('') : '<p class="muted" style="padding:14px 0">' + L('还没有购物金记录。', 'No store credit activity yet.') + '</p>';
+                  (pos ? '+' : '−') + pts(Math.abs(Number(r.delta))) + L(' 积分', ' pts') + '</div></div>';
+            }).join('') : '<p class="muted" style="padding:14px 0">' + L('还没有积分记录。', 'No points activity yet.') + '</p>';
 
             box.innerHTML =
               '<div style="background:linear-gradient(135deg,var(--wine,#82213E),var(--wine-deep,#6A1A32));color:#fff;border-radius:12px;padding:22px 22px 20px;position:relative;overflow:hidden">' +
-                '<div style="font-size:12px;opacity:.85;letter-spacing:.04em;text-transform:uppercase">' + L('可用购物金', 'Available credit') + '</div>' +
-                '<div style="font-family:var(--serif,serif);font-size:40px;line-height:1.1;margin-top:6px">' + money(bal) + '</div>' +
+                '<div style="font-size:12px;opacity:.85;letter-spacing:.04em;text-transform:uppercase">' + L('可用积分', 'Available points') + '</div>' +
+                '<div style="font-family:var(--serif,serif);font-size:40px;line-height:1.1;margin-top:6px">' + pts(bal) + ' <span style="font-size:20px">' + L('积分', 'pts') + '</span></div>' +
+                '<div style="font-size:12px;opacity:.8;margin-top:2px">≈ ' + money(bal) + '</div>' +
                 '<div style="position:absolute;right:18px;bottom:14px;font-size:30px;opacity:.45">🪙</div>' +
               '</div>' +
               '<div style="border:1px solid var(--line);border-radius:10px;padding:6px 18px 14px;margin-top:18px">' +
-                '<h4 style="font-family:var(--serif,serif);font-size:15px;margin:14px 0 2px">' + L('怎么赚购物金？', 'How to earn') + '</h4>' + earn +
+                '<h4 style="font-family:var(--serif,serif);font-size:15px;margin:14px 0 2px">' + L('怎么赚积分？', 'How to earn') + '</h4>' + earn +
               '</div>' +
-              '<h4 style="font-family:var(--serif,serif);font-size:15px;margin:20px 0 2px">' + L('购物金明细', 'Activity') + '</h4>' + ledger;
+              '<h4 style="font-family:var(--serif,serif);font-size:15px;margin:20px 0 2px">' + L('积分明细', 'Activity') + '</h4>' + ledger;
           }, function () {
-            box.innerHTML = '<p class="muted" style="padding:14px 0">' + L('暂时无法载入购物金。', 'Could not load store credit right now.') + '</p>';
+            box.innerHTML = '<p class="muted" style="padding:14px 0">' + L('暂时无法载入积分。', 'Could not load points right now.') + '</p>';
           });
         }
 
