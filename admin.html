@@ -283,6 +283,69 @@
     @media(max-width:1080px){.console{grid-template-columns:1fr}.rail{position:static}}
     @media(max-width:760px){.istats{grid-template-columns:repeat(2,1fr)}.ph{display:none}.psum{grid-template-columns:24px 1fr 60px 22px}.psum .col-status,.psum .col-sizes{display:none}.exp-grid{grid-template-columns:1fr}}
 
+    /* ===== inventory reports (子tab) ===== */
+    .invtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px;flex-wrap:wrap}
+    .invtab{padding:11px 18px;font-size:14px;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s;display:inline-flex;align-items:center;gap:8px;background:none;border-left:none;border-right:none;border-top:none}
+    .invtab:hover{color:var(--wine)}
+    .invtab.on{color:var(--wine);border-bottom-color:var(--wine)}
+    .invpane{display:none}
+    .invpane.on{display:block}
+    .rep-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px;flex-wrap:wrap}
+    .rep-tab{padding:10px 16px;font-size:13.5px;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s;display:inline-flex;align-items:center;gap:7px;background:none;border-left:none;border-right:none;border-top:none}
+    .rep-tab:hover{color:var(--wine)}
+    .rep-tab.on{color:var(--wine);border-bottom-color:var(--wine)}
+    .rep-pane{display:none;animation:repfade .25s ease}
+    .rep-pane.on{display:block}
+    @keyframes repfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    .rep-card{background:var(--white);border:1px solid var(--line);margin-bottom:18px}
+    .rep-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);gap:14px;flex-wrap:wrap}
+    .rep-head h3{font-size:18px;font-family:var(--serif);font-weight:400;line-height:1.2}
+    .rep-head .desc{font-size:13px;color:var(--muted);margin-top:3px}
+    .rep-body{padding:16px 20px}
+    .rep-body.tight{padding:0}
+    .csv-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+    .csv-opt{background:var(--cream2);border:1px solid var(--line2);border-radius:6px;padding:14px 16px;display:flex;align-items:flex-start;gap:11px;cursor:pointer;transition:.2s}
+    .csv-opt:hover{border-color:var(--pink);background:var(--white)}
+    .csv-opt.on{border-color:var(--wine);background:var(--pink-soft)}
+    .csv-opt .ck{width:18px;height:18px;border-radius:4px;border:1.6px solid var(--line2);background:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+    .csv-opt.on .ck{background:var(--wine);border-color:var(--wine)}
+    .csv-opt.on .ck::after{content:'✓';color:#fff;font-size:11px;font-weight:700}
+    .csv-opt .ot{font-size:13.5px;font-weight:600;color:var(--ink)}
+    .csv-opt .od{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.45}
+    .csv-prev{background:#1C1C1C;color:#E9C9CC;border:1px solid var(--ink);padding:14px 16px;font-family:'SF Mono',Consolas,monospace;font-size:12.5px;line-height:1.7;border-radius:5px;overflow-x:auto;white-space:pre;max-height:340px;overflow-y:auto}
+    .csv-prev .h{color:#FFFAF1;font-weight:600}
+    .csv-prev .v{color:#E9C9CC}
+    .csv-prev .o{color:#F6EAD3}
+    .csv-prev .r{color:#F7B5B5}
+    .rep-table{width:100%;border-collapse:collapse;font-size:14px}
+    .rep-table th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:12px 16px;background:var(--cream2);border-bottom:1px solid var(--line)}
+    .rep-table td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+    .rep-table tr:last-child td{border-bottom:none}
+    .rep-table tbody tr:hover{background:var(--cream2)}
+    .rep-table .num{font-variant-numeric:tabular-nums;text-align:right}
+    .rep-table .num.big{font-family:var(--serif);font-size:17px}
+    .rs-sug{font-family:var(--serif);font-size:20px;color:var(--wine);line-height:1}
+    .rs-sum{background:var(--pink-soft);border:1px solid var(--pink);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border-radius:5px;margin-top:18px}
+    .rs-sum .lab{font-size:13px;color:var(--ink2)}
+    .rs-sum .val{font-family:var(--serif);font-size:22px;color:var(--wine)}
+    .insight{background:var(--cream2);border:1px solid var(--line);border-left:3px solid var(--wine);padding:14px 18px;margin-top:18px;border-radius:0 5px 5px 0;font-size:13.5px;color:var(--ink2);line-height:1.65}
+    .insight b{color:var(--wine)}
+    .insight.warn{border-left-color:var(--amber)} .insight.warn b{color:var(--amber)}
+    .cat-bars{display:flex;flex-direction:column;gap:12px;padding:16px 20px}
+    .cat-bar{display:grid;grid-template-columns:140px 1fr 110px;align-items:center;gap:14px;font-size:13.5px}
+    .cat-bar .clab{font-weight:600;color:var(--ink2)}
+    .cat-bar .clab small{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+    .cat-bar .barwrap{height:26px;background:var(--cream2);border:1px solid var(--line);border-radius:4px;position:relative;overflow:hidden}
+    .cat-bar .bar{height:100%;background:linear-gradient(90deg,var(--wine),var(--wine-deep));transition:width .6s ease;min-width:2px}
+    .cat-bar .barwrap .bn{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11.5px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+    .cat-bar .cval{font-family:var(--serif);font-size:15px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+    .csv-opt .ct{width:18px;height:18px;border-radius:4px;border:1.6px solid var(--line2);background:var(--white);flex-shrink:0;margin-top:2px}
+    @media(max-width:760px){
+      .rep-head{padding:14px}.rep-body{padding:14px}
+      .cat-bar{grid-template-columns:96px 1fr 78px;font-size:12.5px;gap:10px}
+      .cat-bar .clab small{display:none}
+    }
+
     /* ===== bundle wizard (design C) ===== */
     .btn--quiet{background:var(--white);color:var(--ink2);border-color:var(--line2)}
     .btn--quiet:hover{background:var(--blush);color:var(--ink);border-color:var(--pink)}
@@ -1006,6 +1069,7 @@
             : szs.map(function(sz){return {sz:sz,q:sval(sz,sz),key:sz};});
           return {id:p.id,zh:p.name_zh||p.name,en:p.name||'',code:String(p.id||'').toUpperCase(),
             thumb:imgUrl((p.images||[])[0],90),track:!!p.track_inventory,oversell:!!p.continue_selling,thr:p.low_stock_threshold||5,_open:false,
+            price:Number(p.price)||0,compare_at:Number(p.compare_at)||0,category:p.category||'未分类',
             sizes:variants};
         });
         var log=[],filter='all',query='',selected={},THR_DEF=5;
@@ -1021,7 +1085,11 @@
         function pushLog(dir,name,d,who){log.unshift({dir:dir,name:name,d:d,who:who||'手动调整',when:'刚刚'});if(log.length>8)log.pop();renderLog();}
         function persist(p,cb){var st={};p.sizes.forEach(function(s){st[s.key]=s.q;});DB.updateStock(p.id,{stock:st,track_inventory:p.track,continue_selling:p.oversell,low_stock_threshold:p.thr}).then(function(r){if(r&&r.error){toast('保存失败：'+r.error.message);cb&&cb(false);}else{cb&&cb(true);}},function(){toast('保存失败，请重试');cb&&cb(false);});}
 
-        view.innerHTML='<div class="console"><div class="maincol">'+
+        view.innerHTML='<div class="invtabs">'+
+            '<button class="invtab on" data-itab="list"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> 库存清单</button>'+
+            '<button class="invtab" data-itab="report"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><polyline points="7 14 11 10 15 14 21 8"/></svg> 报告</button>'+
+          '</div>'+
+          '<div class="invpane on" id="paneList"><div class="console"><div class="maincol">'+
           '<div class="istats">'+
             '<div class="istat"><svg class="ico" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/></svg><div class="n" id="stTotal">0</div><div class="l">总库存件数</div></div>'+
             '<div class="istat warn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 4.3 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z"/></svg><div class="n" id="stLow">0</div><div class="l">低库存 SKU</div></div>'+
@@ -1037,7 +1105,8 @@
           '<div class="rcard"><div class="rh"><h3>缺货提醒</h3><span class="cn" id="outCount">0</span></div><div class="rbody" id="outList"></div></div>'+
           '<div class="rcard"><div class="rh"><h3>低库存提醒</h3><span class="cn amb" id="lowCount">0</span></div><div class="rbody" id="lowList"></div></div>'+
           '<div class="rcard"><div class="rh"><h3>最近库存变动</h3></div><div class="log" id="logList"></div></div>'+
-        '</aside></div>';
+        '</aside></div></div>'+
+        '<div class="invpane" id="paneReport"></div>';
 
         function refreshStats(){
           var u=0,low=0,out=0,sku=0;products.forEach(function(p){p.sizes.forEach(function(s){sku++;u+=s.q;if(s.q===0)out++;else if(s.q<=thr(p))low++;});});
@@ -1125,6 +1194,276 @@
         Q('#bulkMinus').addEventListener('click',function(){applyBulk(function(p,s){s.q=Math.max(0,s.q-5);},'每尺码 −5');});
 
         refreshStats();renderRows();renderAlerts();renderLog();refreshBulk();
+
+        // ---------- 报告子模块 ----------
+        var SYM=(window.STORE_CONFIG&&window.STORE_CONFIG.currencySymbol)||'RM';
+        function money(n){return SYM+' '+(Number(n)||0).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});}
+        function moneyShort(n){n=Number(n)||0;if(n>=1000)return SYM+' '+(n/1000).toFixed(1)+'k';return SYM+' '+n.toFixed(0);}
+        function aggregate(){
+          var st={total:0,low:0,out:0,sku:0,value:0,cmpValue:0,prodN:products.length};
+          var byCat={};
+          var lowList=[],outList=[];
+          products.forEach(function(p){
+            var c=p.category||'未分类';
+            if(!byCat[c])byCat[c]={cat:c,sku:0,qty:0,value:0,prods:{}};
+            byCat[c].prods[p.id]=true;
+            p.sizes.forEach(function(s){
+              st.sku++;st.total+=s.q;st.value+=s.q*p.price;st.cmpValue+=s.q*(p.compare_at||p.price);
+              byCat[c].sku++;byCat[c].qty+=s.q;byCat[c].value+=s.q*p.price;
+              if(s.q===0){st.out++;outList.push({p:p,s:s});}
+              else if(s.q<=thr(p)){st.low++;lowList.push({p:p,s:s});}
+            });
+          });
+          var cats=Object.keys(byCat).map(function(k){var c=byCat[k];c.prodN=Object.keys(c.prods).length;return c;}).sort(function(a,b){return b.value-a.value;});
+          return {st:st,cats:cats,lowList:lowList,outList:outList};
+        }
+        function renderReport(){
+          var pane=Q('#paneReport');
+          pane.innerHTML='<div class="rep-tabs">'+
+            '<button class="rep-tab on" data-rtab="csv"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 导出 CSV</button>'+
+            '<button class="rep-tab" data-rtab="value"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9h4.5a2.5 2.5 0 0 1 0 5H9"/></svg> 库存价值</button>'+
+            '<button class="rep-tab" data-rtab="restock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h18v4H3zM5 7v13h14V7"/></svg> 补货建议</button>'+
+            '<button class="rep-tab" data-rtab="trend"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg> 分类对比</button>'+
+          '</div>'+
+          '<div class="rep-pane on" id="rep-csv"></div>'+
+          '<div class="rep-pane" id="rep-value"></div>'+
+          '<div class="rep-pane" id="rep-restock"></div>'+
+          '<div class="rep-pane" id="rep-trend"></div>';
+          [].slice.call(pane.querySelectorAll('.rep-tab')).forEach(function(t){
+            t.addEventListener('click',function(){
+              [].slice.call(pane.querySelectorAll('.rep-tab')).forEach(function(x){x.classList.remove('on');});
+              [].slice.call(pane.querySelectorAll('.rep-pane')).forEach(function(x){x.classList.remove('on');});
+              t.classList.add('on');
+              var k=t.dataset.rtab;
+              Q('#rep-'+k).classList.add('on');
+              renderRepPane(k);
+            });
+          });
+          renderRepPane('csv');
+        }
+        function renderRepPane(k){
+          if(k==='csv')renderCSV();
+          else if(k==='value')renderValue();
+          else if(k==='restock')renderRestock();
+          else if(k==='trend')renderTrend();
+        }
+
+        // ----- ① CSV -----
+        var CSV_COLS={
+          basics:{label:'商品名 + 编号',desc:'中英文名 + 货号',fields:['货号','商品名(中)','商品名(英)']},
+          variant:{label:'尺码 / 颜色',desc:'每行一个变体',fields:['变体']},
+          qty:{label:'当前库存',desc:'实际剩余数量',fields:['库存']},
+          status:{label:'状态',desc:'充足 / 低库存 / 缺货',fields:['状态']},
+          price:{label:'售价',desc:'单件零售价',fields:['售价']},
+          cmp:{label:'原价',desc:'划线原价（如有）',fields:['原价']},
+          value:{label:'库存价值',desc:'数量 × 售价',fields:['库存价值']},
+          cat:{label:'分类',desc:'商品类别',fields:['分类']}
+        };
+        var CSV_SEL={basics:true,variant:true,qty:true,status:true,price:true,cmp:false,value:false,cat:false};
+        function buildCSVRows(){
+          var rows=[];
+          products.forEach(function(p){
+            p.sizes.forEach(function(s){
+              var st=sizeState(p,s);
+              var stTxt=st==='out'?'缺货':(st==='low'?'低库存':'充足');
+              rows.push({
+                '货号':p.code,'商品名(中)':p.zh,'商品名(英)':p.en,
+                '变体':s.sz,'库存':s.q,'状态':stTxt,
+                '售价':p.price.toFixed(2),'原价':(p.compare_at||0).toFixed(2),
+                '库存价值':(s.q*p.price).toFixed(2),'分类':p.category
+              });
+            });
+          });
+          return rows;
+        }
+        function getCSVCols(){
+          var cols=[];
+          Object.keys(CSV_COLS).forEach(function(k){if(CSV_SEL[k])CSV_COLS[k].fields.forEach(function(f){cols.push(f);});});
+          return cols;
+        }
+        function csvEscape(v){v=String(v==null?'':v);return /,|"|\n/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+        function buildCSVText(){
+          var cols=getCSVCols(),rows=buildCSVRows();
+          var lines=[cols.join(',')];
+          rows.forEach(function(r){lines.push(cols.map(function(c){return csvEscape(r[c]);}).join(','));});
+          return lines.join('\n');
+        }
+        function renderCSV(){
+          var host=Q('#rep-csv');
+          var n=buildCSVRows().length;
+          var today=new Date().toISOString().slice(0,10);
+          host.innerHTML='<div class="rep-card"><div class="rep-head"><div><h3>导出库存表 CSV</h3><div class="desc">Excel / WPS / Google Sheets 都能直接打开 · 共 '+n+' 行</div></div>'+
+            '<button class="btn btn--sm" id="csvDl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 下载 inventory_'+today+'.csv</button></div>'+
+            '<div class="rep-body">'+
+              '<div style="font-size:13px;color:var(--muted);margin-bottom:10px">选择要导出的列</div>'+
+              '<div class="csv-opts" id="csvOpts">'+
+                Object.keys(CSV_COLS).map(function(k){var o=CSV_COLS[k];return '<div class="csv-opt'+(CSV_SEL[k]?' on':'')+'" data-col="'+k+'"><div class="ck"></div><div><div class="ot">'+esc(o.label)+'</div><div class="od">'+esc(o.desc)+'</div></div></div>';}).join('')+
+              '</div>'+
+              '<div style="font-size:13px;color:var(--muted);margin-bottom:8px">预览（前 8 行）</div>'+
+              '<div class="csv-prev" id="csvPrev"></div>'+
+              '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">'+
+                '<button class="btn btn--ghost btn--sm" id="csvCopy">复制到剪贴板</button>'+
+                '<span style="font-size:12px;color:var(--muted);align-self:center">提示：用 Excel 打开时若中文乱码，请选「UTF-8」编码导入</span>'+
+              '</div>'+
+            '</div></div>';
+          function updatePrev(){
+            var cols=getCSVCols();if(!cols.length){Q('#csvPrev').innerHTML='<span class="r">⚠ 请至少选一列</span>';return;}
+            var rows=buildCSVRows().slice(0,8);
+            var html='<span class="h">'+cols.join(',')+'</span>\n';
+            rows.forEach(function(r){
+              html+=cols.map(function(c){
+                var v=r[c];
+                if(c==='状态'){var cls=v==='缺货'?'r':(v==='低库存'?'o':'v');return '<span class="'+cls+'">'+esc(v)+'</span>';}
+                return '<span class="v">'+esc(String(v))+'</span>';
+              }).join('<span style="color:#6F635C">,</span>')+'\n';
+            });
+            Q('#csvPrev').innerHTML=html;
+          }
+          updatePrev();
+          [].slice.call(Q('#csvOpts').querySelectorAll('.csv-opt')).forEach(function(o){
+            o.addEventListener('click',function(){var k=o.dataset.col;CSV_SEL[k]=!CSV_SEL[k];o.classList.toggle('on',CSV_SEL[k]);updatePrev();});
+          });
+          Q('#csvDl').addEventListener('click',function(){
+            var cols=getCSVCols();if(!cols.length){toast('请至少选一列');return;}
+            var text='﻿'+buildCSVText();
+            var blob=new Blob([text],{type:'text/csv;charset=utf-8'});
+            var url=URL.createObjectURL(blob);
+            var a=document.createElement('a');a.href=url;a.download='inventory_'+today+'.csv';
+            document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+            toast('已下载 CSV');
+          });
+          Q('#csvCopy').addEventListener('click',function(){
+            navigator.clipboard.writeText(buildCSVText()).then(function(){toast('已复制到剪贴板');},function(){toast('复制失败，请用「下载」');});
+          });
+        }
+
+        // ----- ② 库存价值 -----
+        function renderValue(){
+          var host=Q('#rep-value');
+          var a=aggregate(),st=a.st;
+          var maxV=Math.max.apply(null,a.cats.map(function(c){return c.value;}))||1;
+          var avgPerSku=st.sku?Math.round(st.value/st.sku):0;
+          host.innerHTML='<div class="istats" style="margin-bottom:18px">'+
+            '<div class="istat"><svg class="ico" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/></svg><div class="n">'+st.total.toLocaleString()+'</div><div class="l">总库存件数</div></div>'+
+            '<div class="istat"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9h4.5a2.5 2.5 0 0 1 0 5H9"/></svg><div class="n">'+moneyShort(st.value)+'</div><div class="l">库存总价值</div></div>'+
+            '<div class="istat"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><div class="n">'+st.sku+'</div><div class="l">SKU 数 / '+st.prodN+' 商品</div></div>'+
+            '<div class="istat"><svg class="ico" viewBox="0 0 24 24"><path d="M3 3v18h18"/><polyline points="7 14 11 10 15 14 21 8"/></svg><div class="n">'+money(avgPerSku)+'</div><div class="l">平均每 SKU 价值</div></div>'+
+          '</div>'+
+          '<div class="rep-card"><div class="rep-head"><div><h3>分类库存价值</h3><div class="desc">按商品类别拆分 · 按价值降序</div></div></div>'+
+          '<div class="rep-body tight"><table class="rep-table"><thead><tr><th>类别</th><th class="num">商品数</th><th class="num">SKU 数</th><th class="num">件数</th><th class="num">库存价值</th><th class="num">占比</th></tr></thead><tbody>'+
+            (a.cats.length?a.cats.map(function(c){var pct=st.value?(c.value/st.value*100):0;return '<tr><td><b>'+esc(c.cat)+'</b></td><td class="num">'+c.prodN+'</td><td class="num">'+c.sku+'</td><td class="num">'+c.qty+'</td><td class="num big">'+money(c.value)+'</td><td class="num">'+pct.toFixed(1)+'%</td></tr>';}).join('')+'<tr style="background:var(--cream2);font-weight:700"><td>合计</td><td class="num">'+st.prodN+'</td><td class="num">'+st.sku+'</td><td class="num">'+st.total+'</td><td class="num big">'+money(st.value)+'</td><td class="num">100%</td></tr>':'<tr><td colspan="6" style="padding:30px;text-align:center;color:var(--muted)">还没有商品数据</td></tr>')+
+          '</tbody></table></div></div>'+
+          (st.value>0?'<div class="insight"><b>洞察</b> · 当前库存价值 '+money(st.value)+'，分布在 '+a.cats.length+' 个类别。<br>'+
+            (a.cats[0]?'<b>最大类别</b> · 「'+esc(a.cats[0].cat)+'」占 '+(a.cats[0].value/st.value*100).toFixed(1)+'%（'+money(a.cats[0].value)+'）':'')+
+          '</div>':'')+
+          (st.cmpValue>st.value?'<div class="insight"><b>原价对照</b> · 按划线原价计算，库存价值为 '+money(st.cmpValue)+'，比当前售价值高 '+money(st.cmpValue-st.value)+'（已让利部分）</div>':'');
+        }
+
+        // ----- ③ 补货建议 -----
+        function renderRestock(){
+          var host=Q('#rep-restock');
+          var sugList=[];
+          products.forEach(function(p){
+            p.sizes.forEach(function(s){
+              var t=thr(p);
+              if(s.q===0){sugList.push({p:p,s:s,now:s.q,target:t*4,sug:t*4,kind:'out',cost:t*4*p.price});}
+              else if(s.q<=t){sugList.push({p:p,s:s,now:s.q,target:t*3,sug:Math.max(0,t*3-s.q),kind:'low',cost:Math.max(0,t*3-s.q)*p.price});}
+            });
+          });
+          sugList.sort(function(a,b){if(a.kind!==b.kind)return a.kind==='out'?-1:1;return a.now-b.now;});
+          var totSug=sugList.reduce(function(x,r){return x+r.sug;},0);
+          var totCost=sugList.reduce(function(x,r){return x+r.cost;},0);
+          var outN=sugList.filter(function(r){return r.kind==='out';}).length;
+          var lowN=sugList.filter(function(r){return r.kind==='low';}).length;
+          host.innerHTML='<div class="istats" style="margin-bottom:18px">'+
+            '<div class="istat bad"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg><div class="n">'+outN+'</div><div class="l">已缺货 SKU</div></div>'+
+            '<div class="istat warn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 4.3 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z"/></svg><div class="n">'+lowN+'</div><div class="l">低库存 SKU</div></div>'+
+            '<div class="istat"><svg class="ico" viewBox="0 0 24 24"><path d="M3 3h18v4H3zM5 7v13h14V7"/></svg><div class="n">'+totSug+'</div><div class="l">建议补货件数</div></div>'+
+            '<div class="istat"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9h4.5a2.5 2.5 0 0 1 0 5H9"/></svg><div class="n">'+moneyShort(totCost)+'</div><div class="l">预估补货价值<small style="font-size:10px;color:var(--muted);display:block">按售价</small></div></div>'+
+          '</div>'+
+          '<div class="rep-card"><div class="rep-head"><div><h3>需要补货的 SKU</h3><div class="desc">建议补货量 = 阈值 × 3 − 当前库存（缺货则 × 4）</div></div>'+
+            (sugList.length?'<button class="btn btn--ghost btn--sm" id="rsExport"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg> 导出补货单 CSV</button>':'')+
+          '</div>'+
+          '<div class="rep-body tight">'+
+            (sugList.length?'<table class="rep-table"><thead><tr><th>商品 / 变体</th><th>状态</th><th class="num">当前</th><th class="num">阈值</th><th class="num">建议补</th><th class="num">预估成本</th></tr></thead><tbody>'+
+              sugList.map(function(r){
+                var p=r.p,s=r.s;
+                var badge=r.kind==='out'?'<span class="badge2 out"><span class="dot"></span>缺货</span>':'<span class="badge2 low"><span class="dot"></span>低库存</span>';
+                return '<tr><td><div><b>'+esc(p.zh)+'</b> · '+esc(s.sz)+'</div><div style="font-size:11px;color:var(--muted)">'+esc(p.code)+' · '+esc(p.category)+'</div></td>'+
+                  '<td>'+badge+'</td>'+
+                  '<td class="num" style="color:'+(r.kind==='out'?'var(--red)':'var(--amber)')+';font-weight:700">'+r.now+'</td>'+
+                  '<td class="num">'+thr(p)+'</td>'+
+                  '<td class="num"><span class="rs-sug">+'+r.sug+'</span></td>'+
+                  '<td class="num">'+money(r.cost)+'</td></tr>';
+              }).join('')+
+              '<tr style="background:var(--cream2);font-weight:700"><td colspan="4">合计</td><td class="num"><span class="rs-sug">+'+totSug+'</span></td><td class="num">'+money(totCost)+'</td></tr>'+
+            '</tbody></table>':'<div style="padding:40px;text-align:center;color:var(--muted)">✓ 没有需要补货的 SKU</div>')+
+          '</div></div>'+
+          (sugList.length?'<div class="rs-sum"><div><div class="lab">合计建议补货</div><div class="val">'+totSug+' 件 · '+money(totCost)+'</div></div></div>':'')+
+          '<div class="insight"><b>计算逻辑</b> · 已缺货 → 补到「阈值 × 4」；低库存 → 补到「阈值 × 3」。<br>预估成本按当前售价乘以补货件数，实际进货成本需扣除毛利。可在左侧库存清单调整每个商品的「低库存阈值」。</div>';
+          if(sugList.length){
+            var btn=Q('#rsExport');if(btn)btn.addEventListener('click',function(){
+              var lines=['货号,商品名,变体,分类,状态,当前库存,阈值,建议补货,预估成本RM'];
+              sugList.forEach(function(r){
+                lines.push([r.p.code,r.p.zh,r.s.sz,r.p.category,r.kind==='out'?'缺货':'低库存',r.now,thr(r.p),r.sug,r.cost.toFixed(2)].map(csvEscape).join(','));
+              });
+              var blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+              var url=URL.createObjectURL(blob);var a=document.createElement('a');
+              a.href=url;a.download='restock_'+new Date().toISOString().slice(0,10)+'.csv';
+              document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+              toast('已下载补货单');
+            });
+          }
+        }
+
+        // ----- ④ 分类对比 -----
+        function renderTrend(){
+          var host=Q('#rep-trend');
+          var a=aggregate(),st=a.st;
+          var maxQty=Math.max.apply(null,a.cats.map(function(c){return c.qty;}))||1;
+          var maxVal=Math.max.apply(null,a.cats.map(function(c){return c.value;}))||1;
+          // 状态分布
+          var okN=st.sku-st.low-st.out;
+          var okPct=st.sku?(okN/st.sku*100):0,lowPct=st.sku?(st.low/st.sku*100):0,outPct=st.sku?(st.out/st.sku*100):0;
+          host.innerHTML='<div class="rep-card"><div class="rep-head"><div><h3>分类库存件数对比</h3><div class="desc">实时数据 · 一眼看哪类货最多</div></div></div>'+
+            '<div class="cat-bars">'+
+              (a.cats.length?a.cats.map(function(c){var w=(c.qty/maxQty*100);return '<div class="cat-bar"><div class="clab">'+esc(c.cat)+'<small>'+c.prodN+' 商品 · '+c.sku+' SKU</small></div>'+
+                '<div class="barwrap"><div class="bar" style="width:'+w.toFixed(1)+'%"></div><div class="bn">'+c.qty+' 件</div></div>'+
+                '<div class="cval">'+money(c.value)+'</div></div>';}).join(''):'<div style="padding:30px;text-align:center;color:var(--muted)">还没有商品</div>')+
+            '</div></div>'+
+          '<div class="rep-card"><div class="rep-head"><div><h3>分类库存价值对比</h3><div class="desc">数量 × 售价</div></div></div>'+
+            '<div class="cat-bars">'+
+              (a.cats.length?a.cats.map(function(c){var w=(c.value/maxVal*100);return '<div class="cat-bar"><div class="clab">'+esc(c.cat)+'</div>'+
+                '<div class="barwrap"><div class="bar" style="width:'+w.toFixed(1)+'%;background:linear-gradient(90deg,#9A6A1E,#82213E)"></div><div class="bn">'+moneyShort(c.value)+'</div></div>'+
+                '<div class="cval">'+(st.value?(c.value/st.value*100).toFixed(1):0)+'%</div></div>';}).join(''):'')+
+            '</div></div>'+
+          '<div class="rep-card"><div class="rep-head"><div><h3>库存健康度</h3><div class="desc">全部 SKU 状态分布</div></div></div>'+
+            '<div class="rep-body">'+
+              '<div style="display:flex;height:32px;border-radius:5px;overflow:hidden;border:1px solid var(--line);margin-bottom:14px">'+
+                (okN>0?'<div style="width:'+okPct.toFixed(1)+'%;background:var(--green);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600">'+(okPct>10?okN+' 充足':'')+'</div>':'')+
+                (st.low>0?'<div style="width:'+lowPct.toFixed(1)+'%;background:var(--amber);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600">'+(lowPct>10?st.low+' 低':'')+'</div>':'')+
+                (st.out>0?'<div style="width:'+outPct.toFixed(1)+'%;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600">'+(outPct>10?st.out+' 缺':'')+'</div>':'')+
+              '</div>'+
+              '<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px">'+
+                '<span><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:2px;margin-right:6px"></span>充足 '+okN+' ('+okPct.toFixed(0)+'%)</span>'+
+                '<span><span style="display:inline-block;width:10px;height:10px;background:var(--amber);border-radius:2px;margin-right:6px"></span>低库存 '+st.low+' ('+lowPct.toFixed(0)+'%)</span>'+
+                '<span><span style="display:inline-block;width:10px;height:10px;background:var(--red);border-radius:2px;margin-right:6px"></span>缺货 '+st.out+' ('+outPct.toFixed(0)+'%)</span>'+
+              '</div>'+
+            '</div></div>'+
+          '<div class="insight warn"><b>说明</b> · 时间趋势（如近 30 天库存曲线）需要每日记录库存快照，目前数据库只保存当前状态。<br>如要打开历史趋势功能，需要在 Supabase 加一张 <code>inventory_snapshots</code> 表 + 每日 cron — 告诉我后再做。</div>';
+        }
+
+        // 库存清单 / 报告 子tab 切换
+        QA('.invtab').forEach(function(t){
+          t.addEventListener('click',function(){
+            QA('.invtab').forEach(function(x){x.classList.remove('on');});
+            QA('.invpane').forEach(function(x){x.classList.remove('on');});
+            t.classList.add('on');
+            var k=t.dataset.itab;
+            Q('#pane'+(k==='list'?'List':'Report')).classList.add('on');
+            if(k==='report')renderReport();
+          });
+        });
       });
     }
 
