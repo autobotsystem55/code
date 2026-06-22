@@ -8,7 +8,9 @@ window.STORE_CONFIG = {
   /* --- Brand --- */
   brand: 'Code Official',                                  // ← your shop name (placeholder; change freely)
   tagline: 'Sweet, feminine everyday pieces',
-  email: 'hello@petale-boutique.com',
+  email: 'code.officialco@gmail.com',
+  contactEmail: 'code.officialco@gmail.com',
+  whatsapp: '60136744585',
 
   /* --- Language ---
      '' = auto-detect from the browser (Chinese browsers see 中文, others English).
