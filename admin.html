@@ -631,6 +631,159 @@
       .setpage .grid{grid-template-columns:1fr!important}
       .setpage .cards{columns:1!important}
     }
+
+    /* ===== email page ===== */
+    .em-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:22px;flex-wrap:wrap}
+    .em-tab{padding:11px 20px;font-size:14px;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s;display:inline-flex;align-items:center;gap:8px;background:none;border-left:none;border-right:none;border-top:none;cursor:pointer}
+    .em-tab:hover{color:var(--wine)}
+    .em-tab.on{color:var(--wine);border-bottom-color:var(--wine);font-weight:600}
+    .em-tab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8}
+    .em-pane{display:none}
+    .em-pane.on{display:block}
+
+    /* auto rules */
+    .em-rules{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+    .em-rule{background:var(--white);border:1px solid var(--line);padding:18px 20px;border-radius:5px;position:relative;overflow:hidden}
+    .em-rule::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--wine)}
+    .em-rule .rhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .em-rule .rttl{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
+    .em-rule .ric{width:30px;height:30px;background:var(--blush);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .em-rule .ric svg{width:14px;height:14px;fill:none;stroke:var(--wine);stroke-width:1.8}
+    .em-rule .rflow{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:12px;color:var(--ink2);flex-wrap:wrap}
+    .em-rule .rflow .step{background:var(--cream2);padding:5px 10px;border-radius:4px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line)}
+    .em-rule .rflow .step svg{width:11px;height:11px;fill:none;stroke:var(--muted);stroke-width:2}
+    .em-rule .rflow .arr{color:var(--wine);font-weight:700}
+    .em-rule .rdesc{font-size:12px;color:var(--muted);margin-top:8px}
+    .em-sw{position:relative;width:36px;height:20px;background:var(--line);border-radius:999px;cursor:pointer;transition:.2s;flex-shrink:0;border:none;padding:0}
+    .em-sw::after{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;background:var(--white);border-radius:50%;transition:.22s;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+    .em-sw.on{background:var(--green)}
+    .em-sw.on::after{left:18px}
+
+    /* manual email order list */
+    .em-olist{list-style:none}
+    .em-olist li{padding:13px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;background:var(--white)}
+    .em-olist li:last-child{border-bottom:none}
+    .em-olist .ono{font-family:var(--serif);font-size:16px;width:72px;flex-shrink:0}
+    .em-olist .ocust{flex:1;min-width:0}
+    .em-olist .oname{font-size:14px;font-weight:600;line-height:1.3}
+    .em-olist .oem{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .em-olist .oamt{font-family:var(--serif);font-size:14px;width:88px;text-align:right;color:var(--wine)}
+    .em-olist .ost{width:80px;text-align:center}
+    .em-olist .oact{width:100px;text-align:right}
+    .em-mailbtn{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;font-size:12px;color:var(--wine);border:1px solid var(--pink-soft);border-radius:5px;background:var(--white);transition:.18s;cursor:pointer;font-weight:500}
+    .em-mailbtn:hover{background:var(--wine);color:var(--cream);border-color:var(--wine)}
+    .em-mailbtn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8}
+
+    /* template editor */
+    .em-ed-grid{display:grid;grid-template-columns:220px 1fr 1fr;gap:14px;align-items:stretch}
+    .em-tplitems{padding:4px 0}
+    .em-tpli{display:flex;align-items:flex-start;gap:9px;padding:10px 14px;cursor:pointer;border-left:3px solid transparent;transition:.18s}
+    .em-tpli:hover{background:var(--cream2)}
+    .em-tpli.on{background:var(--cream2);border-left-color:var(--wine)}
+    .em-tpli .ico{width:26px;height:26px;border-radius:4px;background:var(--blush);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .em-tpli .ico svg{width:13px;height:13px;fill:none;stroke:var(--wine);stroke-width:1.8}
+    .em-tpli .nm{font-size:13px;font-weight:600}
+    .em-tpli .meta{font-size:11px;color:var(--muted);margin-top:1px}
+    .em-new-tpl{margin:8px 14px 12px;padding:8px 0;border:1px dashed var(--line2);border-radius:5px;text-align:center;font-size:12px;color:var(--wine);background:var(--cream);cursor:pointer;width:calc(100% - 28px)}
+    .em-new-tpl:hover{background:var(--blush)}
+    .em-etb{display:flex;align-items:center;gap:3px;padding:6px 8px;background:var(--cream2);border:1px solid var(--line2);border-bottom:none;border-radius:4px 4px 0 0;flex-wrap:wrap}
+    .em-etb button{width:27px;height:27px;border-radius:3px;color:var(--muted);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .em-etb button:hover{background:var(--white);color:var(--wine)}
+    .em-etb svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8}
+    .em-etb .sep{width:1px;height:16px;background:var(--line);margin:0 2px}
+    .em-etb-var{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+    .em-etb-var select{font-size:11px;padding:3px 6px;border:1px solid var(--line);border-radius:3px;background:var(--white)}
+    .em-ed-area{border:1px solid var(--line2);border-top:none;border-radius:0 0 4px 4px;width:100%;min-height:220px;padding:10px 12px;font-family:var(--sans);font-size:13.5px;line-height:1.65;resize:vertical;outline:none;transition:border-color .2s}
+    .em-ed-area:focus{border-color:var(--wine)}
+    .em-pv-stage{padding:16px;background:var(--cream2);overflow-y:auto}
+    .em-pv-frame{max-width:480px;margin:0 auto;background:var(--white);border:1px solid var(--line);border-radius:6px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.04)}
+    .em-pv-mhead{padding:12px 18px;border-bottom:1px solid var(--line);background:var(--cream)}
+    .em-pv-from{font-size:11px;color:var(--muted)}
+    .em-pv-sub{font-family:var(--serif);font-size:17px;margin-top:4px}
+    .em-pv-banner{padding:28px 20px;background:linear-gradient(135deg,var(--wine) 0%,var(--wine-deep) 100%);color:var(--cream);text-align:center}
+    .em-pv-banner .logo{font-family:var(--serif);font-size:22px;letter-spacing:.04em}
+    .em-pv-banner .tag{font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-top:4px;opacity:.75}
+    .em-pv-msg{padding:22px 20px;font-size:13.5px;line-height:1.7;color:var(--ink2);white-space:pre-wrap}
+    .em-pv-foot{padding:14px 20px;background:var(--cream2);border-top:1px solid var(--line);font-size:10.5px;color:var(--muted);text-align:center;line-height:1.5}
+    .em-sendbar{margin-top:12px;background:var(--white);border:1px solid var(--line);border-radius:5px;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .em-sendbar .l{font-size:12px;color:var(--muted)}
+    .em-sendbar .l b{color:var(--ink2)}
+
+    /* broadcast */
+    .em-bc-grid{display:grid;grid-template-columns:1fr 360px;gap:16px}
+    .em-b-sec{padding:16px 18px;border-bottom:1px solid var(--line)}
+    .em-b-sec:last-child{border-bottom:none}
+    .em-b-sec h4{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+    .em-rule-row{display:grid;grid-template-columns:120px 120px 1fr 28px;gap:7px;align-items:center;margin-bottom:8px}
+    .em-rule-row select,.em-rule-row input{padding:7px 9px;border:1px solid var(--line2);border-radius:4px;background:var(--white);outline:none;font-size:13px;font-family:var(--sans);color:var(--ink)}
+    .em-rule-row select:focus,.em-rule-row input:focus{border-color:var(--wine)}
+    .em-rule-row .del{width:26px;height:26px;color:var(--muted);border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:none;border:none}
+    .em-rule-row .del:hover{background:var(--red-bg);color:var(--red)}
+    .em-pickbtn{display:flex;flex-wrap:wrap;gap:6px}
+    .em-pickbtn label{padding:6px 11px;border:1px solid var(--line2);border-radius:4px;font-size:12px;cursor:pointer;color:var(--muted);transition:.18s}
+    .em-pickbtn label:hover{border-color:var(--wine);color:var(--wine)}
+    .em-pickbtn input{display:none}
+    .em-pickbtn label:has(input:checked){background:var(--wine);color:var(--cream);border-color:var(--wine)}
+    .em-match-card{padding:13px 16px;background:var(--cream2);border-radius:5px;text-align:center;margin:12px 18px}
+    .em-match-card .n{font-family:var(--serif);font-size:32px;color:var(--wine);line-height:1}
+    .em-match-card .l{font-size:12px;color:var(--muted);margin-top:5px}
+    .em-match-list{margin:0 18px 16px;border:1px solid var(--line);border-radius:5px;background:var(--white);max-height:200px;overflow-y:auto}
+    .em-match-list .mli{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-size:12px}
+    .em-match-list .mli:last-child{border-bottom:none}
+    .em-match-list .mli .em{color:var(--muted);font-size:11px}
+    .em-send-card{background:var(--white);border:1px solid var(--line);border-radius:6px;padding:16px 18px;position:sticky;top:20px}
+    .em-send-card h3{font-size:18px;margin-bottom:12px}
+    .em-send-card .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+    .em-send-card .row .k{color:var(--muted)}
+    .em-send-card .row .v{color:var(--ink2);font-weight:600;text-align:right}
+    .em-send-card .row.big{padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+    .em-send-card .row.big .v{font-family:var(--serif);font-size:20px;color:var(--wine);font-weight:400}
+    .em-send-card .send-btn{width:100%;margin-top:12px;padding:12px;font-size:14px}
+    .em-send-card .test-btn{width:100%;margin-top:6px;padding:8px;font-size:12px;color:var(--muted);border:1px solid var(--line);background:var(--white);border-radius:5px;cursor:pointer;font-family:var(--sans)}
+    .em-send-card .test-btn:hover{color:var(--wine);border-color:var(--wine);background:var(--cream)}
+
+    /* mail send modal */
+    .em-mask{position:fixed;inset:0;background:rgba(28,28,28,.5);display:none;align-items:flex-start;justify-content:center;padding:50px 20px;z-index:50;overflow-y:auto}
+    .em-mask.on{display:flex}
+    .em-modal{background:var(--white);border:1px solid var(--line);width:100%;max-width:620px;border-radius:6px;overflow:hidden;animation:emPop .22s ease}
+    @keyframes emPop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .em-modal .mh{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--cream2)}
+    .em-modal .mh h2{font-size:18px}
+    .em-modal .mh .x{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:5px;color:var(--muted);cursor:pointer;background:none;border:none}
+    .em-modal .mh .x:hover{background:var(--cream)}
+    .em-modal .mh .x svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2}
+    .em-modal .mb{padding:16px 20px;max-height:65vh;overflow-y:auto;display:grid;grid-template-columns:200px 1fr;gap:14px}
+    .em-modal .ml{background:var(--cream2);border-right:1px solid var(--line);padding:14px;margin:-16px -20px -16px 0;border-radius:0}
+    .em-modal .ml .ono{font-family:var(--serif);font-size:16px}
+    .em-modal .ml .oem{font-size:11px;color:var(--muted);margin-top:2px;word-break:break-all}
+    .em-modal .ml .oamt{font-family:var(--serif);font-size:15px;margin-top:6px;color:var(--wine)}
+    .em-modal .ml h3{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:12px 0 6px}
+    .em-tplbtn{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid var(--line2);border-radius:4px;background:var(--white);cursor:pointer;transition:.16s;width:100%;text-align:left;margin-bottom:5px}
+    .em-tplbtn:hover{border-color:var(--wine)}
+    .em-tplbtn.on{background:var(--wine);color:var(--cream);border-color:var(--wine)}
+    .em-tplbtn .ti{width:24px;height:24px;border-radius:4px;background:var(--blush);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .em-tplbtn.on .ti{background:rgba(255,255,255,.18)}
+    .em-tplbtn .ti svg{width:12px;height:12px;fill:none;stroke:var(--wine);stroke-width:1.8}
+    .em-tplbtn.on .ti svg{stroke:var(--cream)}
+    .em-tplbtn .tn{font-size:12px;font-weight:600}
+    .em-tplbtn .td{font-size:10.5px;opacity:.7;margin-top:1px}
+    .em-modal .mr{display:flex;flex-direction:column;gap:10px}
+    .em-fld label{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px}
+    .em-fld input,.em-fld textarea{width:100%;padding:9px 11px;border:1px solid var(--line2);border-radius:4px;outline:none;font-family:var(--sans);font-size:13.5px;transition:.2s}
+    .em-fld input:focus,.em-fld textarea:focus{border-color:var(--wine)}
+    .em-fld textarea{min-height:180px;resize:vertical;line-height:1.6}
+    .em-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+    .em-chip{font-size:11px;padding:3px 7px;background:var(--blush);border-radius:3px;cursor:pointer;color:var(--ink2);transition:.16s;border:none;font-family:var(--sans)}
+    .em-chip:hover{background:var(--wine);color:var(--cream)}
+    .em-modal .mf{padding:12px 20px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--cream2)}
+    .em-modal .mf .auto-note{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
+    .em-modal .mf .auto-note svg{width:12px;height:12px;fill:none;stroke:var(--green);stroke-width:2}
+
+    @media(max-width:900px){
+      .em-rules{grid-template-columns:1fr}
+      .em-ed-grid{grid-template-columns:1fr}
+      .em-bc-grid{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
@@ -663,7 +816,8 @@
       inv:'<svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7M3 12l9 4 9-4"/></svg>',
       gift:'<svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v9h14v-9M12 8v13"/><path d="M12 8S10 3 7.5 4.5 9 8 12 8zM12 8s2-5 4.5-3.5S15 8 12 8z"/></svg>',
       truck:'<svg viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h5l2 3v3h-7zM7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>',
-      coin:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9.5A2.5 2.5 0 0 1 14.5 9M9 14.5A2.5 2.5 0 0 0 14.5 15M12 6.5v11"/></svg>'
+      coin:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9.5A2.5 2.5 0 0 1 14.5 9M9 14.5A2.5 2.5 0 0 0 14.5 15M12 6.5v11"/></svg>',
+      mail:'<svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 4l8 8 8-8"/></svg>'
     };
 
     // ---------- boot / auth ----------
@@ -710,7 +864,7 @@
     }
 
     // ---------- app shell ----------
-    var NAV=[['dash','概览',ICON.dash],['products','商品',ICON.box],['inventory','库存',ICON.inv],['orders','订单',ICON.bag],['customers','顾客',ICON.user],['discounts','优惠券',ICON.tag],['credit','积分・礼券',ICON.coin],['shipping','运费 & 自提',ICON.truck],['settings','设置',ICON.gear]];
+    var NAV=[['dash','概览',ICON.dash],['products','商品',ICON.box],['inventory','库存',ICON.inv],['orders','订单',ICON.bag],['customers','顾客',ICON.user],['discounts','优惠券',ICON.tag],['credit','积分・礼券',ICON.coin],['emails','邮件通知',ICON.mail],['shipping','运费 & 自提',ICON.truck],['settings','设置',ICON.gear]];
     function renderApp(u){
       var brandName=esc(CFG.brand||'Code Official');
       var navHTML=NAV.map(function(n){return '<button data-s="'+n[0]+'">'+n[2]+'<span>'+n[1]+'</span></button>';}).join('');
@@ -759,10 +913,10 @@
     }
     function show(s){
       document.querySelectorAll('#nav button, #mob-nav button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-s')===s);});
-      var titles={dash:'概览',products:'商品',inventory:'库存',orders:'订单',customers:'顾客',discounts:'优惠券',credit:'积分・礼券',bundles:'组合价 · 套装',shipping:'运费 & 自提',settings:'设置'};
+      var titles={dash:'概览',products:'商品',inventory:'库存',orders:'订单',customers:'顾客',discounts:'优惠券',credit:'积分・礼券',emails:'邮件通知',bundles:'组合价 · 套装',shipping:'运费 & 自提',settings:'设置'};
       document.getElementById('title').textContent=titles[s];
       view.innerHTML='<p class="muted">载入中…</p>';
-      ({dash:secDash,products:secProducts,inventory:secInventory,orders:secOrders,customers:secCustomers,discounts:secDiscounts,credit:secCredit,bundles:secBundles,shipping:secShipping,settings:secSettings}[s])();
+      ({dash:secDash,products:secProducts,inventory:secInventory,orders:secOrders,customers:secCustomers,discounts:secDiscounts,credit:secCredit,emails:secEmails,bundles:secBundles,shipping:secShipping,settings:secSettings}[s])();
     }
 
     // ---------- 概览 ----------
@@ -1042,6 +1196,382 @@
           DB.updateOrderStatus(sel.getAttribute('data-os'),sel.value).then(function(r){if(r&&r.error)alert('更新失败：'+r.error.message);});
         });});
       });
+    }
+
+    // ---------- 邮件通知 ----------
+    function secEmails(){
+      var orders=data.orders||[];
+      var STATUS_MAP={pending:'待处理',paid:'已付款',shipped:'已发货',cancelled:'已取消'};
+      var STATUS_CLS={pending:'amber',paid:'green',shipped:'blue',cancelled:'off'};
+
+      var EM_TPLS=[
+        {id:'confirm',icon:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14 9 11"/>',name:'订单确认',desc:'付款成功后',sub:'订单 #{{订单号}} 已确认 · Code Official',body:'亲爱的 {{顾客姓名}}，\n\n非常感谢您的订购 ♡ 我们已收到您的订单 #{{订单号}}，总金额 {{金额}}。\n\n商品正在精心准备中，预计 1–2 个工作日内发货，请耐心等待 ✿\n\n如有任何疑问，欢迎回复此邮件。\n\n— Code Official 团队'},
+        {id:'shipped',icon:'<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',name:'发货通知',desc:'填写物流单号后',sub:'您的订单 #{{订单号}} 已发货 📦',body:'亲爱的 {{顾客姓名}}，\n\n好消息！您的订单 #{{订单号}} 已经出货啦 🚚\n\n物流公司：{{物流公司}}\n物流单号：{{物流单号}}\n预计 2–4 个工作日内送达。\n\n您可以使用上方单号在物流官网查询包裹位置。\n\n— Code Official 团队'},
+        {id:'remind',icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',name:'付款提醒',desc:'手动发送',sub:'温馨提醒：您的订单 #{{订单号}} 等待付款',body:'亲爱的 {{顾客姓名}}，\n\n您的订单 #{{订单号}}（金额 {{金额}}）尚未完成付款。\n\n为避免商品被他人抢购，请尽快完成付款，感谢您的支持 ♡\n\n— Code Official 团队'},
+        {id:'refund',icon:'<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',name:'退款通知',desc:'手动发送',sub:'订单 #{{订单号}} 退款已处理',body:'亲爱的 {{顾客姓名}}，\n\n您订单 #{{订单号}} 的退款 {{金额}} 已经成功处理 ✿\n\n款项预计 3–5 个工作日内退回原付款账户。\n\n— Code Official 团队'},
+        {id:'custom',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>',name:'自定义邮件',desc:'空白模板',sub:'',body:''}
+      ];
+      var BC_TPLS=[
+        {id:'confirm',name:'订单确认',meta:'412 已发 · 自动'},
+        {id:'shipped',name:'发货通知',meta:'298 已发 · 自动'},
+        {id:'refund',name:'退款已处理',meta:'38 已发'},
+        {id:'remind',name:'付款提醒',meta:'186 已发'},
+        {id:'birthday',name:'生日礼券',meta:'21 已发'},
+        {id:'review',name:'评价邀请',meta:'104 已发'},
+        {id:'restock',name:'到货通知',meta:'67 已发'},
+        {id:'newprod',name:'新品发布',meta:'草稿',draft:true},
+        {id:'sale',name:'季节促销',meta:'草稿',draft:true}
+      ];
+      var SAMPLE={'{{顾客姓名}}':'陈嘉伦','{{订单号}}':'10052','{{金额}}':'RM 268.00','{{物流单号}}':'JT2026MY10052','{{物流公司}}':'J&T Express','{{商品列表}}':'• 法式格纹连衣裙 (M) × 1\n• 真丝丝带发箍 × 2','{{店铺名}}':'Code Official','{{下单时间}}':'2026-06-22 14:32'};
+      var BC_MATCH=[
+        {no:'10052',name:'陈嘉伦',em:'jiarun.chen@gmail.com',amt:268,day:8},
+        {no:'10048',name:'Ahmad Faiz',em:'ahmad.faiz@gmail.com',amt:189,day:9},
+        {no:'10042',name:'李明轩',em:'mingxuan.li@163.com',amt:520,day:11},
+        {no:'10039',name:'Sarah Tan',em:'sarah.t@hotmail.com',amt:88,day:12},
+        {no:'10035',name:'Lim Wei',em:'wei@yahoo.com',amt:155,day:14},
+        {no:'10031',name:'黄美琪',em:'meiqi.h@outlook.com',amt:340,day:15}
+      ];
+
+      function emToast(msg){
+        var t=document.getElementById('emToastEl');
+        if(!t){t=document.createElement('div');t.id='emToastEl';t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--cream);padding:12px 20px;border-radius:6px;font-size:13px;display:flex;align-items:center;gap:9px;opacity:0;transition:.3s;z-index:200;box-shadow:0 4px 18px rgba(0,0,0,.2);max-width:400px';
+          t.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F7D4F" stroke-width="2.4"><path d="M22 4 12 14 9 11"/></svg><span></span>';
+          document.body.appendChild(t);}
+        t.querySelector('span').textContent=msg;
+        t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+        clearTimeout(t._tt);t._tt=setTimeout(function(){t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2600);
+      }
+
+      view.innerHTML=
+        '<div class="em-tabs">'+
+          '<button class="em-tab on" data-et="auto"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>自动规则</button>'+
+          '<button class="em-tab" data-et="manual"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 4l8 8 8-8"/></svg>订单邮件</button>'+
+          '<button class="em-tab" data-et="broadcast"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>群发</button>'+
+        '</div>'+
+
+        // === TAB: AUTO RULES ===
+        '<div class="em-pane on" id="em-pane-auto">'+
+          '<div class="em-rules">'+
+            '<div class="em-rule">'+
+              '<div class="rhead"><div class="rttl"><span class="ric"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14 9 11"/></svg></span>规则 1 · 订单确认邮件</div>'+
+              '<button class="em-sw on" id="sw-confirm" onclick="this.classList.toggle(\'on\')"></button></div>'+
+              '<div class="rflow"><span class="step"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 22c0-4 3-7 6-7s6 3 6 7"/></svg>顾客付款成功</span><span class="arr">→</span><span class="step"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 4l8 8 8-8"/></svg>立即自动发送</span></div>'+
+              '<div class="rdesc">触发：订单状态变为「已付款」。模板含订单号、金额、商品列表。无需手动操作。</div>'+
+            '</div>'+
+            '<div class="em-rule">'+
+              '<div class="rhead"><div class="rttl"><span class="ric"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>规则 2 · 发货通知邮件</div>'+
+              '<button class="em-sw on" id="sw-shipped" onclick="this.classList.toggle(\'on\')"></button></div>'+
+              '<div class="rflow"><span class="step"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>后台填写物流单号</span><span class="arr">→</span><span class="step"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 4l8 8 8-8"/></svg>立即自动发送</span></div>'+
+              '<div class="rdesc">触发：保存物流单号（Tracking No）。模板含物流公司、物流单号。</div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="panel"><div class="panel-head" style="padding:14px 18px"><h2 style="font-size:17px">统计</h2></div>'+
+          '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 18px">'+
+            '<div class="stat"><div class="n">248</div><div class="l">今日自动发送</div></div>'+
+            '<div class="stat"><div class="n">&lt; 2s</div><div class="l">平均发送速度</div></div>'+
+            '<div class="stat"><div class="n">100%</div><div class="l">送达率</div></div>'+
+            '<div class="stat"><div class="n">84%</div><div class="l">邮件打开率</div></div>'+
+          '</div></div>'+
+        '</div>'+
+
+        // === TAB: MANUAL ===
+        '<div class="em-pane" id="em-pane-manual">'+
+          '<div class="panel">'+
+            '<div class="panel-head" style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between">'+
+              '<div><h2 style="font-size:17px">订单列表</h2><div class="muted" style="font-size:12px;margin-top:2px">点击「发邮件」手动给顾客发送任意模板</div></div>'+
+            '</div>'+
+            '<ul class="em-olist" id="em-olist">'+
+              (orders.length?orders.slice(0,20).map(function(o){
+                var c=o.customer||{};var who=(c.first||'')+(c.last?' '+c.last:'')||o.email||'游客';
+                var st=o.status||'pending';var cls=STATUS_CLS[st]||'amber';var lbl=STATUS_MAP[st]||st;
+                return '<li>'+
+                  '<div class="ono">#'+esc(o.order_number)+'</div>'+
+                  '<div class="ocust"><div class="oname">'+esc(who)+'</div><div class="oem">'+esc(o.email||'')+'</div></div>'+
+                  '<div class="oamt">'+money(o.total)+'</div>'+
+                  '<div class="ost"><span class="pill '+cls+'">'+lbl+'</span></div>'+
+                  '<div class="oact"><button class="em-mailbtn" data-oid="'+esc(o.id)+'" data-no="'+esc(o.order_number)+'" data-name="'+esc(who)+'" data-em="'+esc(o.email||'')+'" data-amt="'+esc(String(o.total||0))+'"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 4l8 8 8-8"/></svg>发邮件</button></div>'+
+                '</li>';
+              }).join(''):'<li style="padding:40px;text-align:center;color:var(--muted)">暂无订单数据</li>')+'</ul>'+
+          '</div>'+
+        '</div>'+
+
+        // === TAB: BROADCAST ===
+        '<div class="em-pane" id="em-pane-broadcast">'+
+          '<div class="em-bc-grid">'+
+            '<div class="panel">'+
+              '<div class="panel-head" style="padding:14px 18px"><h2 style="font-size:17px">条件筛选</h2><div class="muted" style="font-size:12px;margin-top:2px">所有条件需同时满足 (AND)</div></div>'+
+              '<div class="em-b-sec"><h4>1 · 订单状态</h4>'+
+                '<div class="em-pickbtn">'+
+                  '<label><input type="checkbox" checked><span>待处理</span></label>'+
+                  '<label><input type="checkbox"><span>已付款</span></label>'+
+                  '<label><input type="checkbox"><span>已发货</span></label>'+
+                  '<label><input type="checkbox"><span>已取消</span></label>'+
+                '</div></div>'+
+              '<div class="em-b-sec"><h4>2 · 时间条件</h4>'+
+                '<div class="em-rule-row">'+
+                  '<select><option>下单日期</option><option>付款日期</option></select>'+
+                  '<select><option>早于</option><option>晚于</option><option>等于</option></select>'+
+                  '<input type="text" value="7 天前">'+
+                  '<button class="del" style="width:26px;height:26px;color:var(--muted);border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:none;border:none" title="删除"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
+                '</div>'+
+                '<button style="font-size:12px;color:var(--wine);cursor:pointer;background:none;border:none;padding:4px 0">＋ 添加时间条件</button>'+
+              '</div>'+
+              '<div class="em-b-sec"><h4>3 · 订单金额</h4>'+
+                '<div class="em-rule-row">'+
+                  '<select><option>订单总额</option><option>商品数</option></select>'+
+                  '<select><option>大于等于</option><option>小于等于</option></select>'+
+                  '<input type="text" value="RM 0">'+
+                  '<span></span>'+
+                '</div></div>'+
+              '<div class="em-b-sec"><h4>4 · 顾客标签 (选填)</h4>'+
+                '<div class="em-pickbtn">'+
+                  '<label><input type="checkbox"><span>VIP 会员</span></label>'+
+                  '<label><input type="checkbox"><span>新顾客</span></label>'+
+                  '<label><input type="checkbox"><span>已订阅</span></label>'+
+                '</div></div>'+
+              '<div class="em-match-card"><div class="n">'+BC_MATCH.length+'</div><div class="l">符合条件的订单 / 顾客</div></div>'+
+              '<div class="em-match-list" id="em-matchList"></div>'+
+            '</div>'+
+            '<div><div class="em-send-card">'+
+              '<h3>群发设置</h3>'+
+              '<div class="row"><span class="k">使用模板</span><span class="v" style="color:var(--wine)">付款提醒 ▾</span></div>'+
+              '<div class="row"><span class="k">寄件人</span><span class="v">Code Official</span></div>'+
+              '<div class="row"><span class="k">回复邮箱</span><span class="v">cs@codeofficial.my</span></div>'+
+              '<div class="row big"><span class="k">收件人</span><span class="v">'+BC_MATCH.length+' 位</span></div>'+
+              '<div style="margin-top:10px">'+
+                '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="radio" name="em-sched" checked> 立即发送</label>'+
+                '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-top:7px"><input type="radio" name="em-sched"> 定时发送</label>'+
+              '</div>'+
+              '<button class="btn send-btn" id="em-bcSend" style="width:100%;margin-top:12px;padding:12px;font-size:14px"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>立即群发 · '+BC_MATCH.length+' 封</button>'+
+              '<button class="test-btn" id="em-testSend" style="width:100%;margin-top:6px;padding:8px;font-size:12px;color:var(--muted);border:1px solid var(--line);background:var(--white);border-radius:5px;cursor:pointer;font-family:var(--sans)">先发测试邮件给自己 →</button>'+
+              '<div style="margin-top:12px;padding:10px 12px;background:var(--cream2);border-radius:5px;font-size:11px;color:var(--muted);line-height:1.6">'+
+                '<b style="color:var(--ink2)">💡 提示</b><br>• 变量自动替换每位顾客资料<br>• 已退订顾客自动排除<br>• 本月剩余额度：<b style="color:var(--wine)">7,716 封</b>'+
+              '</div>'+
+            '</div></div>'+
+          '</div>'+
+        '</div>'+
+
+        // === TEMPLATE EDITOR (shared, below tabs) ===
+        '<div style="margin-top:22px" id="em-ed-wrap">'+
+          '<div class="panel" style="margin-bottom:0">'+
+            '<div class="panel-head" style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between">'+
+              '<div><h2 style="font-size:17px">邮件模板</h2><div class="muted" style="font-size:12px;margin-top:2px">编辑自动发送模板内容，变量自动填入</div></div>'+
+              '<button class="btn btn--ghost btn--sm" onclick="emToast(\'模板已复制\')">复制</button>'+
+            '</div>'+
+            '<div class="em-ed-grid" style="padding:16px;gap:14px">'+
+              '<div style="border:1px solid var(--line);border-radius:5px;overflow:hidden">'+
+                '<div style="padding:12px 14px;border-bottom:1px solid var(--line);background:var(--cream2);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600">模板库</div>'+
+                '<div class="em-tplitems" id="em-tplList"></div>'+
+                '<button class="em-new-tpl" onclick="emToast(\'Demo · 新建模板\')">＋ 新建模板</button>'+
+              '</div>'+
+              '<div style="display:flex;flex-direction:column;gap:12px">'+
+                '<div><label class="em-fld" style="display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px">邮件主题</label><input type="text" id="em-edSub" style="width:100%;padding:9px 11px;border:1px solid var(--line2);border-radius:4px;outline:none;font-size:13.5px;font-family:var(--sans);transition:.2s"></div>'+
+                '<div><label style="display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px">邮件正文</label>'+
+                  '<div class="em-etb">'+
+                    '<button onclick="void 0" title="加粗"><b>B</b></button>'+
+                    '<button onclick="void 0" title="斜体"><i>I</i></button>'+
+                    '<button onclick="void 0" title="下划线"><u>U</u></button>'+
+                    '<span class="sep"></span>'+
+                    '<button onclick="void 0" title="链接"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>'+
+                    '<div class="etb-var" style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)">插入变量<select id="em-varPick" style="font-size:11px;padding:3px 6px;border:1px solid var(--line);border-radius:3px;background:var(--white)">'+
+                      '<option value="">—</option><option value="{{顾客姓名}}">顾客姓名</option><option value="{{订单号}}">订单号</option><option value="{{金额}}">订单金额</option><option value="{{物流单号}}">物流单号</option><option value="{{物流公司}}">物流公司</option><option value="{{商品列表}}">商品列表</option><option value="{{店铺名}}">店铺名</option>'+
+                    '</select></div>'+
+                  '</div>'+
+                  '<textarea id="em-edMsg" class="em-ed-area"></textarea>'+
+                '</div>'+
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+                  '<div><label style="display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px">按钮文字 (CTA)</label><input type="text" value="查看订单详情" style="width:100%;padding:9px 11px;border:1px solid var(--line2);border-radius:4px;outline:none;font-size:13.5px;font-family:var(--sans)"></div>'+
+                  '<div><label style="display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px">按钮链接</label><input type="text" value="https://codeofficial.my/account" style="width:100%;padding:9px 11px;border:1px solid var(--line2);border-radius:4px;outline:none;font-size:13.5px;font-family:var(--sans)"></div>'+
+                '</div>'+
+              '</div>'+
+              '<div style="border:1px solid var(--line);border-radius:5px;overflow:hidden">'+
+                '<div style="padding:12px 14px;border-bottom:1px solid var(--line);background:var(--cream2);display:flex;align-items:center;justify-content:space-between">'+
+                  '<div style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600">实时预览</div>'+
+                  '<div style="display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden" id="em-pmode">'+
+                    '<button data-m="real" class="on" style="padding:4px 9px;font-size:11px;color:var(--muted);border-right:1px solid var(--line);cursor:pointer;background:var(--wine);color:var(--cream)">桌面</button>'+
+                    '<button data-m="raw" style="padding:4px 9px;font-size:11px;color:var(--muted);cursor:pointer;background:none;border:none">原始</button>'+
+                  '</div>'+
+                '</div>'+
+                '<div class="em-pv-stage" id="em-pvStage">'+
+                  '<div class="em-pv-frame">'+
+                    '<div class="em-pv-mhead"><div class="em-pv-from"><b>Code Official</b> &lt;noreply@codeofficial.my&gt;</div><div class="em-pv-sub" id="em-pvSub"></div></div>'+
+                    '<div class="em-pv-banner"><div class="logo">Code Official</div><div class="tag">FRENCH ELEGANCE · KL</div></div>'+
+                    '<div class="em-pv-msg" id="em-pvMsg"></div>'+
+                    '<div style="text-align:center;padding:0 20px 22px"><a style="display:inline-block;padding:12px 28px;background:var(--wine);color:var(--cream);text-decoration:none;font-size:13px;border-radius:3px;letter-spacing:.03em">查看订单详情</a></div>'+
+                    '<div class="em-pv-foot"><b>Code Official</b> · 法式优雅，源自吉隆坡<br>您收到此邮件是因为在 codeofficial.my 进行了订购</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>'+
+            '</div>'+
+            '<div class="em-sendbar">'+
+              '<div class="l">最后编辑：<b>刚刚</b> · 自动保存中</div>'+
+              '<div style="display:flex;gap:8px">'+
+                '<button class="btn btn--ghost btn--sm" onclick="emToast(\'草稿已保存\')">保存草稿</button>'+
+                '<button class="btn btn--sm" id="em-saveTpl"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8"><path d="M22 4 12 14 9 11"/></svg>保存并启用</button>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+
+        // === MANUAL SEND MODAL ===
+        '<div class="em-mask" id="em-mask">'+
+          '<div class="em-modal">'+
+            '<div class="mh"><h2>发送邮件</h2><button class="x" id="em-closeModal"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>'+
+            '<div class="mb">'+
+              '<div class="ml">'+
+                '<div class="ono" id="em-mOno"></div><div class="oem" id="em-mEm"></div><div class="oamt" id="em-mAmt"></div>'+
+                '<h3>选择模板</h3>'+
+                '<div id="em-tplBtns"></div>'+
+              '</div>'+
+              '<div class="mr">'+
+                '<div class="em-fld"><label>收件人</label><input type="email" id="em-fTo"></div>'+
+                '<div class="em-fld"><label>主题</label><input type="text" id="em-fSub"></div>'+
+                '<div class="em-fld"><label>邮件正文</label><textarea id="em-fMsg"></textarea>'+
+                  '<div class="em-chips" id="em-chips">'+
+                    '<span style="font-size:11px;color:var(--muted);align-self:center">插入变量：</span>'+
+                    '<button class="em-chip" data-v="{{顾客姓名}}">顾客姓名</button>'+
+                    '<button class="em-chip" data-v="{{订单号}}">订单号</button>'+
+                    '<button class="em-chip" data-v="{{金额}}">金额</button>'+
+                    '<button class="em-chip" data-v="{{物流单号}}">物流单号</button>'+
+                  '</div>'+
+                '</div>'+
+              '</div>'+
+            '</div>'+
+            '<div class="mf"><span class="auto-note"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14 9 11"/></svg>手动发送模式</span>'+
+              '<div style="display:flex;gap:8px">'+
+                '<button class="btn btn--ghost btn--sm" id="em-cancelModal">取消</button>'+
+                '<button class="btn btn--sm" id="em-sendBtn"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>发送邮件</button>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>';
+
+      // Wiring tabs
+      view.querySelectorAll('.em-tab').forEach(function(b){
+        b.addEventListener('click',function(){
+          view.querySelectorAll('.em-tab').forEach(function(x){x.classList.toggle('on',x===b);});
+          var t=b.getAttribute('data-et');
+          view.querySelectorAll('.em-pane').forEach(function(p){p.classList.toggle('on',p.id==='em-pane-'+t);});
+        });
+      });
+
+      // Template list (editor sidebar)
+      var emCurTpl='confirm';
+      function emRenderTplList(){
+        var el=document.getElementById('em-tplList');if(!el)return;
+        el.innerHTML=EM_TPLS.map(function(t){
+          return '<div class="em-tpli'+(t.id===emCurTpl?' on':'')+'" data-tid="'+t.id+'">'+
+            '<div class="ico"><svg viewBox="0 0 24 24">'+t.icon+'</svg></div>'+
+            '<div><div class="nm">'+t.name+'</div><div class="meta">'+t.desc+'</div></div></div>';
+        }).join('');
+        el.querySelectorAll('.em-tpli').forEach(function(li){
+          li.addEventListener('click',function(){emCurTpl=li.getAttribute('data-tid');emRenderTplList();emApplyTpl();});
+        });
+      }
+      function emApplyTpl(){
+        var t=EM_TPLS.filter(function(x){return x.id===emCurTpl;})[0];if(!t)return;
+        var sub=document.getElementById('em-edSub');var msg=document.getElementById('em-edMsg');
+        if(sub)sub.value=t.sub;if(msg)msg.value=t.body;emRenderPreview();
+      }
+
+      // Preview
+      var emPreviewMode='real';
+      function emRenderPreview(){
+        var sub=document.getElementById('em-edSub');var msg=document.getElementById('em-edMsg');
+        var pvSub=document.getElementById('em-pvSub');var pvMsg=document.getElementById('em-pvMsg');
+        if(!sub||!pvSub)return;
+        var s=sub.value,m=msg?msg.value:'';
+        if(emPreviewMode==='raw'){
+          pvSub.innerHTML=s.replace(/{{[^}]+}}/g,function(v){return '<span style="background:#FFF1B8;color:#7C5C00;padding:1px 4px;border-radius:3px;font-weight:600">'+v+'</span>';});
+          pvMsg.innerHTML=m.replace(/{{[^}]+}}/g,function(v){return '<span style="background:#FFF1B8;color:#7C5C00;padding:1px 4px;border-radius:3px;font-weight:600">'+v+'</span>';});
+        }else{
+          Object.keys(SAMPLE).forEach(function(k){s=s.split(k).join(SAMPLE[k]);m=m.split(k).join(SAMPLE[k]);});
+          pvSub.textContent=s;pvMsg.textContent=m;
+        }
+      }
+      view.querySelectorAll('#em-pmode button').forEach(function(b){
+        b.addEventListener('click',function(){
+          view.querySelectorAll('#em-pmode button').forEach(function(x){x.style.background=x===b?'var(--wine)':'none';x.style.color=x===b?'var(--cream)':'var(--muted)';});
+          emPreviewMode=b.getAttribute('data-m');emRenderPreview();
+        });
+      });
+      var edSub=document.getElementById('em-edSub');var edMsg=document.getElementById('em-edMsg');
+      if(edSub)edSub.addEventListener('input',emRenderPreview);
+      if(edMsg)edMsg.addEventListener('input',emRenderPreview);
+      var varPick=document.getElementById('em-varPick');
+      if(varPick)varPick.addEventListener('change',function(){
+        if(!this.value)return;
+        var ta=document.getElementById('em-edMsg');if(!ta)return;
+        var s=ta.selectionStart,e=ta.selectionEnd;
+        ta.value=ta.value.slice(0,s)+this.value+ta.value.slice(e);
+        ta.focus();ta.selectionStart=ta.selectionEnd=s+this.value.length;
+        this.value='';emRenderPreview();
+      });
+      var saveTplBtn=document.getElementById('em-saveTpl');
+      if(saveTplBtn)saveTplBtn.addEventListener('click',function(){emToast('✿ 模板已保存并启用');});
+
+      // Broadcast match list
+      var ml=document.getElementById('em-matchList');
+      if(ml)ml.innerHTML=BC_MATCH.map(function(m){
+        return '<div class="mli"><div><b>#'+m.no+'</b> · '+m.name+'<div class="em">'+m.em+'</div></div>'+
+          '<div style="text-align:right"><div>RM '+m.amt+'</div><div class="em">'+m.day+' 天未付</div></div></div>';
+      }).join('')+'<div class="mli" style="justify-content:center;color:var(--muted);font-size:11px">以上为 Demo 数据</div>';
+
+      var bcSend=document.getElementById('em-bcSend');if(bcSend)bcSend.addEventListener('click',function(){emToast('群发已加入队列 · '+BC_MATCH.length+' 封邮件（Demo）');});
+      var testSend=document.getElementById('em-testSend');if(testSend)testSend.addEventListener('click',function(){emToast('测试邮件已发送（Demo）');});
+
+      // Manual send modal
+      var curMailOrder=null;var emCurModalTpl='confirm';
+      function emOpenModal(no,name,em,amt){
+        curMailOrder={no:no,name:name,em:em,amt:amt};
+        var el=document.getElementById('em-mOno');if(el)el.textContent='#'+no;
+        var el2=document.getElementById('em-mEm');if(el2)el2.textContent=em;
+        var el3=document.getElementById('em-mAmt');if(el3)el3.textContent='RM '+parseFloat(amt).toFixed(2);
+        var fTo=document.getElementById('em-fTo');if(fTo)fTo.value=em;
+        emCurModalTpl=EM_TPLS[0].id;emRenderTplBtns();emApplyModalTpl();
+        var mask=document.getElementById('em-mask');if(mask)mask.classList.add('on');
+      }
+      function emRenderTplBtns(){
+        var el=document.getElementById('em-tplBtns');if(!el)return;
+        el.innerHTML=EM_TPLS.map(function(t){
+          return '<button class="em-tplbtn'+(t.id===emCurModalTpl?' on':'')+'" data-mid="'+t.id+'">'+
+            '<div class="ti"><svg viewBox="0 0 24 24">'+t.icon+'</svg></div>'+
+            '<div><div class="tn">'+t.name+'</div><div class="td">'+t.desc+'</div></div></button>';
+        }).join('');
+        el.querySelectorAll('.em-tplbtn').forEach(function(b){
+          b.addEventListener('click',function(){emCurModalTpl=b.getAttribute('data-mid');emRenderTplBtns();emApplyModalTpl();});
+        });
+      }
+      function emApplyModalTpl(){
+        var t=EM_TPLS.filter(function(x){return x.id===emCurModalTpl;})[0];if(!t||!curMailOrder)return;
+        var sub=t.sub.replace(/{{顾客姓名}}/g,curMailOrder.name).replace(/{{订单号}}/g,curMailOrder.no).replace(/{{金额}}/g,'RM '+parseFloat(curMailOrder.amt).toFixed(2));
+        var body=t.body.replace(/{{顾客姓名}}/g,curMailOrder.name).replace(/{{订单号}}/g,curMailOrder.no).replace(/{{金额}}/g,'RM '+parseFloat(curMailOrder.amt).toFixed(2)).replace(/{{物流单号}}/g,'JT2026'+curMailOrder.no+'MY').replace(/{{物流公司}}/g,'J&T Express');
+        var fs=document.getElementById('em-fSub');var fm=document.getElementById('em-fMsg');
+        if(fs)fs.value=sub;if(fm)fm.value=body;
+      }
+      view.addEventListener('click',function(e){
+        var mb=e.target.closest('.em-mailbtn');
+        if(mb)emOpenModal(mb.getAttribute('data-no'),mb.getAttribute('data-name'),mb.getAttribute('data-em'),mb.getAttribute('data-amt'));
+        var ch=e.target.closest('.em-chip');
+        if(ch){var ta=document.getElementById('em-fMsg');if(ta){var sv=ta.selectionStart,ev=ta.selectionEnd,v=ch.getAttribute('data-v');ta.value=ta.value.slice(0,sv)+v+ta.value.slice(ev);ta.focus();ta.selectionStart=ta.selectionEnd=sv+v.length;}}
+      });
+      var closeModal=document.getElementById('em-closeModal');if(closeModal)closeModal.addEventListener('click',function(){document.getElementById('em-mask').classList.remove('on');});
+      var cancelModal=document.getElementById('em-cancelModal');if(cancelModal)cancelModal.addEventListener('click',function(){document.getElementById('em-mask').classList.remove('on');});
+      var sendBtn=document.getElementById('em-sendBtn');if(sendBtn)sendBtn.addEventListener('click',function(){
+        var to=document.getElementById('em-fTo').value;
+        document.getElementById('em-mask').classList.remove('on');
+        emToast('✿ 邮件已发送给 '+(to||curMailOrder&&curMailOrder.em||''));
+      });
+      var mask=document.getElementById('em-mask');if(mask)mask.addEventListener('click',function(e){if(e.target===this)this.classList.remove('on');});
+
+      emRenderTplList();emApplyTpl();
+
+      // Load orders if not already loaded
+      if(!data.orders||!data.orders.length){
+        DB.allOrders().then(function(r){
+          if(r&&!r.error){data.orders=r.data||[];}
+        });
+      }
     }
 
     // ---------- 顾客 ----------
