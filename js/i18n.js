@@ -125,7 +125,7 @@
       'foot.care': 'Care', 'foot.contact': 'Contact',
       'foot.privacy': 'Privacy', 'foot.returns': 'Returns', 'foot.shippingP': 'Shipping', 'foot.terms': 'Terms',
       'foot.studio': 'Studio', 'foot.story': 'Our story', 'foot.sustain': 'Sustainability',
-      'foot.journal': 'Journal', 'foot.ig': 'Instagram',
+      'foot.journal': 'Journal', 'foot.fb': 'Facebook', 'foot.ig': 'Instagram',
       'foot.rights': '© {y} {brand}. All rights reserved.',
       // drawer
       'cart.title': 'Your Bag', 'cart.close': 'Close ✕',
@@ -310,7 +310,7 @@
       'foot.care': '保养', 'foot.contact': '联系我们',
       'foot.privacy': '隐私政策', 'foot.returns': '退换货', 'foot.shippingP': '配送', 'foot.terms': '条款',
       'foot.studio': '关于', 'foot.story': '品牌故事', 'foot.sustain': '可持续',
-      'foot.journal': '日志', 'foot.ig': 'Instagram',
+      'foot.journal': '日志', 'foot.fb': 'Facebook', 'foot.ig': 'Instagram',
       'foot.rights': '© {y} {brand} 版权所有。',
       'cart.title': '购物袋', 'cart.close': '关闭 ✕',
       'cart.shipRemain': '再买 <b>{x}</b> 即可免运费',
