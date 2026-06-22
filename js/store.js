@@ -217,11 +217,11 @@
               '<ul style="margin-bottom:10px"><li><a href="policies.html#shipping">' + T('foot.shipReturns') + '</a></li></ul>' +
               '<a class="footer__contact-row" href="mailto:' + (CFG.contactEmail || CFG.email || '') + '">' +
                 '<span class="footer__contact-badge"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg></span>' +
-                '<span><b>' + T('foot.email') + '</b><span>' + (CFG.contactEmail || CFG.email || '') + '</span></span>' +
+                '<span class="footer__contact-ct"><b>' + T('foot.email') + '</b><span>' + (CFG.contactEmail || CFG.email || '') + '</span></span>' +
               '</a>' +
               '<a class="footer__contact-row" href="https://wa.me/' + (CFG.whatsapp || '') + '" target="_blank" rel="noopener">' +
                 '<span class="footer__contact-badge is-wa"><svg viewBox="0 0 32 32"><path d="M16 3C9 3 3.5 8.5 3.5 15.5c0 2.4.7 4.6 1.9 6.5L4 29l7.2-1.9c1.8 1 3.8 1.5 5.8 1.5 7 0 12.5-5.5 12.5-12.5S23 3 16 3zm5.8 15.1c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-1.9-.9-3.1-1.6-4.3-3.7-.3-.6.3-.5.9-1.7.1-.2 0-.4 0-.5 0-.2-.7-1.7-1-2.3-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1 2.9 1.2 3.1c.1.2 2 3.1 4.9 4.3 2.9 1.2 2.9.8 3.5.8.5 0 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.4z"/></svg></span>' +
-                '<span><b>WhatsApp</b><span>' + T('foot.waNum') + '</span></span>' +
+                '<span class="footer__contact-ct"><b>WhatsApp</b><span>' + T('foot.waNum') + '</span></span>' +
               '</a>' +
             '</div>' +
             '<div><h4>' + T('foot.studio') + '</h4><ul>' +

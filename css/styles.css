@@ -286,8 +286,9 @@ h1, h2, h3, h4 { font-family: var(--serif); font-weight: 400; line-height: 1.08;
 .footer__contact-badge svg { width: 17px; height: 17px; stroke: var(--wine); stroke-width: 1.7; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .footer__contact-badge.is-wa { background: #E3F8EC; }
 .footer__contact-badge.is-wa svg { stroke: none; fill: #25D366; }
-.footer__contact-row b { display: block; font-size: 13.5px; color: var(--ink); font-weight: 500; transition: color .3s var(--ease); }
-.footer__contact-row span { display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+.footer__contact-row .footer__contact-ct { min-width: 0; overflow: hidden; }
+.footer__contact-row b { display: block; font-size: 13.5px; color: var(--ink); font-weight: 500; transition: color .3s var(--ease); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.footer__contact-row span { display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .footer__contact-row:hover b { color: var(--wine); }
 .footer__bottom small { color: var(--muted); font-size: 12px; }
 .pay { display: flex; gap: 8px; }
