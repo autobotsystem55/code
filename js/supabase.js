@@ -160,6 +160,39 @@
       return window.sb.from('discount_codes').delete().eq('code', code);
     },
 
+    // ---- store credit (购物金) ----
+    // Current user's balance. Returns 0 on any error / not-signed-in / table-missing,
+    // so callers can safely treat "no credit" as the default and never break.
+    creditBalance: function () {
+      if (!window.sb) return Promise.resolve(0);
+      return window.sb.auth.getUser().then(function (res) {
+        var u = res && res.data && res.data.user; if (!u) return 0;
+        return window.sb.from('store_credit_accounts').select('balance').eq('user_id', u.id).maybeSingle()
+          .then(function (r) { return (r && r.data && Number(r.data.balance)) || 0; }, function () { return 0; });
+      }, function () { return 0; });
+    },
+    // Current user's ledger (history). Empty on error.
+    creditLedger: function (limit) {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.from('store_credit_ledger').select('*')
+        .order('created_at', { ascending: false }).limit(limit || 50);
+    },
+    // Spend credit at checkout (server checks balance atomically). p_order links the order.
+    redeemCredit: function (amount, orderNumber) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.rpc('redeem_store_credit', { p_amount: amount, p_order: orderNumber || null });
+    },
+    // Admin: all members with their balances.
+    adminCreditOverview: function () {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.rpc('admin_credit_overview');
+    },
+    // Admin: manually grant (+) or deduct (−) a member's credit, with a reason note.
+    adminAdjustCredit: function (userId, delta, note) {
+      if (!window.sb) return Promise.resolve({ error: { message: 'not configured' } });
+      return window.sb.rpc('admin_adjust_credit', { p_user: userId, p_delta: delta, p_note: note || null });
+    },
+
     // ---- bundles / sets ----
     allBundles: function () {
       if (!window.sb) return Promise.resolve({ data: [], error: null });
@@ -258,6 +291,10 @@
         // size chart object (full object — admin manages enabled/columns/rows/note)
         if (d.sizeChart && typeof d.sizeChart === 'object') {
           window.STORE_CONFIG.sizeChart = d.sizeChart;
+        }
+        // store credit (购物金) rules — earn + redeem config (managed in admin)
+        if (d.storeCredit && typeof d.storeCredit === 'object') {
+          window.STORE_CONFIG.storeCredit = d.storeCredit;
         }
       }
     }).catch(function () {});

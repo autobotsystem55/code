@@ -279,9 +279,11 @@
               '<button type="button" class="btn btn--ghost" id="discBtn" style="padding:11px 18px">' + t('co.apply') + '</button>' +
             '</div>' +
             '<p id="discMsg" class="muted" style="font-size:12px;margin:4px 0 0;min-height:16px"></p>' +
+            '<div id="creditWrap" style="display:none"></div>' +
             '<div class="totals">' +
               '<div><span>' + t('co.subtotal') + '</span><span>' + money(subtotal) + '</span></div>' +
               '<div id="discRow" style="display:none"><span>' + t('co.discount') + ' <b id="discTag" style="color:var(--wine)"></b></span><span id="discAmt"></span></div>' +
+              '<div id="creditRow" style="display:none;color:var(--wine)"><span>' + (window.LANG === 'zh' ? '购物金折抵' : 'Store credit') + '</span><span id="creditAmt"></span></div>' +
               '<div><span>' + t('co.shippingLbl') + '</span><span id="shipVal">' + (useZones ? t('co.zoneNone') : (shipping === 0 ? t('co.free') : money(shipping))) + '</span></div>' +
               '<div id="addonRow" style="display:none"><span>' + t('co.addon') + ' <b id="addonTag" style="color:var(--wine)"></b></span><span id="addonAmt"></span></div>' +
               '<div class="grand"><span>' + t('co.total') + '</span><b id="grandTotal">' + money(total) + '</b></div>' +
@@ -293,9 +295,16 @@
       var discountLabel = '';
       var gifts = [], giftNudge = null;
       var addonOffer = null, addonAdded = false, addonTotal = 0, addonNudge = null;
+      var creditBal = 0, creditUse = 0;   // store credit (购物金): balance + amount applied this order
       function renderTotals() {
         var effShip = freeShip ? 0 : shipping;
-        total = Math.max(0, subtotal - discount) + effShip + (addonAdded ? addonTotal : 0);
+        if (creditUse > Math.max(0, subtotal - discount)) creditUse = Math.max(0, subtotal - discount);
+        total = Math.max(0, subtotal - discount - creditUse) + effShip + (addonAdded ? addonTotal : 0);
+        var crow = document.getElementById('creditRow');
+        if (crow) {
+          if (creditUse > 0) { crow.style.display = ''; document.getElementById('creditAmt').textContent = '−' + money(creditUse); }
+          else { crow.style.display = 'none'; }
+        }
         var sv = document.getElementById('shipVal');
         if (sv) sv.textContent = (useZones && !selectedZone && !freeShip) ? t('co.zoneNone') : (effShip === 0 ? t('co.free') : money(effShip));
         var row = document.getElementById('discRow');
@@ -466,6 +475,67 @@
           renderGifts(); renderAddon();
         }, function () {});
       }
+
+      // ---- store credit (购物金): shows only for a signed-in member with a balance ----
+      function creditRules() { return (window.STORE_CONFIG && STORE_CONFIG.storeCredit) || {}; }
+      function creditMax() {
+        var rd = creditRules().redeem || {};
+        var minOrder = +rd.minOrder || 0;
+        if (minOrder > 0 && subtotal < minOrder) return 0;
+        var cap = creditBal;
+        var maxPct = +rd.maxPct || 0;
+        if (maxPct > 0) cap = Math.min(cap, subtotal * maxPct / 100);
+        cap = Math.min(cap, Math.max(0, subtotal - discount));   // never exceed payable merchandise
+        return Math.floor(cap * 100) / 100;
+      }
+      function renderCreditUI() {
+        var wrap = document.getElementById('creditWrap'); if (!wrap) return;
+        if (creditBal <= 0) { wrap.style.display = 'none'; return; }
+        var rd = creditRules().redeem || {}, zh = (window.LANG === 'zh');
+        var minOrder = +rd.minOrder || 0, blocked = (minOrder > 0 && subtotal < minOrder);
+        var max = creditMax(), on = creditUse > 0;
+        var hint = blocked
+          ? (zh ? ('订单满 ' + money(minOrder) + ' 才能用购物金') : ('Spend ' + money(minOrder) + ' to use store credit'))
+          : (zh ? ('本单最多可抵 ' + money(max)) : ('Up to ' + money(max) + ' off this order'));
+        wrap.style.display = '';
+        wrap.innerHTML =
+          '<div style="border:1px dashed var(--pink-border,#DAB0B7);background:var(--white,#fff);border-radius:8px;padding:13px 14px;margin:16px 0 2px">' +
+            '<div style="display:flex;align-items:center;gap:9px">' +
+              '<span style="width:28px;height:28px;border-radius:50%;background:var(--pink-soft,#F3E2E4);display:grid;place-items:center;font-size:14px;flex:0 0 auto">🪙</span>' +
+              '<div style="flex:1;font-size:13px;font-weight:600">' + (zh ? '使用购物金' : 'Use store credit') +
+                '<div style="font-size:11.5px;color:var(--muted);font-weight:400">' + (zh ? '余额 ' : 'Balance ') + money(creditBal) + '</div></div>' +
+              '<button type="button" id="creditToggle" aria-label="toggle" style="position:relative;width:42px;height:24px;border-radius:999px;border:none;flex:0 0 auto;cursor:pointer;transition:background .18s;background:' + (on ? 'var(--wine,#82213E)' : '#d9cfca') + '"><span style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .18s;transform:translateX(' + (on ? '18px' : '0') + ')"></span></button>' +
+            '</div>' +
+            (on ?
+              '<div style="display:flex;align-items:center;gap:9px;margin-top:12px">' +
+                '<input type="number" id="creditInput" min="0" step="0.5" value="' + creditUse + '" style="flex:1;padding:9px 11px;border:1px solid var(--pink-border,#DAB0B7);border-radius:7px;font:inherit;outline:none">' +
+                '<button type="button" id="creditMaxBtn" style="background:none;border:none;color:var(--wine,#82213E);font-size:12px;font-weight:600;text-decoration:underline;white-space:nowrap;cursor:pointer">' + (zh ? '用最多' : 'Use max') + '</button>' +
+              '</div>' : '') +
+            '<div style="font-size:11.5px;margin-top:8px;color:' + (blocked ? 'var(--amber,#9A6B12)' : 'var(--muted)') + '">' + hint + '</div>' +
+          '</div>';
+        var tgl = document.getElementById('creditToggle');
+        if (tgl) tgl.addEventListener('click', function () {
+          creditUse = (creditUse > 0) ? 0 : creditMax();
+          renderCreditUI(); renderTotals();
+        });
+        var inp = document.getElementById('creditInput');
+        if (inp) inp.addEventListener('input', function () {
+          creditUse = Math.max(0, Math.min(parseFloat(this.value) || 0, creditMax())); renderTotals();
+        });
+        var mx = document.getElementById('creditMaxBtn');
+        if (mx) mx.addEventListener('click', function () { creditUse = creditMax(); renderCreditUI(); renderTotals(); });
+      }
+      function setupCredit() {
+        if (!(window.DB && DB.configured && DB.creditBalance)) return;
+        DB.creditBalance().then(function (bal) {
+          creditBal = bal || 0;
+          if (creditBal <= 0) return;
+          creditUse = creditMax();          // default to applying the maximum allowed
+          renderCreditUI();
+          renderTotals();
+        }, function () {});
+      }
+
       document.getElementById('discBtn').addEventListener('click', function () {
         var code = document.getElementById('discInput').value.trim();
         var msg = document.getElementById('discMsg');
@@ -504,6 +574,7 @@
         }, function () { btn.disabled = false; msg.style.color = 'var(--wine)'; msg.textContent = t('co.discBad'); });
       });
       applyAuto();
+      setupCredit();
 
       // ---- zone select + COD toggle wiring ----
       if (useZones) {
@@ -704,7 +775,8 @@
         localStorage.setItem('eclat_last_order', JSON.stringify({
           orderId: orderId, email: f.email.value,
           items: itemRows, subtotal: subtotal, shipping: effShip, total: total,
-          discount_code: discountCode || null, discount_amount: discount || 0
+          discount_code: discountCode || null, discount_amount: discount || 0,
+          credit_used: creditUse || 0
         }));
 
         // DEMO → confirmation page. REAL → redirect to your Stripe/PayPal link.
@@ -721,6 +793,11 @@
             currency: (STORE_CONFIG.currency || 'MYR'),
             payment_method: isCOD ? 'cod' : 'online'
           };
+          if (creditUse > 0) orderRow.credit_used = creditUse;
+
+          // Spend store credit FIRST (server deducts atomically). Only if that
+          // succeeds do we keep the credit discount; otherwise place at full price.
+          var saveOrder = function () {
           Auth.getUser().then(function (res) {
             var u = res && res.data && res.data.user; if (u) orderRow.user_id = u.id;
             return DB.createOrder(orderRow);
@@ -740,6 +817,28 @@
               } catch (e) {} }
             }
           }).then(go, go);
+          };
+
+          if (creditUse > 0 && DB.redeemCredit) {
+            DB.redeemCredit(creditUse, orderId).then(function (r) {
+              if (r && r.error) {
+                // couldn't spend credit → remove it and let the customer place at full price
+                creditUse = 0; if (orderRow.credit_used) delete orderRow.credit_used;
+                orderRow.total = total = Math.max(0, subtotal - discount) + effShip + (addonAdded ? addonTotal : 0);
+                renderCreditUI(); renderTotals();
+                if (btn) btn.disabled = false;
+                toast(window.LANG === 'zh' ? '购物金折抵失败，已移除，请再试一次' : 'Could not apply store credit — removed, please try again');
+                return;
+              }
+              saveOrder();
+            }, function () {
+              creditUse = 0; if (orderRow.credit_used) delete orderRow.credit_used;
+              orderRow.total = total = Math.max(0, subtotal - discount) + effShip + (addonAdded ? addonTotal : 0);
+              renderCreditUI(); renderTotals();
+              if (btn) btn.disabled = false;
+              toast(window.LANG === 'zh' ? '购物金折抵失败，已移除，请再试一次' : 'Could not apply store credit — removed, please try again');
+            });
+          } else { saveOrder(); }
         } else { go(); }
       });
     });

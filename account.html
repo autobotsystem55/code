@@ -265,6 +265,7 @@
       // ---------- signed-in: tabbed account page ----------
       function renderAccount(user) {
         function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function L(zh, en) { return (window.LANG === 'zh') ? zh : en; }
         var displayName = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || '';
 
         var initials = (displayName || user.email || '?').charAt(0).toUpperCase();
@@ -331,6 +332,10 @@
           '<div id="acc-panel-orders" class="acc-panel" style="display:none">' +
             '<h3 class="acc-panel-title">' + t('acc.tabOrders') + '</h3>' +
             '<div id="ordersList"><p class="muted" style="padding:14px 0">…</p></div>' +
+          '</div>' +
+          '<div id="acc-panel-credit" class="acc-panel" style="display:none">' +
+            '<h3 class="acc-panel-title">' + L('购物金', 'Store Credit') + '</h3>' +
+            '<div id="creditBox"><p class="muted" style="padding:14px 0">…</p></div>' +
           '</div>';
 
         if (isDesktop) {
@@ -352,6 +357,9 @@
                 '<button class="acc-sidebar-nav" data-tab="security">' +
                   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
                   t('acc.tabSecurity') + '</button>' +
+                '<button class="acc-sidebar-nav" data-tab="credit">' +
+                  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14.5" r="1.5"/></svg>' +
+                  L('购物金', 'Store Credit') + '</button>' +
                 '<button class="acc-sidebar-nav" data-tab="orders">' +
                   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
                   t('acc.tabOrders') + '</button>' +
@@ -368,7 +376,7 @@
             Auth.signOut().then(function () { location.reload(); });
           });
 
-          var ordersLoaded = false;
+          var ordersLoaded = false, creditLoaded = false;
           root.querySelectorAll('.acc-sidebar-nav').forEach(function (btn) {
             btn.addEventListener('click', function () {
               root.querySelectorAll('.acc-sidebar-nav').forEach(function (b) { b.classList.remove('active'); });
@@ -376,6 +384,7 @@
               root.querySelectorAll('.acc-panel').forEach(function (p) { p.style.display = 'none'; });
               document.getElementById('acc-panel-' + this.dataset.tab).style.display = '';
               if (this.dataset.tab === 'orders' && !ordersLoaded) { ordersLoaded = true; loadOrders(); }
+              if (this.dataset.tab === 'credit' && !creditLoaded) { creditLoaded = true; loadCredit(); }
             });
           });
 
@@ -392,6 +401,7 @@
               '<button class="acc-tab acc-tab--active" data-tab="profile">'  + t('acc.tabProfile')  + '</button>' +
               '<button class="acc-tab" data-tab="address">' + t('acc.tabAddress') + '</button>' +
               '<button class="acc-tab" data-tab="security">' + t('acc.tabSecurity') + '</button>' +
+              '<button class="acc-tab" data-tab="credit">'   + L('购物金', 'Store Credit') + '</button>' +
               '<button class="acc-tab" data-tab="orders">'   + t('acc.tabOrders')   + '</button>' +
             '</nav>' +
             panelsHTML;
@@ -400,7 +410,7 @@
             Auth.signOut().then(function () { location.reload(); });
           });
 
-          var ordersLoaded = false;
+          var ordersLoaded = false, creditLoaded = false;
           root.querySelectorAll('.acc-tab').forEach(function (tab) {
             tab.addEventListener('click', function () {
               root.querySelectorAll('.acc-tab').forEach(function (b) { b.classList.remove('acc-tab--active'); });
@@ -408,6 +418,7 @@
               this.classList.add('acc-tab--active');
               document.getElementById('acc-panel-' + this.dataset.tab).style.display = '';
               if (this.dataset.tab === 'orders' && !ordersLoaded) { ordersLoaded = true; loadOrders(); }
+              if (this.dataset.tab === 'credit' && !creditLoaded) { creditLoaded = true; loadCredit(); }
             });
           });
         }
@@ -490,6 +501,68 @@
             }, function () { btn.disabled = false; btn.textContent = t('acc.changePw'); setMsg('secMsg', false, t('acc.saveErr')); });
           }, function () { btn.disabled = false; btn.textContent = t('acc.changePw'); setMsg('secMsg', false, t('acc.pwWrong')); });
         });
+
+        // store credit (lazy — loaded when 购物金 tab is first clicked)
+        function creditDate(s) { try { return new Date(s).toLocaleDateString(); } catch (e) { return ''; } }
+        function creditMeta(row) {
+          var map = {
+            signup:       L('新会员礼金', 'Welcome bonus'),
+            cashback:     L('消费返现', 'Cashback'),
+            redeem:       L('用于订单', 'Used on order'),
+            admin_grant:  L('店家赠送', 'Added by store'),
+            admin_deduct: L('店家调整', 'Adjusted by store'),
+            refund:       L('退款返还', 'Refund')
+          };
+          return (row.note && row.note.trim()) ? row.note : (map[row.reason] || row.reason);
+        }
+        function loadCredit() {
+          var box = document.getElementById('creditBox');
+          if (!box || !window.DB) return;
+          var sc = (window.STORE_CONFIG && STORE_CONFIG.storeCredit) || {};
+          Promise.all([DB.creditBalance(), DB.creditLedger(50)]).then(function (res) {
+            var bal = res[0] || 0;
+            var rows = (res[1] && res[1].data) || [];
+
+            // "how to earn" chips, only for the rules the store has switched on
+            var earn = '';
+            if (sc.signup && sc.signup.on && +sc.signup.amt > 0)
+              earn += '<div style="display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line)"><span style="font-size:17px">🎁</span><span style="font-size:13px">' +
+                (sc.signup.when === 'firstorder'
+                  ? L('完成首单送 ', 'Complete your first order for ')
+                  : L('注册即送 ', 'Sign up and get ')) + '<b>' + money(+sc.signup.amt) + '</b></span></div>';
+            if (sc.cashback && sc.cashback.on && +sc.cashback.rate > 0)
+              earn += '<div style="display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line)"><span style="font-size:17px">💸</span><span style="font-size:13px">' +
+                L('每一单返 ', 'Earn ') + '<b>' + (+sc.cashback.rate) + '%</b>' + L(' 购物金', ' back as store credit') + '</span></div>';
+            earn += '<div style="display:flex;gap:10px;align-items:center;padding:11px 0"><span style="font-size:17px">🛍️</span><span style="font-size:13px">' +
+              L('结账时当现金折抵货款', 'Spend it like cash at checkout') + '</span></div>';
+
+            var ledger = rows.length ? rows.map(function (r) {
+              var pos = Number(r.delta) >= 0;
+              var exp = (pos && r.expires_at) ? ('<div style="font-size:11px;color:var(--amber,#9A6B12);margin-top:1px">' + L('到期 ', 'Expires ') + creditDate(r.expires_at) + '</div>') : '';
+              return '<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)">' +
+                '<div style="flex:0 0 auto;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700;' +
+                  (pos ? 'background:var(--green-bg,#E3F1E8);color:var(--green,#2F7D4F)' : 'background:var(--pink-soft,#F6E4E6);color:var(--wine,#82213E)') + '">' + (pos ? '+' : '−') + '</div>' +
+                '<div style="flex:1"><div style="font-size:13.5px;font-weight:500">' + esc(creditMeta(r)) +
+                  (r.order_number ? ' <span class="muted" style="font-size:11.5px">#' + esc(r.order_number) + '</span>' : '') + '</div>' +
+                  '<div style="font-size:11.5px;color:var(--muted)">' + creditDate(r.created_at) + '</div>' + exp + '</div>' +
+                '<div style="font-weight:700;font-size:14px;' + (pos ? 'color:var(--green,#2F7D4F)' : 'color:var(--wine,#82213E)') + '">' +
+                  (pos ? '+' : '−') + money(Math.abs(Number(r.delta))) + '</div></div>';
+            }).join('') : '<p class="muted" style="padding:14px 0">' + L('还没有购物金记录。', 'No store credit activity yet.') + '</p>';
+
+            box.innerHTML =
+              '<div style="background:linear-gradient(135deg,var(--wine,#82213E),var(--wine-deep,#6A1A32));color:#fff;border-radius:12px;padding:22px 22px 20px;position:relative;overflow:hidden">' +
+                '<div style="font-size:12px;opacity:.85;letter-spacing:.04em;text-transform:uppercase">' + L('可用购物金', 'Available credit') + '</div>' +
+                '<div style="font-family:var(--serif,serif);font-size:40px;line-height:1.1;margin-top:6px">' + money(bal) + '</div>' +
+                '<div style="position:absolute;right:18px;bottom:14px;font-size:30px;opacity:.45">🪙</div>' +
+              '</div>' +
+              '<div style="border:1px solid var(--line);border-radius:10px;padding:6px 18px 14px;margin-top:18px">' +
+                '<h4 style="font-family:var(--serif,serif);font-size:15px;margin:14px 0 2px">' + L('怎么赚购物金？', 'How to earn') + '</h4>' + earn +
+              '</div>' +
+              '<h4 style="font-family:var(--serif,serif);font-size:15px;margin:20px 0 2px">' + L('购物金明细', 'Activity') + '</h4>' + ledger;
+          }, function () {
+            box.innerHTML = '<p class="muted" style="padding:14px 0">' + L('暂时无法载入购物金。', 'Could not load store credit right now.') + '</p>';
+          });
+        }
 
         // orders (lazy — loaded when Orders tab is first clicked)
         function buildDetail(o) {
