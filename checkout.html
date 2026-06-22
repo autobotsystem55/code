@@ -799,6 +799,50 @@
           }
         }
 
+        // ---- stock pre-check ----
+        var stockErrors = [];
+        lines.forEach(function (l) {
+          if (l.b) {
+            (l.items || []).forEach(function (it) {
+              var p = window.findProduct && findProduct(it.id);
+              if (!p || !p.trackInventory || p.continueSelling) return;
+              var avail = Number((window.stockVal ? stockVal(p, it.size, it.color) : ((p.stock || {})[it.size])) || 0);
+              var need = (it.qty || 1) * (l.qty || 1);
+              if (avail < need) stockErrors.push({ name: (window.LANG === 'zh' && p.name_zh ? p.name_zh : p.name || it.id), size: it.size, avail: avail, need: need });
+            });
+          } else {
+            var p = window.findProduct && findProduct(l.id);
+            if (!p || !p.trackInventory || p.continueSelling) return;
+            var avail = Number((window.stockVal ? stockVal(p, l.size, l.color) : ((p.stock || {})[l.size])) || 0);
+            if (avail < l.qty) stockErrors.push({ name: (window.LANG === 'zh' && p.name_zh ? p.name_zh : p.name || l.id), size: l.size, avail: avail, need: l.qty });
+          }
+        });
+        if (stockErrors.length) {
+          var zh = (window.LANG === 'zh');
+          var msg = zh
+            ? '以下商品库存不足，请更新购物车：\n' + stockErrors.map(function (e) { return '• ' + e.name + (e.size ? ' (' + e.size + ')' : '') + ' — 剩余 ' + e.avail + ' 件，需要 ' + e.need + ' 件'; }).join('\n')
+            : 'Some items are out of stock. Please update your cart:\n' + stockErrors.map(function (e) { return '• ' + e.name + (e.size ? ' (' + e.size + ')' : '') + ' — only ' + e.avail + ' left, need ' + e.need; }).join('\n');
+          var errBox = document.getElementById('stockErrBox');
+          if (!errBox) {
+            errBox = document.createElement('div');
+            errBox.id = 'stockErrBox';
+            errBox.style.cssText = 'background:#F7E3E0;border:1px solid #e8b5b0;border-left:3px solid #B23A3A;border-radius:5px;padding:14px 16px;margin-bottom:18px;font-size:13.5px;color:#1C1C1C;line-height:1.7;white-space:pre-line';
+            var formEl = document.getElementById('coForm');
+            formEl.parentNode.insertBefore(errBox, formEl);
+          }
+          errBox.innerHTML = '<b style="color:#B23A3A">' + (zh ? '⚠ 库存不足' : '⚠ Out of stock') + '</b><br>' +
+            stockErrors.map(function (e) {
+              return '• ' + _esc(e.name) + (e.size ? ' <span style="color:#6F635C">(' + _esc(e.size) + ')</span>' : '') +
+                ' — ' + (zh ? '剩余 <b>' + e.avail + '</b> 件，你需要 <b>' + e.need + '</b> 件' : 'only <b>' + e.avail + '</b> left, you need <b>' + e.need + '</b>');
+            }).join('<br>') +
+            '<br><a href="cart.html" style="color:#B23A3A;font-weight:600;text-decoration:underline;margin-top:6px;display:inline-block">' + (zh ? '回购物车修改 →' : 'Edit cart →') + '</a>';
+          errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+        var errBox = document.getElementById('stockErrBox');
+        if (errBox) errBox.remove();
+        // ---- end stock pre-check ----
+
         var orderId = 'ME' + String(Date.now()).slice(-7);
         var f = form;
         var effShip = freeShip ? 0 : shipping;
