@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>订单邮件 Demo 2 · 自动发送 · Code Official</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFFAF1; --cream2:#FAF6F3; --white:#fff;
+    --wine:#82213E; --wine-deep:#6A1A32; --pink:#E9C9CC; --blush:#F2E4D9;
+    --ink:#1C1C1C; --ink2:#3E3E3E; --muted:#6F635C; --line:#ECD9D6; --line2:#E2DCD8;
+    --green:#2F7D4F; --amber:#9A6A1E; --blue:#3A5C9A; --red:#B23A3A; --pink-soft:#F3E2E4;
+    --green-bg:#E3F1E8; --amber-bg:#F6EAD3; --red-bg:#F7E3E0; --blue-bg:#E2EAF6;
+    --serif:'DM Serif Display',Georgia,serif; --sans:'DM Sans',-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);background:var(--cream);font-size:15px;line-height:1.6;min-height:100vh}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:400;line-height:1.15}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+
+  .wrap{max-width:1320px;margin:0 auto;padding:32px 28px 80px}
+  .demo-tag{display:inline-flex;align-items:center;gap:6px;background:var(--wine);color:var(--cream);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:5px 11px;border-radius:3px;margin-bottom:14px}
+  .head h1{font-size:34px}
+  .head .sub{color:var(--muted);font-size:14px;margin-top:6px;max-width:720px}
+
+  /* Auto-rule cards */
+  .rules{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:26px 0 18px}
+  .rule{background:var(--white);border:1px solid var(--line);padding:18px 20px;border-radius:5px;position:relative;overflow:hidden}
+  .rule::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--wine)}
+  .rule .rhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .rule .rttl{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
+  .rule .rttl .ric{width:30px;height:30px;background:var(--blush);border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .rule .rttl .ric svg{width:15px;height:15px;fill:none;stroke:var(--wine);stroke-width:1.9}
+  .rule .rflow{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:12px;color:var(--ink2);flex-wrap:wrap}
+  .rule .rflow .step{background:var(--cream2);padding:5px 10px;border-radius:4px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line)}
+  .rule .rflow .step svg{width:11px;height:11px;fill:none;stroke:var(--muted);stroke-width:2}
+  .rule .rflow .arr{color:var(--wine);font-weight:600}
+  .rule .rdesc{font-size:12px;color:var(--muted);margin-top:8px}
+  .sw{position:relative;width:36px;height:20px;background:var(--line);border-radius:999px;cursor:pointer;transition:.2s;flex-shrink:0}
+  .sw::after{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;background:var(--white);border-radius:50%;transition:.22s;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+  .sw.on{background:var(--green)}
+  .sw.on::after{left:18px}
+
+  /* Stats */
+  .istats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  .istat{background:var(--white);border:1px solid var(--line);padding:14px 16px;position:relative}
+  .istat .n{font-family:var(--serif);font-size:24px;line-height:1;transition:color .3s}
+  .istat .l{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+  .istat .ico{position:absolute;top:12px;right:12px;width:16px;height:16px;fill:none;stroke:var(--pink);stroke-width:1.7}
+  .istat .n.flash{animation:flash .9s ease}
+  @keyframes flash{0%{color:var(--green);transform:scale(1.18)}100%{color:var(--ink);transform:scale(1)}}
+
+  /* Split panel */
+  .split{display:grid;grid-template-columns:1.05fr 1fr;gap:18px}
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+  .ph{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap;background:var(--cream2)}
+  .ph h2{font-size:18px}
+  .ph .desc{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--wine);color:var(--cream);padding:10px 16px;font-size:13px;font-weight:500;border:1px solid var(--wine);transition:.18s;border-radius:5px}
+  .btn:hover{background:var(--wine-deep);border-color:var(--wine-deep)}
+  .btn--ghost{background:transparent;color:var(--wine)}
+  .btn--ghost:hover{background:var(--wine);color:var(--cream)}
+  .btn--sm{padding:7px 12px;font-size:12px}
+  .btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8}
+
+  /* Order list */
+  .olist{list-style:none;max-height:430px;overflow-y:auto}
+  .olist li{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;background:var(--white);transition:background .25s}
+  .olist li:last-child{border-bottom:none}
+  .olist li.fresh{animation:fresh 1.8s ease}
+  @keyframes fresh{0%{background:var(--green-bg)}100%{background:var(--white)}}
+  .olist .ono{font-family:var(--serif);font-size:17px;width:74px;flex-shrink:0}
+  .olist .ocust{flex:1;min-width:0}
+  .olist .oname{font-size:14px;font-weight:600;line-height:1.3}
+  .olist .oem{font-size:11px;color:var(--muted);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .olist .oamt{font-family:var(--serif);font-size:15px;width:90px;text-align:right;color:var(--wine)}
+  .olist .ost{width:90px;text-align:center}
+  .olist .oact{width:128px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:999px;font-weight:500;white-space:nowrap}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+  .pill.amber{background:var(--amber-bg);color:var(--amber)}
+  .pill.blue{background:var(--blue-bg);color:var(--blue)}
+
+  .actbtn{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;font-size:12px;color:var(--wine);border:1px solid var(--pink-soft);border-radius:5px;background:var(--white);transition:.18s;font-weight:500}
+  .actbtn:hover{background:var(--wine);color:var(--cream);border-color:var(--wine)}
+  .actbtn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.9}
+  .actbtn.done{color:var(--green);border-color:var(--green-bg);background:var(--green-bg);cursor:default}
+  .actbtn.done:hover{background:var(--green-bg);color:var(--green);border-color:var(--green-bg)}
+  .trk{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+
+  .demo-btn-row{padding:14px 18px;background:var(--cream2);border-top:1px dashed var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .demo-btn-row .hint{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .demo-btn-row .hint svg{width:13px;height:13px;fill:none;stroke:var(--wine);stroke-width:1.9}
+
+  /* Inbox preview */
+  .inbox{height:478px;overflow-y:auto;background:#F5F1EC}
+  .inbox-head{padding:10px 16px;border-bottom:1px solid var(--line);background:var(--white);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:5}
+  .inbox-head .av{width:24px;height:24px;border-radius:50%;background:var(--wine);color:var(--cream);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .inbox-head b{color:var(--ink);font-weight:600}
+
+  .mail{background:var(--white);border-bottom:1px solid var(--line);padding:13px 16px 13px 22px;cursor:pointer;transition:.15s;position:relative}
+  .mail:hover{background:var(--cream2)}
+  .mail.unread::before{content:'';position:absolute;left:9px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--wine)}
+  .mail.fresh{animation:mailIn .55s ease}
+  @keyframes mailIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+  .mail .mh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px}
+  .mail .mfrom{font-size:13px;font-weight:600;line-height:1.3;display:flex;align-items:center;gap:6px}
+  .mail .mfrom .auto-tg{font-size:9.5px;background:var(--blush);color:var(--wine);padding:1px 5px;border-radius:3px;letter-spacing:.05em;text-transform:uppercase;font-weight:700}
+  .mail .mtime{font-size:11px;color:var(--muted);flex-shrink:0}
+  .mail .msub{font-size:13px;color:var(--ink2);line-height:1.4;margin-bottom:2px}
+  .mail .msnip{font-size:12px;color:var(--muted);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+
+  /* Mask & modal */
+  .mask{position:fixed;inset:0;background:rgba(28,28,28,.5);display:none;align-items:flex-start;justify-content:center;padding:50px 20px;z-index:50;overflow-y:auto}
+  .mask.on{display:flex}
+  .modal{background:var(--white);border:1px solid var(--line);width:100%;max-width:540px;border-radius:6px;overflow:hidden;animation:pop .22s ease}
+  .modal.wide{max-width:680px}
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .mhead{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--cream2)}
+  .mhead h2{font-size:19px}
+  .mhead .x{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--muted)}
+  .mhead .x:hover{background:var(--cream)}
+  .mhead .x svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+  .mbody{padding:18px 22px;max-height:70vh;overflow-y:auto}
+  .mfoot{padding:14px 22px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--cream2);flex-wrap:wrap}
+  .mfoot .auto-note{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .mfoot .auto-note svg{width:13px;height:13px;fill:none;stroke:var(--green);stroke-width:2}
+
+  .fld{margin-bottom:14px}
+  .fld label{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}
+  .fld input,.fld select,.fld textarea{width:100%;padding:10px 12px;background:var(--white);border:1px solid var(--line2);outline:none;border-radius:4px;transition:.2s;font-size:14px;font-family:var(--sans)}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--wine)}
+  .fld textarea{resize:vertical;line-height:1.65;font-size:13.5px}
+  .fld .hint{font-size:11px;color:var(--muted);margin-top:4px}
+  .fld .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  .ord-sum{background:var(--cream2);border:1px solid var(--line);padding:12px 14px;border-radius:5px;margin-bottom:16px}
+  .ord-sum .ono{font-family:var(--serif);font-size:17px;margin-bottom:3px}
+  .ord-sum .row{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:2px 0}
+  .ord-sum .row .k{color:var(--muted)}
+
+  /* Email viewer */
+  .ev-pkv{display:flex;font-size:12px;padding:3px 0;color:var(--ink2)}
+  .ev-pkv .k{width:50px;color:var(--muted)}
+  .ev-pkv .v{flex:1}
+  .ev-sub{font-family:var(--serif);font-size:20px;padding:10px 0 12px;border-bottom:1px dashed var(--line);margin-bottom:14px;line-height:1.3}
+  .ev-body{font-size:13.5px;color:var(--ink2);white-space:pre-wrap;line-height:1.7;font-family:var(--sans)}
+  .ev-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;background:var(--blush);color:var(--wine);padding:3px 8px;border-radius:3px;letter-spacing:.04em;margin-bottom:14px;font-weight:500}
+  .ev-tag svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.2}
+
+  .chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);cursor:pointer}
+  .chk input{width:auto;accent-color:var(--wine)}
+
+  /* Toast */
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--cream);padding:12px 20px;border-radius:6px;font-size:13px;display:flex;align-items:center;gap:10px;opacity:0;transition:.3s;z-index:100;box-shadow:0 6px 22px rgba(0,0,0,.22);max-width:420px}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast svg{width:16px;height:16px;fill:none;stroke:var(--green);stroke-width:2.4;flex-shrink:0}
+
+  @media(max-width:920px){
+    .split{grid-template-columns:1fr}
+    .rules{grid-template-columns:1fr}
+    .istats{grid-template-columns:repeat(2,1fr)}
+    .inbox{height:420px}
+    .olist .oamt{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="demo-tag">Demo 2 · 自动发送</span>
+  <div class="head">
+    <h1>订单邮件 · 自动流程</h1>
+    <p class="sub">顾客下单系统自动发确认邮件；后台填写物流单号系统自动发发货通知。所有变量自动填入，无需手动操作。</p>
+  </div>
+
+  <!-- AUTO RULES -->
+  <div class="rules">
+    <div class="rule">
+      <div class="rhead">
+        <div class="rttl">
+          <span class="ric"><svg viewBox="0 0 24 24"><path d="M3 7v13h18V7"/><path d="M3 7l9-4 9 4"/><path d="M10 14h4"/></svg></span>
+          规则 1 · 订单确认邮件
+        </div>
+        <div class="sw on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="rflow">
+        <span class="step"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 22c0-4 3-7 6-7s6 3 6 7"/></svg>顾客付款成功</span>
+        <span class="arr">→</span>
+        <span class="step"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 4l8 8 8-8"/></svg>立即自动发送</span>
+      </div>
+      <div class="rdesc">触发条件：订单状态变更为「已付款」。模板含订单号、金额、商品列表。</div>
+    </div>
+
+    <div class="rule">
+      <div class="rhead">
+        <div class="rttl">
+          <span class="ric"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+          规则 2 · 发货通知邮件
+        </div>
+        <div class="sw on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="rflow">
+        <span class="step"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>后台填写物流单号</span>
+        <span class="arr">→</span>
+        <span class="step"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 4l8 8 8-8"/></svg>立即自动发送</span>
+      </div>
+      <div class="rdesc">触发条件：保存物流单号（tracking no）。模板含物流单号、物流公司。</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="istats">
+    <div class="istat"><svg class="ico" viewBox="0 0 24 24"><path d="M22 4 12 14 9 11"/><path d="M22 4v6h-6"/></svg><div class="n" id="stSent">248</div><div class="l">今日自动发送</div></div>
+    <div class="istat"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><div class="n">&lt; 2s</div><div class="l">平均发送速度</div></div>
+    <div class="istat"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12l2 2 4-4"/><path d="M14 7h7"/><path d="M14 14h7"/><path d="M14 21h7"/></svg><div class="n">100%</div><div class="l">送达率</div></div>
+    <div class="istat"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="n">84%</div><div class="l">邮件打开率</div></div>
+  </div>
+
+  <!-- SPLIT MAIN -->
+  <div class="split">
+    <!-- LEFT: ADMIN ORDERS -->
+    <div class="panel">
+      <div class="ph">
+        <div><h2>订单管理</h2><div class="desc">待发货订单点击「填物流单号」即触发自动邮件</div></div>
+        <button class="btn btn--sm btn--ghost" onclick="openTplModal()"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>编辑模板</button>
+      </div>
+      <ul class="olist" id="oList"></ul>
+      <div class="demo-btn-row">
+        <span class="hint"><svg viewBox="0 0 24 24"><path d="M12 1v6m0 6v10"/><path d="M5 8l7-7 7 7"/></svg>模拟操作：看右边邮箱实时变化</span>
+        <button class="btn btn--sm" onclick="simulateNewOrder()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>模拟新顾客下单</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: CUSTOMER INBOX -->
+    <div class="panel">
+      <div class="ph">
+        <div><h2>顾客邮箱（预览）</h2><div class="desc">实时显示系统自动发出的邮件</div></div>
+        <span class="pill" style="background:var(--green-bg);color:var(--green)"><span class="dot"></span>实时同步</span>
+      </div>
+      <div class="inbox" id="inbox">
+        <div class="inbox-head">
+          <div class="av">📥</div>
+          <div><b>收件箱</b> · 来自 Code Official 的所有邮件</div>
+        </div>
+        <div id="mailList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TRACKING NO MODAL -->
+<div class="mask" id="trkMask">
+  <div class="modal">
+    <div class="mhead">
+      <h2>填写物流单号</h2>
+      <button class="x" onclick="closeMask('trkMask')"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="mbody">
+      <div class="ord-sum">
+        <div class="ono" id="tOno">#10052</div>
+        <div class="row"><span class="k">顾客</span><span id="tName"></span></div>
+        <div class="row"><span class="k">邮箱</span><span id="tEm"></span></div>
+        <div class="row"><span class="k">金额</span><span id="tAmt"></span></div>
+      </div>
+      <div class="fld row2">
+        <div>
+          <label>物流公司</label>
+          <select id="fCourier">
+            <option>J&T Express</option>
+            <option>Pos Laju</option>
+            <option>Ninja Van</option>
+            <option>SF Express</option>
+            <option>DHL</option>
+          </select>
+        </div>
+        <div>
+          <label>物流单号 *</label>
+          <input type="text" id="fTrk" placeholder="例：JT2026XXXMY" autocomplete="off">
+        </div>
+      </div>
+      <div class="fld">
+        <label class="chk">
+          <input type="checkbox" id="cbAutoMail" checked>
+          保存后立即自动发送发货通知邮件给顾客
+        </label>
+        <div class="hint">取消勾选则只更新订单状态，不发送邮件</div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <span class="auto-note"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14 9 11"/></svg>已启用自动邮件</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn--ghost btn--sm" onclick="closeMask('trkMask')">取消</button>
+        <button class="btn btn--sm" onclick="saveTrk()"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/></svg>保存并发货</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL VIEWER MODAL -->
+<div class="mask" id="evMask">
+  <div class="modal wide">
+    <div class="mhead">
+      <h2>邮件内容</h2>
+      <button class="x" onclick="closeMask('evMask')"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="mbody">
+      <span class="ev-tag" id="evTag"></span>
+      <div class="ev-pkv"><span class="k">发件:</span><span class="v">noreply@code-official.com</span></div>
+      <div class="ev-pkv"><span class="k">收件:</span><span class="v" id="evTo"></span></div>
+      <div class="ev-pkv"><span class="k">时间:</span><span class="v" id="evTime"></span></div>
+      <div class="ev-sub" id="evSub"></div>
+      <div class="ev-body" id="evBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATE EDIT MODAL -->
+<div class="mask" id="tplMask">
+  <div class="modal wide">
+    <div class="mhead">
+      <h2>自动邮件模板</h2>
+      <button class="x" onclick="closeMask('tplMask')"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="mbody">
+      <div class="fld">
+        <label>① 订单确认 · 主题</label>
+        <input type="text" id="tpl1sub">
+      </div>
+      <div class="fld">
+        <label>① 订单确认 · 正文</label>
+        <textarea id="tpl1body" style="min-height:140px"></textarea>
+      </div>
+      <div style="height:10px;border-top:1px dashed var(--line);margin:14px 0"></div>
+      <div class="fld">
+        <label>② 发货通知 · 主题</label>
+        <input type="text" id="tpl2sub">
+      </div>
+      <div class="fld">
+        <label>② 发货通知 · 正文</label>
+        <textarea id="tpl2body" style="min-height:170px"></textarea>
+        <div class="hint">可用变量：{{顾客姓名}} {{订单号}} {{金额}} {{物流单号}} {{物流公司}}</div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <span class="auto-note"><svg viewBox="0 0 24 24"><path d="M22 4 12 14 9 11"/></svg>保存后所有新邮件按此模板发送</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn--ghost btn--sm" onclick="closeMask('tplMask')">取消</button>
+        <button class="btn btn--sm" onclick="saveTpl()">保存模板</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24"><path d="M22 4 12 14 9 11"/></svg><span id="toastMsg"></span></div>
+
+<script>
+  // ---------- Templates ----------
+  var TPL={
+    confirm_sub:'订单 #{{订单号}} 已确认 · Code Official',
+    confirm_body:'亲爱的 {{顾客姓名}}，\n\n非常感谢您的订购！我们已收到您的订单 #{{订单号}}，总金额 {{金额}}。\n\n商品准备中，预计 1–2 个工作日内发货，请耐心等待 ✿\n\n— Code Official 团队',
+    shipped_sub:'您的订单 #{{订单号}} 已发货 📦',
+    shipped_body:'亲爱的 {{顾客姓名}}，\n\n好消息！您的订单 #{{订单号}} 已经出货啦 🚚\n\n物流公司：{{物流公司}}\n物流单号：{{物流单号}}\n预计 2–4 个工作日内送达。\n\n您可以使用上方单号在物流官网查询包裹位置。\n\n— Code Official 团队'
+  };
+
+  // ---------- State ----------
+  var ORDERS=[
+    {no:'10052',name:'陈嘉伦',em:'jiarun.chen@gmail.com',amt:268,st:'paid',date:'刚刚',trk:null,items:'• 法式格纹连衣裙 (M) × 1\n• 真丝围巾 米白 × 1'},
+    {no:'10051',name:'Lim Wei Ling',em:'weiling.lim@yahoo.com',amt:135,st:'paid',date:'今早 09:14',trk:null,items:'• 棉麻阔腿裤 (L) × 1'},
+    {no:'10050',name:'Sarah Tan',em:'sarah.t@hotmail.com',amt:412,st:'shipped',date:'昨天 15:22',trk:'JT202610050MY',courier:'J&T Express',items:'• 羊毛大衣 杏色 (S) × 1\n• 针织毛衣 × 2'},
+    {no:'10049',name:'黄美琪',em:'meiqi.h@outlook.com',amt:88,st:'paid',date:'昨天 14:30',trk:null,items:'• 真丝围巾 粉色 × 1'},
+    {no:'10048',name:'Ahmad Faiz',em:'ahmad.faiz@gmail.com',amt:189,st:'shipped',date:'2 天前',trk:'JT202610048MY',courier:'Pos Laju',items:'• 牛仔外套 (L) × 1'}
+  ];
+  var STATUS={paid:['待发货','amber'],shipped:['已发货','blue']};
+
+  // Pre-populated inbox (latest first)
+  var MAILS=[
+    {oid:'10052',type:'confirm',time:'刚刚',sub:'订单 #10052 已确认 · Code Official',to:'jiarun.chen@gmail.com',body:'亲爱的 陈嘉伦，\n\n非常感谢您的订购！我们已收到您的订单 #10052，总金额 RM 268.00。\n\n商品准备中，预计 1–2 个工作日内发货，请耐心等待 ✿\n\n— Code Official 团队',unread:true},
+    {oid:'10051',type:'confirm',time:'今早 09:14',sub:'订单 #10051 已确认 · Code Official',to:'weiling.lim@yahoo.com',body:'亲爱的 Lim Wei Ling，\n\n非常感谢您的订购！我们已收到您的订单 #10051，总金额 RM 135.00。\n\n— Code Official 团队',unread:true},
+    {oid:'10050',type:'shipped',time:'昨天 15:22',sub:'您的订单 #10050 已发货 📦',to:'sarah.t@hotmail.com',body:'亲爱的 Sarah Tan，\n\n好消息！您的订单 #10050 已经出货啦 🚚\n\n物流公司：J&T Express\n物流单号：JT202610050MY\n预计 2–4 个工作日内送达。\n\n— Code Official 团队'},
+    {oid:'10049',type:'confirm',time:'昨天 14:30',sub:'订单 #10049 已确认 · Code Official',to:'meiqi.h@outlook.com',body:'亲爱的 黄美琪，\n\n非常感谢您的订购！我们已收到您的订单 #10049，总金额 RM 88.00。\n\n— Code Official 团队'},
+    {oid:'10050',type:'confirm',time:'昨天 10:08',sub:'订单 #10050 已确认 · Code Official',to:'sarah.t@hotmail.com',body:'亲爱的 Sarah Tan，\n\n非常感谢您的订购！我们已收到您的订单 #10050，总金额 RM 412.00。\n\n— Code Official 团队'},
+    {oid:'10048',type:'shipped',time:'2 天前',sub:'您的订单 #10048 已发货 📦',to:'ahmad.faiz@gmail.com',body:'亲爱的 Ahmad Faiz，\n\n好消息！您的订单 #10048 已经出货啦 🚚\n\n物流公司：Pos Laju\n物流单号：JT202610048MY\n预计 2–4 个工作日内送达。\n\n— Code Official 团队'}
+  ];
+
+  // ---------- Helpers ----------
+  function money(n){return 'RM '+Number(n).toFixed(2);}
+  function escHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function pill(s){var f=STATUS[s];return '<span class="pill '+f[1]+'"><span class="dot"></span>'+f[0]+'</span>';}
+  function fill(tpl,o,extra){
+    extra=extra||{};
+    return tpl
+      .replace(/{{顾客姓名}}/g,o.name)
+      .replace(/{{订单号}}/g,o.no)
+      .replace(/{{金额}}/g,money(o.amt))
+      .replace(/{{物流单号}}/g,extra.trk||o.trk||'')
+      .replace(/{{物流公司}}/g,extra.courier||o.courier||'');
+  }
+
+  // ---------- Renderers ----------
+  function renderOrders(freshNo){
+    var ul=document.getElementById('oList');
+    ul.innerHTML=ORDERS.map(function(o){
+      var act='';
+      if(o.st==='paid'){
+        act='<button class="actbtn" onclick="openTrk(\''+o.no+'\')"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/></svg>填物流单号</button>';
+      }else{
+        act='<button class="actbtn done"><svg viewBox="0 0 24 24"><path d="M22 4 12 14 9 11"/></svg>已发货</button>'+
+            '<span class="trk">'+o.trk+'</span>';
+      }
+      return '<li class="'+(o.no===freshNo?'fresh':'')+'">'+
+        '<div class="ono">#'+o.no+'</div>'+
+        '<div class="ocust"><div class="oname">'+escHtml(o.name)+'</div><div class="oem">'+escHtml(o.em)+'</div></div>'+
+        '<div class="oamt">'+money(o.amt)+'</div>'+
+        '<div class="ost">'+pill(o.st)+'<br><span style="font-size:10.5px;color:var(--muted)">'+o.date+'</span></div>'+
+        '<div class="oact">'+act+'</div>'+
+      '</li>';
+    }).join('');
+  }
+
+  function renderInbox(freshIdx){
+    var box=document.getElementById('mailList');
+    box.innerHTML=MAILS.map(function(m,i){
+      var snip=m.body.split('\n').filter(function(l){return l.trim();})[1]||'';
+      return '<div class="mail '+(m.unread?'unread':'')+' '+(i===freshIdx?'fresh':'')+'" onclick="openEv('+i+')">'+
+        '<div class="mh">'+
+          '<div class="mfrom">Code Official <span class="auto-tg">AUTO</span></div>'+
+          '<div class="mtime">'+m.time+'</div>'+
+        '</div>'+
+        '<div class="msub">'+escHtml(m.sub)+'</div>'+
+        '<div class="msnip">'+escHtml(snip)+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  // ---------- Stats ----------
+  function bumpSent(){
+    var el=document.getElementById('stSent');
+    el.textContent=(parseInt(el.textContent,10)+1);
+    el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');
+  }
+
+  // ---------- Toast ----------
+  function toast(msg){
+    var t=document.getElementById('toast');
+    document.getElementById('toastMsg').textContent=msg;
+    t.classList.add('on');
+    clearTimeout(window._tt);
+    window._tt=setTimeout(function(){t.classList.remove('on');},2800);
+  }
+
+  // ---------- Masks ----------
+  function closeMask(id){document.getElementById(id).classList.remove('on');}
+
+  // ---------- Tracking modal ----------
+  var curTrkOrder=null;
+  function openTrk(no){
+    curTrkOrder=ORDERS.filter(function(o){return o.no===no;})[0];
+    document.getElementById('tOno').textContent='#'+curTrkOrder.no;
+    document.getElementById('tName').textContent=curTrkOrder.name;
+    document.getElementById('tEm').textContent=curTrkOrder.em;
+    document.getElementById('tAmt').textContent=money(curTrkOrder.amt);
+    document.getElementById('fTrk').value='JT2026'+curTrkOrder.no+'MY';
+    document.getElementById('cbAutoMail').checked=true;
+    document.getElementById('trkMask').classList.add('on');
+    setTimeout(function(){var i=document.getElementById('fTrk');i.focus();i.select();},120);
+  }
+
+  function saveTrk(){
+    var trk=document.getElementById('fTrk').value.trim();
+    var courier=document.getElementById('fCourier').value;
+    var autoMail=document.getElementById('cbAutoMail').checked;
+    if(!trk){toast('请填写物流单号');return;}
+    curTrkOrder.trk=trk;
+    curTrkOrder.courier=courier;
+    curTrkOrder.st='shipped';
+    curTrkOrder.date='刚刚';
+    closeMask('trkMask');
+    renderOrders(curTrkOrder.no);
+    if(autoMail){
+      setTimeout(function(){
+        var mail={
+          oid:curTrkOrder.no,type:'shipped',time:'刚刚',
+          sub:fill(TPL.shipped_sub,curTrkOrder,{trk:trk,courier:courier}),
+          to:curTrkOrder.em,
+          body:fill(TPL.shipped_body,curTrkOrder,{trk:trk,courier:courier}),
+          unread:true
+        };
+        MAILS.unshift(mail);
+        renderInbox(0);
+        bumpSent();
+        toast('✿ 发货邮件已自动发送给 '+curTrkOrder.em);
+        document.getElementById('inbox').scrollTop=0;
+      },380);
+    }else{
+      toast('订单已更新（未发送邮件）');
+    }
+  }
+
+  // ---------- Simulate new order ----------
+  var DEMO_CUSTOMERS=[
+    {name:'王雨晴',em:'yuqing.wang@gmail.com',items:'• 棉麻连衣裙 (S) × 1',amt:178},
+    {name:'Tan Mei Yee',em:'meiyee.tan@hotmail.com',items:'• 雪纺衬衫 米白 × 2\n• 高腰半身裙 (M) × 1',amt:295},
+    {name:'吴佳怡',em:'jiayi.wu@163.com',items:'• 法式格纹连衣裙 (S) × 1',amt:168},
+    {name:'Nurul Aina',em:'nurul.a@yahoo.com',items:'• 牛仔外套 (M) × 1\n• 真丝围巾 杏色 × 1',amt:228},
+    {name:'李欣怡',em:'xinyi.li@outlook.com',items:'• 羊毛大衣 杏色 (M) × 1',amt:548}
+  ];
+  var demoIdx=0;
+  function simulateNewOrder(){
+    var c=DEMO_CUSTOMERS[demoIdx%DEMO_CUSTOMERS.length];demoIdx++;
+    var nextNo=String(parseInt(ORDERS[0].no,10)+1);
+    var o={no:nextNo,name:c.name,em:c.em,amt:c.amt,st:'paid',date:'刚刚',trk:null,items:c.items};
+    ORDERS.unshift(o);
+    renderOrders(nextNo);
+    setTimeout(function(){
+      var mail={
+        oid:nextNo,type:'confirm',time:'刚刚',
+        sub:fill(TPL.confirm_sub,o),
+        to:o.em,
+        body:fill(TPL.confirm_body,o),
+        unread:true
+      };
+      MAILS.unshift(mail);
+      renderInbox(0);
+      bumpSent();
+      toast('✿ 订单确认邮件已自动发送给 '+o.em);
+      document.getElementById('inbox').scrollTop=0;
+    },480);
+  }
+
+  // ---------- Email viewer ----------
+  function openEv(i){
+    var m=MAILS[i];
+    if(m.unread){m.unread=false;renderInbox();}
+    var tag=m.type==='confirm'?'系统自动发送 · 订单确认':'系统自动发送 · 发货通知';
+    document.getElementById('evTag').innerHTML='<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14 9 11"/></svg>'+tag;
+    document.getElementById('evTo').textContent=m.to;
+    document.getElementById('evTime').textContent=m.time;
+    document.getElementById('evSub').textContent=m.sub;
+    document.getElementById('evBody').textContent=m.body;
+    document.getElementById('evMask').classList.add('on');
+  }
+
+  // ---------- Template modal ----------
+  function openTplModal(){
+    document.getElementById('tpl1sub').value=TPL.confirm_sub;
+    document.getElementById('tpl1body').value=TPL.confirm_body;
+    document.getElementById('tpl2sub').value=TPL.shipped_sub;
+    document.getElementById('tpl2body').value=TPL.shipped_body;
+    document.getElementById('tplMask').classList.add('on');
+  }
+  function saveTpl(){
+    TPL.confirm_sub=document.getElementById('tpl1sub').value;
+    TPL.confirm_body=document.getElementById('tpl1body').value;
+    TPL.shipped_sub=document.getElementById('tpl2sub').value;
+    TPL.shipped_body=document.getElementById('tpl2body').value;
+    closeMask('tplMask');
+    toast('✿ 模板已保存');
+  }
+
+  // ---------- Init ----------
+  document.querySelectorAll('.mask').forEach(function(m){
+    m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('on');});
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape')document.querySelectorAll('.mask.on').forEach(function(m){m.classList.remove('on');});
+  });
+  renderOrders();
+  renderInbox();
+</script>
+</body>
+</html>
