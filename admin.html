@@ -1518,7 +1518,34 @@
       }).join('')+'<div class="mli" style="justify-content:center;color:var(--muted);font-size:11px">以上为 Demo 数据</div>';
 
       var bcSend=document.getElementById('em-bcSend');if(bcSend)bcSend.addEventListener('click',function(){emToast('群发已加入队列 · '+BC_MATCH.length+' 封邮件（Demo）');});
-      var testSend=document.getElementById('em-testSend');if(testSend)testSend.addEventListener('click',function(){emToast('测试邮件已发送（Demo）');});
+
+      // ---- Test send: REAL email via Supabase Edge Function (send-email) ----
+      // Uses the current template editor content, fills {{vars}} with SAMPLE,
+      // sends to the signed-in admin's own email (Resend test mode requirement
+      // while the domain isn't verified yet).
+      function emFillVars(s){Object.keys(SAMPLE).forEach(function(k){s=s.split(k).join(SAMPLE[k]);});return s;}
+      var testSend=document.getElementById('em-testSend');
+      if(testSend)testSend.addEventListener('click',function(){
+        if(!window.sb){emToast('Supabase 未连接，无法发送');return;}
+        var subEl=document.getElementById('em-edSub'),msgEl=document.getElementById('em-edMsg');
+        var sub=emFillVars((subEl&&subEl.value)||'Code Official · 测试邮件');
+        var body=emFillVars((msgEl&&msgEl.value)||'这是一封来自 Code Official 后台的测试邮件 ✿');
+        var btn=this,old=btn.textContent;btn.disabled=true;btn.textContent='发送中…';
+        window.sb.auth.getUser().then(function(r){
+          var em=r&&r.data&&r.data.user&&r.data.user.email;
+          if(!em){emToast('请先登录后台再测试');btn.disabled=false;btn.textContent=old;return;}
+          return window.sb.functions.invoke('send-email',{body:{
+            to:em,subject:sub,body:body,
+            brand:(window.STORE_CONFIG&&STORE_CONFIG.brand)||'Code Official',
+            cta_text:'查看订单详情',cta_url:'https://codeofficial.com.my/account.html'
+          }}).then(function(res){
+            btn.disabled=false;btn.textContent=old;
+            if(res.error){emToast('发送失败：'+(res.error.message||res.error));console.warn('[send-email]',res);return;}
+            if(res.data&&res.data.error){emToast('发送失败：'+res.data.error);console.warn('[send-email]',res.data);return;}
+            emToast('✿ 测试邮件已发送至 '+em+'（请查收收件箱）');
+          });
+        }).catch(function(e){btn.disabled=false;btn.textContent=old;emToast('发送出错：'+(e&&e.message||e));});
+      });
 
       // Manual send modal
       var curMailOrder=null;var emCurModalTpl='confirm';
