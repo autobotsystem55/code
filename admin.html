@@ -1247,6 +1247,7 @@
           '<button class="em-tab on" data-et="auto"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>自动规则</button>'+
           '<button class="em-tab" data-et="manual"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 4l8 8 8-8"/></svg>订单邮件</button>'+
           '<button class="em-tab" data-et="broadcast"><svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>群发</button>'+
+          '<button class="em-tab" data-et="history"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>已发记录</button>'+
         '</div>'+
 
         // === TAB: AUTO RULES ===
@@ -1351,6 +1352,17 @@
           '</div>'+
         '</div>'+
 
+        // === TAB: HISTORY (已发记录) ===
+        '<div class="em-pane" id="em-pane-history">'+
+          '<div class="panel">'+
+            '<div class="panel-head" style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between">'+
+              '<div><h2 style="font-size:17px">已发邮件记录</h2><div class="muted" style="font-size:12px;margin-top:2px">最近 200 封 · 自动 + 手动发送（含失败的）</div></div>'+
+              '<button class="btn btn--ghost btn--sm" id="em-histRefresh">刷新</button>'+
+            '</div>'+
+            '<div id="em-histBody" style="padding:0 18px 18px"><div class="empty" style="padding:40px;text-align:center;color:var(--muted)">切到此标签自动加载…</div></div>'+
+          '</div>'+
+        '</div>'+
+
         // === TEMPLATE EDITOR (shared, below tabs) ===
         '<div style="margin-top:22px" id="em-ed-wrap">'+
           '<div class="panel" style="margin-bottom:0">'+
@@ -1452,8 +1464,39 @@
           view.querySelectorAll('.em-tab').forEach(function(x){x.classList.toggle('on',x===b);});
           var t=b.getAttribute('data-et');
           view.querySelectorAll('.em-pane').forEach(function(p){p.classList.toggle('on',p.id==='em-pane-'+t);});
+          // The shared template editor is only relevant to compose/auto tabs — hide it on 已发记录.
+          var edWrap=document.getElementById('em-ed-wrap');
+          if(edWrap)edWrap.style.display=(t==='history')?'none':'';
+          if(t==='history')emRenderHistory();
         });
       });
+
+      // ---- History (已发记录): read email_logs from Supabase ----
+      var EM_HIST_STAT={sent:['已发送','green'],failed:['失败','off'],blocked:['已拦截','amber']};
+      var emHistLoaded=false;
+      function emRenderHistory(){
+        var box=document.getElementById('em-histBody');if(!box)return;
+        box.innerHTML='<div class="empty" style="padding:40px;text-align:center;color:var(--muted)">加载中…</div>';
+        DB.allEmailLogs(200).then(function(r){
+          emHistLoaded=true;
+          if(r.error){box.innerHTML='<p class="msg" style="padding:18px">读取失败：'+esc(r.error.message)+'</p>';return;}
+          var rows=r.data||[];
+          if(!rows.length){box.innerHTML='<div class="empty" style="padding:40px;text-align:center;color:var(--muted)">还没有发送记录。发一封邮件后回来点「刷新」。</div>';return;}
+          box.innerHTML='<table><thead><tr><th>时间</th><th>收件人</th><th>主题</th><th>订单</th><th>状态</th></tr></thead><tbody>'+
+            rows.map(function(x){
+              var s=EM_HIST_STAT[x.status]||[x.status,'amber'];
+              var ts=x.sent_at?new Date(x.sent_at).toLocaleString('zh-CN',{hour12:false}):'';
+              var err=x.error_message?'<div class="muted" style="font-size:11px;margin-top:2px">'+esc(x.error_message)+'</div>':'';
+              return '<tr><td style="white-space:nowrap">'+esc(ts)+'</td>'+
+                '<td>'+esc(x.to_email||'')+'</td>'+
+                '<td>'+esc(x.subject||'')+err+'</td>'+
+                '<td>'+(x.order_number?'#'+esc(x.order_number):'<span class="muted">—</span>')+'</td>'+
+                '<td><span class="pill '+s[1]+'">'+s[0]+'</span></td></tr>';
+            }).join('')+'</tbody></table>';
+        });
+      }
+      var histRefresh=document.getElementById('em-histRefresh');
+      if(histRefresh)histRefresh.addEventListener('click',emRenderHistory);
 
       // Template list (editor sidebar)
       var emCurTpl='confirm';

@@ -116,9 +116,22 @@ serve(async (req) => {
   const user = userRes?.user
   if (userErr || !user) return json({ error: "invalid session" }, 401)
 
+  // Write a row to email_logs (best-effort: never let logging break sending).
+  // Uses the service-role client above, so it bypasses RLS.
+  async function logEmail(row: Record<string, unknown>) {
+    try { await supabase.from("email_logs").insert(row) } catch (_e) { /* ignore */ }
+  }
+
   const { data: prof } = await supabase
     .from("profiles").select("is_admin").eq("id", user.id).maybeSingle()
-  if (!prof?.is_admin) return json({ error: "admin only" }, 403)
+  if (!prof?.is_admin) {
+    await logEmail({
+      to_email: to, subject,
+      status: "blocked", error_message: "admin only",
+      sent_by_user_id: user.id, order_number: payload.order_number || null,
+    })
+    return json({ error: "admin only" }, 403)
+  }
 
   // ---- Send via Resend ----
   const RESEND_KEY = Deno.env.get("RESEND_API_KEY")
@@ -142,6 +155,22 @@ serve(async (req) => {
   })
 
   const result = await r.json().catch(() => ({}))
+
+  // Record the attempt (success or failure) for the admin "已发记录" tab.
+  await logEmail({
+    to_email: to,
+    subject,
+    body_preview: String(body ?? "").slice(0, 200),
+    resend_id: r.ok ? (result.id || null) : null,
+    status: r.ok ? "sent" : "failed",
+    error_message: r.ok ? null : (result.message || "send failed"),
+    sent_by_user_id: user.id,
+    order_number: payload.order_number || null,
+    brand: brand || null,
+    cta_text: cta_text || null,
+    cta_url: cta_url || null,
+  })
+
   if (!r.ok) return json({ error: result.message || "send failed", detail: result }, r.status)
 
   return json({ ok: true, id: result.id })

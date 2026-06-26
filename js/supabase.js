@@ -123,6 +123,12 @@
       if (!window.sb) return Promise.resolve({ data: [], error: null });
       return window.sb.from('profiles').select('*').order('created_at', { ascending: false });
     },
+    // ---- email logs (已发邮件记录) — admin-only read (RLS) ----
+    allEmailLogs: function (limit) {
+      if (!window.sb) return Promise.resolve({ data: [], error: null });
+      return window.sb.from('email_logs').select('*')
+        .order('sent_at', { ascending: false }).limit(limit || 200);
+    },
     getSettings: function () {
       if (!window.sb) return Promise.resolve({ data: null, error: null });
       return window.sb.from('settings').select('data').eq('id', 1).single();
