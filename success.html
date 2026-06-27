@@ -34,8 +34,26 @@
       var order = null;
       try { order = JSON.parse(localStorage.getItem('eclat_last_order')); } catch (e) {}
       var el = document.getElementById('thanks');
+      var zh = window.LANG === 'zh';
 
       var check = '<div class="thanks__check"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></div>';
+      var cross = '<div class="thanks__check" style="background:#F7E3E0;color:#B23A3A"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></div>';
+
+      // ---- Billplz redirect: ?billplz[id]=...&billplz[paid]=true|false&billplz[paid_at]=...
+      // We only TRUST this for display; the authoritative status is set by the
+      // billplz-webhook Edge Function (HMAC-verified).
+      var qs = new URLSearchParams(window.location.search);
+      var bpId = qs.get('billplz[id]');
+      var bpPaid = qs.get('billplz[paid]') === 'true';
+
+      if (bpId && !bpPaid) {
+        // Payment cancelled / failed — keep the cart so the customer can retry.
+        el.innerHTML = cross +
+          '<h1>' + (zh ? '支付未完成' : 'Payment incomplete') + '</h1>' +
+          '<p class="muted">' + (zh ? '你的付款没有完成。可以返回结账页重新支付。' : 'Your payment was not completed. You can return to checkout to try again.') + '</p>' +
+          '<br><a class="btn" href="checkout.html">' + (zh ? '返回结账' : 'Back to checkout') + '</a>';
+        return;
+      }
 
       if (!order) {
         el.innerHTML = check + '<h1>' + t('ok.thanksPlain') + '</h1><p class="muted">' + t('ok.none') + '</p><br><a class="btn" href="shop.html">' + t('ok.continue') + '</a>';

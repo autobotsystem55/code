@@ -152,8 +152,10 @@
       var discount = 0, discountCode = '', freeShip = false;
       var total = subtotal + shipping;
 
+      var payMode = (STORE_CONFIG.paymentMode || '').toLowerCase();
       var payLink = (STORE_CONFIG.paymentLink || '').trim();
-      var demo = !payLink;
+      var useBillplz = payMode === 'billplz' && !!(window.DB && DB.configured);
+      var demo = !useBillplz && !payLink;
 
       // ---- fire Pixel InitiateCheckout ----
       if (window.Pixel) Pixel.initiateCheckout(lines.map(function (l) { return { id: l.id, qty: l.qty, price: l.price }; }), subtotal);
@@ -867,12 +869,45 @@
           credit_used: creditUse || 0
         }));
 
-        // DEMO → confirmation page. REAL → redirect to your Stripe/PayPal link.
-        function go() { location.href = demo ? 'success.html' : payLink; }
+        // DEMO → confirmation page. STRIPE/PAYPAL → redirect to that link.
+        // BILLPLZ → ask the Edge Function to open a bill, then redirect there.
+        var saveSucceeded = false;
+        function go() {
+          if (useBillplz) {
+            if (!saveSucceeded) {
+              toast(window.LANG === 'zh' ? '订单保存失败，请重试' : 'Could not save order, please try again');
+              var pb0 = document.getElementById('placeBtn'); if (pb0) pb0.disabled = false;
+              return;
+            }
+            var redirectUrl = window.location.origin + '/success.html';
+            window.sb.functions.invoke('create-billplz-bill', {
+              body: {
+                order_number: orderId,
+                email: f.email.value,
+                name: [f.first.value, f.last.value].filter(Boolean).join(' '),
+                mobile: f.phone.value,
+                redirect_url: redirectUrl
+              }
+            }).then(function (r) {
+              var url = r && r.data && r.data.url;
+              if (!url || (r && r.error)) {
+                toast(window.LANG === 'zh' ? '支付通道打开失败，请重试' : 'Payment gateway error, please try again');
+                var pb1 = document.getElementById('placeBtn'); if (pb1) pb1.disabled = false;
+                return;
+              }
+              location.href = url;
+            }, function () {
+              toast(window.LANG === 'zh' ? '支付通道连接失败' : 'Payment connection failed');
+              var pb2 = document.getElementById('placeBtn'); if (pb2) pb2.disabled = false;
+            });
+            return;
+          }
+          location.href = demo ? 'success.html' : payLink;
+        }
 
         // Save the order to Supabase (attach the logged-in user if any).
         // Never block checkout on a DB hiccup.
-        if (window.DB && DB.configured && window.Auth) {
+        if (window.DB && DB.configured) {
           var btn = document.getElementById('placeBtn'); if (btn) btn.disabled = true;
           var orderRow = {
             order_number: orderId, email: f.email.value, customer: customer,
@@ -888,12 +923,14 @@
           // Spend the chosen reward FIRST (server-side, atomic). Only on success do we
           // keep the discount; otherwise place the order at full price.
           var saveOrder = function () {
-          Auth.getUser().then(function (res) {
+          var getU = (window.Auth && Auth.getUser) ? Auth.getUser() : Promise.resolve({ data: { user: null } });
+          getU.then(function (res) {
             var u = res && res.data && res.data.user; if (u) orderRow.user_id = u.id;
             return DB.createOrder(orderRow);
           }).then(function (r) {
             if (r && r.error) console.warn('[Supabase] order save:', r.error.message);
             else {
+              saveSucceeded = true;
               if (discountCode && DB.redeemDiscount) { try { DB.redeemDiscount(discountCode); } catch (e) {} }
               gifts.forEach(function (g) { if (DB.redeemDiscount) { try { DB.redeemDiscount(g.code); } catch (e) {} } });
               if (addonAdded && addonOffer && DB.redeemDiscount) { try { DB.redeemDiscount(addonOffer.code); } catch (e) {} }
