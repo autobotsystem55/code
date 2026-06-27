@@ -33,12 +33,21 @@ const json = (obj: unknown, status = 200) =>
 
 function normalizeMobile(raw: string | null | undefined): string | null {
   if (!raw) return null
-  let s = String(raw).replace(/[^\d+]/g, "")
+  const s = String(raw).replace(/[^\d+]/g, "")
   if (!s) return null
-  if (s.startsWith("+")) return s
-  if (s.startsWith("60")) return "+" + s
-  if (s.startsWith("0")) return "+6" + s
-  return "+" + s
+
+  let normalized: string
+  if (s.startsWith("+")) normalized = s
+  else if (s.startsWith("60")) normalized = "+" + s
+  else if (s.startsWith("0")) normalized = "+6" + s
+  else normalized = "+" + s
+
+  // Billplz rejects malformed mobiles outright, which would fail the whole
+  // bill creation. Mobile is optional — drop it if it doesn't look like a
+  // plausible international number (8-15 digits after the +).
+  const digits = normalized.replace(/^\+/, "")
+  if (!/^\d{8,15}$/.test(digits)) return null
+  return normalized
 }
 
 serve(async (req) => {
